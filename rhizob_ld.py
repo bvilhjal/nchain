@@ -21,7 +21,7 @@ def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/bjarni/snp
         snps_g.create_dataset('snps', data=snps_data['matrix'], compression='lzf')
         snps_g.create_dataset('alignment_length',data=snps_data['alignment_length'])
         snps_g.create_dataset('minor_frequencies',data=snps_data['minor_frequencies'])
-        snps_g.create_dataset('strains',data=snps_data['strains'])
+        snps_g.create_dataset('strains',data=snps_data['strains'].tolist())
         snps_g.create_dataset('positions',data=snps_data['positions'])
         h5f.flush()
     h5f.close()
