@@ -6,7 +6,7 @@ import scipy as sp
 import h5py 
 import os
 
-def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/ld/snps.hdf5', 
+def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/bjarni/snps.hdf5', 
                           directory='/faststorage/project/NChain/rhizobium/ld/snps/'):
     snps_files = os.listdir(directory)
     h5f = h5py.File(out_hdf5_file)
