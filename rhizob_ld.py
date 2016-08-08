@@ -19,7 +19,7 @@ def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/bjarni/snp
             print i
         l = snps_f.split('.')
         group_num = int(l[0][5:])
-        snps_data = sp.load(directory+'/'+snps_f)
+        snps_data = sp.load(snps_directory+'/'+snps_f)
         snps_g = g.create_group('%d'%group_num)
         snps_g.create_dataset('snps', data=snps_data['matrix'], compression='lzf')
         snps_g.create_dataset('alignment_length',data=snps_data['alignment_length'])
@@ -35,6 +35,7 @@ def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/bjarni/snp
             print i
         l = snps_f.split('.')
         group_num = int(l[0][5:])
+        snps_data = sp.load(snps_wo_struct_directory+'/'+snps_f)
         snps_g = g['%d'%group_num]
         snps_g.create_dataset('snps_wo_struct', data=snps_data['matrix'], compression='lzf')        
     h5f.close()
