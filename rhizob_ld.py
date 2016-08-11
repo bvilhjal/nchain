@@ -103,12 +103,9 @@ def translate_dna(sequence):
 #     cds = str(sequencestart[:int(stop)+3])
     cds=sequence
     
-    for n in range(0,len(cds),3):
-        if cds[n:n+3] in codontable == True:
-            proteinsequence += codontable[cds[n:n+3]]
-            print proteinsequence
-        sequence = ''
-
+    for i in range(0,len(cds),3):
+        proteinsequence += codontable[cds[i:i+3]]
+    return proteinsequence
 
     
     
