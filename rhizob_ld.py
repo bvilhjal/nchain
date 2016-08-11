@@ -95,6 +95,7 @@ def translate_dna(sequence):
     'TTC':'F', 'TTT':'F', 'TTA':'L', 'TTG':'L',
     'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
     'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W',
+    '---':'-'
     }
     proteinsequence = ''
 #     start = sequence.find('ATG')
