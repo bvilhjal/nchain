@@ -8,17 +8,30 @@ import os
 
 nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5}
 
-def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/ld/snps.hdf5', 
+def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/ld/snps2.hdf5', 
                           snps_directory='/faststorage/project/NChain/rhizobium/ld/snps/',
                           fna_files_directory='/faststorage/project/NChain/rhizobium/ld/group_alns/',
                           snps_wo_struct_directory='/faststorage/project/NChain/rhizobium/ld/snps_no_structure/'):
 
     h5f = h5py.File(out_hdf5_file)
-    g = h5f.create_group('gene_groups')
-    snps_g = g.create_group('snps')
-    snps_wostruct_g = g.create_group('snps_wo_struct')
-    align_g = g.create_group('alignments')
+    snps_g = h5f.create_group('snps')
+    snps_wostruct_g = h5f.create_group('snps_wo_struct')
+    align_g = h5f.create_group('alignments')
     
+    print "Parsing alignments"
+    aln_files = os.listdir(fna_files_directory)
+    for i, a_f in enumerate(aln_files):
+        if i%100==0:
+            print i
+        l = a_f.split('.')
+        group_num = int(l[0][5:])
+        aln_dict = parse_fasta_file(a_f)
+        g = align_g.create_group('%d'%group_num)
+        g.create_dataset('strains', data=aln_dict['iids'])
+        g.create_dataset('sequences', data=aln_dict['sequences'], compression='lzf')
+        g.create_dataset('psequences', data=aln_dict['psequences'], compression='lzf')
+        g.create_dataset('nsequences', data=sp.array(aln_dict['nsequences'], dtype='int8'))
+
     print "Raw SNPs files"
     snps_files = os.listdir(snps_directory)
     for i, snps_f in enumerate(snps_files):
@@ -27,12 +40,12 @@ def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/
         l = snps_f.split('.')
         group_num = int(l[0][5:])
         snps_data = sp.load(snps_directory+'/'+snps_f)
-        snps_g = g.create_group('%d'%group_num)
-        snps_g.create_dataset('snps', data=snps_data['matrix'], compression='lzf')
-        snps_g.create_dataset('alignment_length',data=snps_data['alignment_length'])
-        snps_g.create_dataset('minor_frequencies',data=snps_data['minor_frequencies'])
-        snps_g.create_dataset('strains',data=[a.encode('utf8') for a in snps_data['strains']])
-        snps_g.create_dataset('positions',data=snps_data['positions'])
+        g = snps_g.create_group('%d'%group_num)
+        g.create_dataset('snps', data=snps_data['matrix'], compression='lzf')
+        g.create_dataset('alignment_length',data=snps_data['alignment_length'])
+        g.create_dataset('minor_frequencies',data=snps_data['minor_frequencies'])
+        g.create_dataset('strains',data=[a.encode('utf8') for a in snps_data['strains']])
+        g.create_dataset('positions',data=snps_data['positions'])
         h5f.flush()
 
     print "Now SNPs wo structure"
@@ -43,8 +56,14 @@ def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/
         l = snps_f.split('.')
         group_num = int(l[0][5:])
         snps_data = sp.load(snps_wo_struct_directory+'/'+snps_f)
-        snps_g = g['%d'%group_num]
-        snps_g.create_dataset('snps_wo_struct', data=snps_data['matrix'], compression='lzf')        
+        g = snps_wostruct_g.create_group('%d'%group_num)
+        g.create_dataset('snps', data=snps_data['matrix'], compression='lzf')        
+        g.create_dataset('alignment_length',data=snps_data['alignment_length'])
+        g.create_dataset('minor_frequencies',data=snps_data['minor_frequencies'])
+        g.create_dataset('strains',data=[a.encode('utf8') for a in snps_data['strains']])
+        g.create_dataset('positions',data=snps_data['positions'])
+
+    
     h5f.close()
     
     
@@ -133,6 +152,10 @@ def parse_fasta_file(filename):
                 sequence += line.strip()
         
     return data_dict
+
+
+    
+    
     
     
     
