@@ -6,6 +6,8 @@ import scipy as sp
 import h5py 
 import os
 
+nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5}
+
 def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/ld/snps.hdf5', 
                           snps_directory='/faststorage/project/NChain/rhizobium/ld/snps/',
                           fna_files_directory='/faststorage/project/NChain/rhizobium/ld/group_alns/',
@@ -105,26 +107,33 @@ def translate_dna(sequence):
             proteinsequence += codontable[cds[n:n+3]]
             print proteinsequence
         sequence = ''
-    
+
+
     
     
 def parse_fasta_file(filename):
-    header = ''
-    sequence = ''
-    for line in open(filename):
-        if line[0] == ">":
-            if header != '':
-                print header
-                translate_dna(sequence)
     
-            header = line.strip()
-            sequence = ''
-        else:
-            sequence += line.strip()
-    
-    print header 
-    translate_dna(sequence)
-    
+    header = None
+    sequence = None
+    data_dict = {'iids':[], 'sequences':[], 'psequences':[], 'nsequences':[]}
+    with open(filename) as f:
+        for line in f:
+            if line[0] == ">":
+                if header is not None:
+                    assert len(sequence)%3==0, 'Sequence length is not divisible by 3.'
+                    l = header.split('|')
+                    data_dict['iids'].append(l[2])
+                    data_dict['sequences'].append(sequence)
+                    psequence = translate_dna(sequence)
+                    data_dict['psequences'].append(psequence)
+                    nsequence = map(nt_map,sequence)
+                    data_dict['nsequence'].append(nsequence)
+                header = line.strip()
+                sequence = ''
+            else:
+                sequence += line.strip()
+        
+    return data_dict
     
     
     
