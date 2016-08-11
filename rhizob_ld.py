@@ -114,7 +114,7 @@ def translate_dna(sequence):
 def parse_fasta_file(filename):
     
     header = None
-    sequence = None
+    sequence = ''
     data_dict = {'iids':[], 'sequences':[], 'psequences':[], 'nsequences':[]}
     with open(filename) as f:
         for line in f:
