@@ -97,11 +97,12 @@ def translate_dna(sequence):
     'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W',
     }
     proteinsequence = ''
-    start = sequence.find('ATG')
-    sequencestart = sequence[int(start):]
-    stop = sequencestart.find('TAA')
-    cds = str(sequencestart[:int(stop)+3])
-
+#     start = sequence.find('ATG')
+#     sequencestart = sequence[int(start):]
+#     stop = sequencestart.find('TAA')
+#     cds = str(sequencestart[:int(stop)+3])
+    cds=sequence
+    
     for n in range(0,len(cds),3):
         if cds[n:n+3] in codontable == True:
             proteinsequence += codontable[cds[n:n+3]]
