@@ -155,7 +155,24 @@ def parse_fasta_file(filename):
 
 
     
+def check_variants(gt_hdf5_file='snps2.hdf5'):
+    # Iterate across all SNPs.
+    # For each SNP 
+    #    Check if it results in an AA change.
+    #    If so quantify it.
+    #    Count SNPs with more than 2 variants.
+    #     
     
+def call_variants(gt_hdf5_file='snps2.hdf5'):
+    """
+    Generate a new set of SNPs to look at.
+    
+    For all nts:
+        if it is a SNP
+            count # of variants. 
+            check AA changes
+            quantify AA change severity    
+    """
     
     
     
