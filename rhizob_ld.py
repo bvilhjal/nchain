@@ -25,7 +25,7 @@ def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/
             print i
         l = a_f.split('.')
         group_num = int(l[0][5:])
-        aln_dict = parse_fasta_file(a_f)
+        aln_dict = parse_fasta_file(fna_files_directory+'/'+a_f)
         g = align_g.create_group('%d'%group_num)
         g.create_dataset('strains', data=aln_dict['iids'])
         g.create_dataset('sequences', data=aln_dict['sequences'], compression='lzf')
