@@ -162,6 +162,7 @@ def check_variants(gt_hdf5_file='snps2.hdf5'):
     #    If so quantify it.
     #    Count SNPs with more than 2 variants.
     #     
+    pass
     
 def call_variants(gt_hdf5_file='snps2.hdf5'):
     """
@@ -173,7 +174,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5'):
             check AA changes
             quantify AA change severity    
     """
-    
+    pass
     
     
     
