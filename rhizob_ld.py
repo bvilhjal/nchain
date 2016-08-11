@@ -126,7 +126,7 @@ def parse_fasta_file(filename):
                     data_dict['sequences'].append(sequence)
                     psequence = translate_dna(sequence)
                     data_dict['psequences'].append(psequence)
-                    nsequence = map(nt_map,sequence)
+                    nsequence = map(lambda x: nt_map[x],sequence)
                     data_dict['nsequence'].append(nsequence)
                 header = line.strip()
                 sequence = ''
