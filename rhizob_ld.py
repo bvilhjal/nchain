@@ -124,7 +124,9 @@ def translate_dna(sequence):
     cds=sequence
     
     for i in range(0,len(cds),3):
-        proteinsequence += codontable[cds[i:i+3]]
+        codon = cds[i:i+3]
+
+        proteinsequence += codontable.get(codon,'X')
     return proteinsequence
 
     
