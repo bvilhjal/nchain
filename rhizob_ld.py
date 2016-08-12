@@ -6,7 +6,7 @@ import scipy as sp
 import h5py 
 import os
 
-nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5}
+nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5, 'N':6}
 
 def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/ld/snps2.hdf5', 
                           snps_directory='/faststorage/project/NChain/rhizobium/ld/snps/',
@@ -166,7 +166,7 @@ def check_variants(gt_hdf5_file='snps2.hdf5'):
     #     
     pass
     
-def call_variants(gt_hdf5_file='snps2.hdf5'):
+def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5'):
     """
     Generate a new set of SNPs to look at.
     
@@ -176,7 +176,9 @@ def call_variants(gt_hdf5_file='snps2.hdf5'):
             check AA changes
             quantify AA change severity    
     """
-    pass
+    h5f = h5py.File(gt_hdf5_file)
+    oh5f = h5py.File(out_file)
+    
     
     
     
