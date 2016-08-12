@@ -182,3 +182,4 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5'):
     
     
     
+    
