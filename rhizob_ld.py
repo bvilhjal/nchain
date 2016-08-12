@@ -166,7 +166,9 @@ def check_variants(gt_hdf5_file='snps2.hdf5'):
     #     
     pass
     
-def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5'):
+    
+    
+def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_strains=100):
     """
     Generate a new set of SNPs to look at.
     
@@ -177,8 +179,42 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5'):
             quantify AA change severity    
     """
     h5f = h5py.File(gt_hdf5_file)
+    ag = h5f['alignments']
     oh5f = h5py.File(out_file)
-    
+    gene_groups = sorted(ag.keys())
+    num_ignored_genes = 0
+    gene_res_dict = {}
+    for gg in gene_groups:
+        g = ag[gg]
+        if len(g['strains'])>min_num_strains:
+            
+            #1. Filter indel/bad rows
+            nt_mat = g['nsequences']
+            bad_rows_filter = (nt_mat<5).all(0)
+            if sp.sum(bad_rows_filter)>0:
+                
+                #2. Filter non-variable rows
+                num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, raw_snps)
+                
+                
+                var_filter = >0                
+                snps_filter = var_filter*bad_rows_filter
+                if sp.sum(snps_filter)>0:
+                    
+                    raw_snps = nt_mat[snps_filter]
+                    #3. Identify good SNPS
+                    
+                    sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, raw_snps)
+                    
+                    
+                    #4. Call good SNPs
+                    #5. Check codon position
+                    #6. Check non-synonimous/synonimous
+                #7. Get BLOUSUM62 score
+        
+        
+        num_ignored_genes+=1
+        
     
     
     
