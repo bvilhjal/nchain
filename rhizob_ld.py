@@ -344,7 +344,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     num_syn_subt = sp.sum(is_synonimous_snp)
                     num_non_syn_subt = len(is_synonimous_snp)-num_syn_subt
                     if num_non_syn_subt>0:
-                        dn_ds_ratio = (num_syn_subt/tot_num_syn_sites)/(num_non_syn_subt/tot_num_non_syn_sites)
+                        dn_ds_ratio = (num_non_syn_subt/tot_num_non_syn_sites)/(num_syn_subt/tot_num_syn_sites)
                     else:
                         dn_ds_ratio=-1
 
