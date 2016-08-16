@@ -275,7 +275,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                             codon0 = cdseq01+nt0
                             codon1 = cdseq01+nt1
                         
-                        assert codon0==codon1, 'Codons are identical?'
+                        assert codon0!=codon1, 'Codons are identical?'
                         
                         #This appears to be a unique codon change with a dimorphic SNP.
                         codons.append([codon0,codon1])
