@@ -382,7 +382,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file, fig_dir):
         g = h5f[gg]
         codon_snp_positions = g['codon_snp_positions'][...]
         if len(codon_snp_positions)>100:
-            dn_ds_ratio = g['dn_ds_ratio'][...]
+            dn_ds_ratio = 1/g['dn_ds_ratio'][...]
             blosum62_scores = sp.mean(g['blosum62_scores'][...])
             dn_ds_ratios.append(dn_ds_ratio)
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
