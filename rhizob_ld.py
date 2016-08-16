@@ -376,18 +376,21 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
 def summarize_nonsynonimous_snps(snps_hdf5_file, fig_file):
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
-    Ka_Ks_ratios = []
+    dn_ds_ratios = []
     mean_blosum_62_scores = []
     for gg in gene_groups:
         g = h5f[gg]
-        is_synonimous_snp = g['is_synonimous_snp'][...]
+        dn_ds_ratio = g['dn_ds_ratio'][0]
         blosum62_scores = g['blosum62_scores'][...]
-        Ka_Ks_ratios.append(1-sp.mean(is_synonimous_snp))
+        dn_ds_ratios.append(dn_ds_ratio)
         mean_blosum_62_scores.append(sp.mean(blosum62_scores))
         
-    pylab.hist(Ka_Ks_ratios)
-    pylab.savefig('Ka_Ks_ratios.png')
+    pylab.hist(dn_ds_ratio)
+    pylab.savefig('dn_ds_ratio.png')
         
+    pylab.clf()
+    pylab.hist(mean_blosum_62_scores)
+    pylab.savefig('mean_blosum_62_scores.png')
        
     
     
