@@ -221,7 +221,6 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     assert M==len(snp_positions), 'A bug detected!'
                     
                     #4. Call good SNPs
-                    psequences = g['psequences'][...]
                     sequences = g['sequences'][...]
 
                     snps = []
@@ -233,7 +232,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     aacids = []
                     is_synonimous_snp =  []
                     blosum62_scores = []
-                    for snp_i, ok_snp, snp_pos in enumerate(izip(ok_snps, snp_positions)):                    
+                    for ok_snp, snp_pos in izip(ok_snps, snp_positions):                    
                         mean_snp = sp.mean(ok_snp)
                         snp = sp.zeros(N)
                         snp[ok_snp>mean_snp]=1
@@ -298,15 +297,15 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     
                     #Normalize SNPs
                     freqs = sp.mean(snps,0)
-                    norm_snps = (norm_snps-freqs)/sp.sqrt(freqs*(1-freqs))
+                    norm_snps = (snps-freqs)/sp.sqrt(freqs*(1-freqs))
                     
                     
-                    gene_dict = {'aln_length':aln_length, 'var_positions':var_positions, 'num_vars':num_vars, 
-                                 'raw_snps':all_snps, 'raw_snp_positions':all_snp_positions, 'snps':snps, 'norm_snps':norm_snps, 
-                                 'snp_positions':snp_positions, 'codon_snps':codon_snps, 'codon_snp_positions':codon_snp_positions, 
-                                 'blosum62_scores':blosum62_scores,'aacids':aacids, 'nts':nts,'codons':codons, 
-                                 'is_synonimous_snp':is_synonimous_snp,
-                                 }
+#                     gene_dict = {'aln_length':aln_length, 'var_positions':var_positions, 'num_vars':num_vars, 
+#                                  'raw_snps':all_snps, 'raw_snp_positions':all_snp_positions, 'snps':snps, 'norm_snps':norm_snps, 
+#                                  'snp_positions':snp_positions, 'codon_snps':codon_snps, 'codon_snp_positions':codon_snp_positions, 
+#                                  'blosum62_scores':blosum62_scores,'aacids':aacids, 'nts':nts,'codons':codons, 
+#                                  'is_synonimous_snp':is_synonimous_snp,
+#                                  }
                     
                     #Store everything to a HDF5 file
                     og = oh5f.create_group(gg)   
