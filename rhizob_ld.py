@@ -196,7 +196,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
             
             #1. Filter indel/bad rows
             nt_mat = g['nsequences']
-            num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, raw_snps)
+            num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, nt_mat)
             bad_rows_filter = (nt_mat<5).all(0)
             if sp.sum(bad_rows_filter)>0:
                 raw_snps = nt_mat[bad_rows_filter]
