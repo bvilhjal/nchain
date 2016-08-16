@@ -380,8 +380,8 @@ def summarize_nonsynonimous_snps(snps_hdf5_file, fig_dir):
     mean_blosum_62_scores = []
     for gg in gene_groups:
         g = h5f[gg]
-        dn_ds_ratio = g['dn_ds_ratio'][...][0]
-        blosum62_scores = g['blosum62_scores'][...][0]
+        dn_ds_ratio = g['dn_ds_ratio'][...]
+        blosum62_scores = sp.mean(g['blosum62_scores'][...])
         dn_ds_ratios.append(dn_ds_ratio)
         mean_blosum_62_scores.append(sp.mean(blosum62_scores))
         
