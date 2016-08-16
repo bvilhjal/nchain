@@ -218,7 +218,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     good_snp_filter = ok_num_vars==2
                     ok_snps = raw_snps[good_snp_filter]
                     snp_positions = var_positions[good_snp_filter]
-                    assert M==len(snp_positions), 'A bug detected!'
+                    assert len(ok_snps)==len(snp_positions), 'A bug detected!'
                     
                     #4. Call good SNPs
                     sequences = g['sequences'][...]
