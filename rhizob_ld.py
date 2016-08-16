@@ -308,7 +308,6 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     
                     #Store everything to a HDF5 file
                     og = oh5f.create_group(gg)   
-                    og.create_dataset('aln_length', data=aln_length)
                     og.create_dataset('var_positions', data=var_positions)
                     og.create_dataset('num_vars', data=num_vars)
                     og.create_dataset('raw_snps', data=sp.array(all_snps,dtype='int8'), compression='lzf')
