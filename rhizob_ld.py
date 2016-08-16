@@ -382,14 +382,18 @@ def summarize_nonsynonimous_snps(snps_hdf5_file, fig_dir):
         g = h5f[gg]
         codon_snp_positions = g['codon_snp_positions'][...]
         if len(codon_snp_positions)>100:
-            dn_ds_ratio = 1/g['dn_ds_ratio'][...]
+            dn_ds_ratio = g['dn_ds_ratio'][...]
+            if dn_ds_ratio==-1:
+                dn_ds_ratios.append(0)
+            else:
+                dn_ds_ratios.append(1/dn_ds_ratio)
+
             blosum62_scores = sp.mean(g['blosum62_scores'][...])
             dn_ds_ratios.append(dn_ds_ratio)
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
     
     mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
     print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
-    dn_ds_ratios[dn_ds_ratios==-1]=0
     pylab.hist(dn_ds_ratios, bins=100)
     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
         
