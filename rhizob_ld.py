@@ -384,7 +384,8 @@ def summarize_nonsynonimous_snps(snps_hdf5_file, fig_dir):
         blosum62_scores = sp.mean(g['blosum62_scores'][...])
         dn_ds_ratios.append(dn_ds_ratio)
         mean_blosum_62_scores.append(sp.mean(blosum62_scores))
-        
+    
+    mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
     pylab.hist(dn_ds_ratios)
     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
         
