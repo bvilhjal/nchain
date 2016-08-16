@@ -33,6 +33,35 @@ codontable = {
     }
 
 
+
+def get_codon_syn_map():
+    all_codons = ['AAA', 'AAC', 'AAG', 'AAT', 'ACA', 'ACC', 'ACG', 'ACT', 'AGA', 
+                  'AGC', 'AGG', 'AGT', 'ATA', 'ATC', 'ATG', 'ATT', 'CAA', 'CAC', 
+                  'CAG', 'CAT', 'CCA', 'CCC', 'CCG', 'CCT', 'CGA', 'CGC', 'CGG', 
+                  'CGT', 'CTA', 'CTC', 'CTG', 'CTT', 'GAA', 'GAC', 'GAG', 'GAT', 
+                  'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'GTA', 
+                  'GTC', 'GTG', 'GTT', 'TAA', 'TAC', 'TAG', 'TAT', 'TCA', 'TCC', 
+                  'TCG', 'TCT', 'TGA', 'TGC', 'TGG', 'TGT', 'TTA', 'TTC', 'TTG', 
+                  'TTT']
+    
+    all_bases = {'A','T','C','G'}
+
+    ret_dict = {}
+    
+    for codon in all_codons:
+        syn_list = []
+        for i in range(3):
+            base = codon[i]
+            other_bases = all_bases - {base}
+            syn = 0
+            for new_base in other_bases:
+                new_codon = codon[:i] + new_base + codon[i + 1:]
+                syn += int(codontable[codon]==codontable[new_codon])
+            syn_list.append(syn/3.0)
+        ret_dict[codon]=sp.sum(syn_list)
+    return ret_dict
+
+
 def gen_genotype_hdf5file(out_hdf5_file ='/faststorage/project/NChain/rhizobium/ld/snps2.hdf5', 
                           snps_directory='/faststorage/project/NChain/rhizobium/ld/snps/',
                           fna_files_directory='/faststorage/project/NChain/rhizobium/ld/group_alns/',
@@ -188,6 +217,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
     """
     from itertools import izip
     blosum62_matrix, blosum62_dict = parse_blosum62(blosum62_file)
+    codon_syn_map = get_codon_syn_map()
     h5f = h5py.File(gt_hdf5_file)
     ag = h5f['alignments']
     oh5f = h5py.File(out_file)
@@ -234,6 +264,8 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     aacids = []
                     is_synonimous_snp =  []
                     blosum62_scores = []
+                    tot_num_syn_sites = 0
+                    tot_num_non_syn_sites = 0
                     for ok_snp, snp_pos in izip(ok_snps, snp_positions):                    
                         mean_snp = sp.mean(ok_snp)
                         snp = sp.zeros(N)
@@ -282,13 +314,20 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                         
                         #This appears to be a unique codon change with a dimorphic SNP.
                         codons.append([codon0,codon1])
+                        freq = sp.mean(snp,0)
                         
                         #7. Check non-synonimous/synonimous
+                        num_syn_sites = freq*codon_syn_map[codon0]+(1-freq)*codon_syn_map[codon1]
+                        num_non_syn_sites = 3-num_syn_sites
+                        tot_num_syn_sites += num_syn_sites
+                        tot_num_non_syn_sites += num_non_syn_sites
+
                         aa0 = codontable[codon0]
                         aa1 = codontable[codon1]
                         aacids.append([aa0,aa1])
                         is_synon = aa0==aa1
                         is_synonimous_snp.append(is_synon)
+                        
                         
                         #Get BLOUSUM62 score
                         blosum62_score = blosum62_dict[aa0][aa1]
@@ -301,13 +340,14 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     freqs = sp.mean(snps,0)
                     norm_snps = (snps-freqs)/sp.sqrt(freqs*(1-freqs))
                     
-                    
-#                     gene_dict = {'aln_length':aln_length, 'var_positions':var_positions, 'num_vars':num_vars, 
-#                                  'raw_snps':all_snps, 'raw_snp_positions':all_snp_positions, 'snps':snps, 'norm_snps':norm_snps, 
-#                                  'snp_positions':snp_positions, 'codon_snps':codon_snps, 'codon_snp_positions':codon_snp_positions, 
-#                                  'blosum62_scores':blosum62_scores,'aacids':aacids, 'nts':nts,'codons':codons, 
-#                                  'is_synonimous_snp':is_synonimous_snp,
-#                                  }
+                    #Calculate dn/ds ratios
+                    num_syn_subt = sp.sum(is_synonimous_snp)
+                    num_non_syn_subt = len(is_synonimous_snp)-num_syn_subt
+                    if num_non_syn_subt>0:
+                        dn_ds_ratio = (num_syn_subt/tot_num_syn_sites)/(num_non_syn_subt/tot_num_non_syn_sites)
+                    else:
+                        dn_ds_ratio=-1
+
                     
                     #Store everything to a HDF5 file
                     og = oh5f.create_group(gg)   
@@ -324,7 +364,9 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     og.create_dataset('aacids', data=sp.array(aacids))
                     og.create_dataset('nts', data=sp.array(nts))
                     og.create_dataset('codons', data=sp.array(codons))
-                    og.create_dataset('is_synonimous_snp', data=is_synonimous_snp)
+                    og.create_dataset('num_syn_sites', data=tot_num_syn_sites)
+                    og.create_dataset('num_non_syn_sites', data=tot_num_non_syn_sites)
+                    og.create_dataset('dn_ds_ratio', data=dn_ds_ratio)
                     oh5f.flush()
                     num_parsed_genes +=1
 
@@ -334,15 +376,17 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
 def summarize_nonsynonimous_snps(snps_hdf5_file, fig_file):
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
-    num_parsed_genes = 0
-    dn_ds_ratios = []
+    Ka_Ks_ratios = []
+    mean_blosum_62_scores = []
     for gg in gene_groups:
         g = h5f[gg]
         is_synonimous_snp = g['is_synonimous_snp'][...]
-        dn_ds_ratios.append(sp.mean(is_synonimous_snp))
+        blosum62_scores = g['blosum62_scores'][...]
+        Ka_Ks_ratios.append(1-sp.mean(is_synonimous_snp))
+        mean_blosum_62_scores.append(sp.mean(blosum62_scores))
         
-    pylab.hist(dn_ds_ratios)
-    pylab.savefig('')
+    pylab.hist(Ka_Ks_ratios)
+    pylab.savefig('Ka_Ks_ratios.png')
         
        
     
