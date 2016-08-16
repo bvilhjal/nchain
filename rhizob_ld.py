@@ -5,6 +5,9 @@ Code for analysing LD of rhizobium
 import scipy as sp
 import h5py 
 import os
+import matplotlib
+matplotlib.use('Agg')
+import pylab
 
 nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5, 'N':6}
 nt_decode_map = {1:'A', 2:'C', 3:'G', 4:'T', 5:'-', 6:'N'}
@@ -328,5 +331,19 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
     print 'Parsed %d'%num_parsed_genes
     
     
+def summarize_nonsynonimous_snps(snps_hdf5_file, fig_file):
+    h5f = h5py.File(snps_hdf5_file)
+    gene_groups = sorted(h5f.keys())
+    num_parsed_genes = 0
+    dn_ds_ratios = []
+    for gg in gene_groups:
+        g = h5f[gg]
+        is_synonimous_snp = g['is_synonimous_snp'][...]
+        dn_ds_ratios.append(sp.mean(is_synonimous_snp))
+        
+    pylab.hist(dn_ds_ratios)
+    pylab.savefig('')
+        
+       
     
     
