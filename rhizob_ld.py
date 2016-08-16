@@ -221,8 +221,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     assert len(ok_snps)==len(snp_positions), 'A bug detected!'
                     
                     #4. Call good SNPs
-                    sequences = g['sequences'][...]
-
+                    sequence = g['sequences'][0]
                     snps = []
                     nts = []
                     
@@ -253,7 +252,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                                 continue
                             if not(num_vars[snp_pos+1]==1 and num_vars[snp_pos+2]==1):
                                 continue
-                            cdseq12 = sequences[snp_pos+1:snp_pos+3,0]
+                            cdseq12 = sequence[snp_pos+1:snp_pos+3]
                             codon0 = nt0+cdseq12
                             codon1 = nt1+cdseq12
                             
@@ -262,8 +261,8 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                                 continue
                             if not(num_vars[snp_pos-1]==1 and num_vars[snp_pos+1]==1):
                                 continue
-                            cdseq0 = sequences[snp_pos-1,0]
-                            cdseq2 = sequences[snp_pos+1,0]
+                            cdseq0 = sequence[snp_pos-1]
+                            cdseq2 = sequence[snp_pos+1]
                             codon0 = cdseq0+nt0+cdseq2
                             codon1 = cdseq0+nt1+cdseq2
                         
@@ -272,7 +271,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                                 continue
                             if not(num_vars[snp_pos-1]==1 and num_vars[snp_pos-2]==1):
                                 continue
-                            cdseq01 = sequences[snp_pos-2:snp_pos,0]
+                            cdseq01 = sequence[snp_pos-2:snp_pos]
                             codon0 = cdseq01+nt0
                             codon1 = cdseq01+nt1
                         
