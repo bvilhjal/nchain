@@ -388,7 +388,8 @@ def summarize_nonsynonimous_snps(snps_hdf5_file, fig_dir):
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
     
     mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
-    print 'Average dn/ds ration: %0.2f'%sp.mean(dn_ds_ratios)
+    print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
+    dn_ds_ratios[dn_ds_ratios==-1]=0
     pylab.hist(dn_ds_ratios, bins=100)
     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
         
