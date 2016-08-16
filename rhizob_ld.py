@@ -195,12 +195,13 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
         if len(g['strains'])>min_num_strains:
             
             #1. Filter indel/bad rows
-            nt_mat = g['nsequences']
+            nt_mat = g['nsequences'][...]
             num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, nt_mat)
+            nt_mat = sp.transpose(nt_mat)
             bad_rows_filter = num_vars<5
             if sp.sum(bad_rows_filter)>0:
                 raw_snps = nt_mat[bad_rows_filter]
-
+                
                 #2. Filter non-variable rows
                 ok_num_vars = num_vars[bad_rows_filter]
                 var_filter = ok_num_vars>1                
@@ -208,8 +209,8 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                 if num_raw_snps>0:
                     print 'Working on gene group: %s'%gg
                     
-                    aln_length = len(nt_mat)
-                    var_positions = sp.arange(len(nt_mat))[bad_rows_filter]
+                    M,N = nt_mat.shape
+                    var_positions = sp.arange(M)[bad_rows_filter]
                     all_snps = raw_snps[var_filter]
                     all_snp_positions = var_positions[var_filter]
                     
@@ -217,7 +218,6 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     good_snp_filter = ok_num_vars==2
                     ok_snps = raw_snps[good_snp_filter]
                     snp_positions = var_positions[good_snp_filter]
-                    M,N = ok_snps.shape
                     assert M==len(snp_positions), 'A bug detected!'
                     
                     #4. Call good SNPs
