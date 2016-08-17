@@ -576,7 +576,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         dist_2_r2s = sp.array(dist_2_r2s)
     
         
-        
+        pylab.clf() 
         bins = sp.arange(0,max(plot_distances),bin_size)
         digitize = sp.digitize(plot_distances, bins)    
         xs = []
