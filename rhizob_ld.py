@@ -229,11 +229,12 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
         
         #0. Check if there is evidence for CNVs/paralogs?
         seq_ids = g['strains']
-        strains_list = map(lambda x: x.split('_')[0], seq_ids)
-        strains, counts = sp.unique(strains_list, return_counts=True)
+        strains_list = map(lambda x: x.split('-')[0], seq_ids)
+        strains = sp.unique(strains_list, return_counts=True)
         if len(strains)<len(strains_list):
             print 'Evidence for paralogs/CNVs'
         elif len(seq_ids)>min_num_strains:
+            strains = map(lambda x: x.split('-')[0], seq_ids)
                         
             #1. Filter indel/bad rows
             nt_mat = g['nsequences'][...]
@@ -378,6 +379,8 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     og.create_dataset('freqs', data=sp.array(freqs,dtype='single'), compression='lzf')
                     og.create_dataset('snp_positions', data=snp_positions)
                     og.create_dataset('codon_snps', data=codon_snps)
+                    og.create_dataset('is_synonimous_snp', data=is_synonimous_snp)
+                    og.create_dataset('strains', data=strains)
                     og.create_dataset('codon_snp_positions', data=codon_snp_positions)
                     og.create_dataset('blosum62_scores', data=blosum62_scores)
                     og.create_dataset('aacids', data=sp.array(aacids))
@@ -392,6 +395,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
         else:
             print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
+    
     
     
 def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', 
@@ -444,7 +448,9 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
        
     
-def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', max_dist=3000, min_maf=0.2,
+    
+def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
+                 max_dist=3000, min_maf=0.2,
                  fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
