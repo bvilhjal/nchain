@@ -507,8 +507,8 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     
                     
                     if sp.sum(nonsyn_snp_filter)>1:
-                        norm_snps = all_norm_snps[snp_filter]
-                        positions = all_positions[snp_filter]
+                        norm_snps = all_norm_snps[nonsyn_snp_filter]
+                        positions = all_positions[nonsyn_snp_filter]
                         M,N = norm_snps.shape
                         
                         ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
@@ -523,8 +523,8 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                     snps_sample_size = sp.sum(nonsyn_snp_filter)
                        
                     if sp.sum(syn_snp_filter)>1:
-                        norm_snps = all_norm_snps[snp_filter]
-                        positions = all_positions[snp_filter]
+                        norm_snps = all_norm_snps[syn_snp_filter]
+                        positions = all_positions[syn_snp_filter]
                         
                         sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
                         norm_snps = norm_snps[sample_indices]
