@@ -471,7 +471,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     for dist in distances:
         ld_dist_dict[dist]={'r2_sum':0.0, 'snp_count':0.0}
     
-    for gg in gene_groups:
+    for i, gg in enumerate(gene_groups):
+        if i%50==0:
+            print '%d: Gene %s'%(i,gg)  
         g = h5f[gg]
         
         #Filtering SNPs with small MAFs
