@@ -472,7 +472,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         ld_dist_dict[dist]={'r2_sum':0.0, 'snp_count':0.0}
     
     for i, gg in enumerate(gene_groups):
-        if i%50==0:
+        if i%100==0:
             print '%d: Gene %s'%(i,gg)  
         g = h5f[gg]
         
@@ -481,7 +481,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
             freqs = g['codon_snp_freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
             maf_filter = mafs>min_maf
-            is_synonimous_snp = g['is_synonimous_snp'][...]
+            is_synonimous_snp = sp.negative(g['is_synonimous_snp'][...])
             snp_filter = is_synonimous_snp*maf_filter
             if sp.sum(snp_filter)>1:
                 norm_snps = g['norm_codon_snps'][...]
