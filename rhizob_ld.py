@@ -510,13 +510,14 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         elif dist%3==2:
             dist_2_r2s.append(avg_r2)
         
-    pylab.plot(distances,avg_r2s)
+    pylab.plot(distances,avg_r2s, 'k.', alpha=0.5)
     pylab.savefig(fig_dir+'/total_ld.png')
 
     pylab.clf()
-    pylab.plot(range(1,max_dist,3),dist_1_r2s, color='green')
-    pylab.plot(range(2,max_dist,3),dist_2_r2s, color='red')
-    pylab.plot(range(3,max_dist,3),dist_0_r2s, color='blue')
+    pylab.plot(range(1,max_dist,3),dist_1_r2s, color='green', alpha=0.5, label=r'd mod $3 = 1$')
+    pylab.plot(range(2,max_dist,3),dist_2_r2s, color='red', alpha=0.5, label=r'd mod $3 = 2$')
+    pylab.plot(range(3,max_dist,3),dist_0_r2s, color='blue', alpha=0.5, label=r'd mod $3 = 0$')
+    pylab.legend()
     pylab.savefig(fig_dir+'/part_ld.png')
 
  
