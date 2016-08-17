@@ -480,8 +480,8 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         freqs = g['freqs'][...]
         mafs = sp.minimum(freqs,1-freqs)
         maf_filter = mafs>min_maf
-        norm_snps = g['norm_snps'][...]
-        positions = g['snp_positions'][...]
+        norm_snps = g['norm_codon_snps'][...]
+        positions = g['codon_snp_positions'][...]
         norm_snps = norm_snps[maf_filter]
         positions = positions[maf_filter]
         M,N = norm_snps.shape
@@ -513,7 +513,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.plot(distances,avg_r2s, color='k', linestyle='None', marker='.', alpha=0.5)
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
-    pylab.savefig(fig_dir+'/total_ld.png')
+    pylab.savefig(fig_dir+'/total_ld_codons.png')
 
     pylab.clf()
     pylab.plot(range(1,max_dist,3),dist_1_r2s, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
@@ -522,8 +522,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
     pylab.legend()
-    pylab.savefig(fig_dir+'/part_ld.png')
+    pylab.savefig(fig_dir+'/part_ld_codons.png')
 
  
+
  
  
