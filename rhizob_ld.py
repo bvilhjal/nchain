@@ -504,26 +504,34 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     dist_0_r2s = []
     dist_1_r2s = []
     dist_2_r2s = []
+    plot_distances = []
+    dist_0s = []
+    dist_1s = []
+    dist_2s = []
     for dist in distances:
         if ld_dist_dict[dist]['snp_count']>10:
             avg_r2 = ld_dist_dict[dist]['r2_sum']/float(ld_dist_dict[dist]['snp_count'])
             avg_r2s.append(avg_r2)
+            plot_distances.append(dist)
             if dist%3==0:
                 dist_0_r2s.append(avg_r2)
+                dist_0s.append(dist)
             elif dist%3==1:
                 dist_1_r2s.append(avg_r2)
+                dist_1s.append(dist)
             elif dist%3==2:
                 dist_2_r2s.append(avg_r2)
+                dist_2s.append(dist)
         
-    pylab.plot(distances,avg_r2s, color='k', linestyle='None', marker='.', alpha=0.5)
+    pylab.plot(plot_distances, avg_r2s, color='k', linestyle='None', marker='.', alpha=0.5)
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
     pylab.savefig(fig_dir+'/total_ld_syn_codons.png')
 
     pylab.clf()
-    pylab.plot(range(1,max_dist,3),dist_1_r2s, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
-    pylab.plot(range(2,max_dist,3),dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
-    pylab.plot(range(3,max_dist,3),dist_0_r2s, linestyle='None', marker='.', color='blue', alpha=0.5, label=r'$d$ mod $3 = 0$')
+    pylab.plot(dist_1s,dist_1_r2s, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
+    pylab.plot(dist_2s,dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
+    pylab.plot(dist_0s,dist_0_r2s, linestyle='None', marker='.', color='blue', alpha=0.5, label=r'$d$ mod $3 = 0$')
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
     pylab.legend()
