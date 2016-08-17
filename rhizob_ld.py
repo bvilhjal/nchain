@@ -497,13 +497,27 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                     ld_dist_dict[dist]['snp_count']+=1.0
     
     avg_r2s = []
+    dist_0_r2s = []
+    dist_1_r2s = []
+    dist_2_r2s = []
     for dist in distances:
-        avg_r2s.append(ld_dist_dict[dist]['r2_sum']/float(ld_dist_dict[dist]['snp_count']))
+        avg_r2 = ld_dist_dict[dist]['r2_sum']/float(ld_dist_dict[dist]['snp_count'])
+        avg_r2s.append(avg_r2)
+        if dist%3==0:
+            dist_0_r2s.append(avg_r2)
+        elif dist%3==1:
+            dist_1_r2s.append(avg_r2)
+        elif dist%3==2:
+            dist_2_r2s.append(avg_r2)
         
     pylab.plot(distances,avg_r2s)
-    pylab.savefig(fig_dir+'/ld.png')
+    pylab.savefig(fig_dir+'/total_ld.png')
 
-        
+    pylab.plot(range(1,max_dist,3),dist_1_r2s)
+    pylab.plot(range(2,max_dist,3),dist_2_r2s)
+    pylab.plot(range(3,max_dist,3),dist_0_r2s)
+    pylab.savefig(fig_dir+'/part_ld.png')
+
  
  
  
