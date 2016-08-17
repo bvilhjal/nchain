@@ -483,7 +483,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
             freqs = g['codon_snp_freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
             maf_filter = mafs>min_maf
-            is_synonimous_snp = sp.negative(g['is_synonimous_snp'][...])
+            is_synonimous_snp = g['is_synonimous_snp'][...]
             if sp.sum(is_synonimous_snp)>0.5*len(is_synonimous_snp):
                 if sp.sum(maf_filter)>1:
                     all_norm_snps = g['norm_codon_snps'][...]
@@ -501,7 +501,6 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                                 ld_dist_dict['all'][dist]['r2_sum']+=ld_mat[i,j]**2
                                 ld_dist_dict['all'][dist]['snp_count']+=1.0
     
-                    is_synonimous_snp = g['is_synonimous_snp'][...]
                     is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
                     
                     snp_filter = is_nonsynonimous_snp*maf_filter
