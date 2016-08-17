@@ -356,8 +356,17 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                         codon_snp_positions.append(snp_pos)
                     
                     #Normalize SNPs
-                    freqs = sp.mean(snps,0)
-                    norm_snps = (snps-freqs)/sp.sqrt(freqs*(1-freqs))
+                    norm_snps = snps.T
+                    freqs = sp.mean(norm_snps,0)
+                    norm_snps = (norm_snps-freqs)/sp.sqrt(freqs*(1-freqs))
+                    norm_snps = norm_snps.T
+                    
+                    
+                    norm_codon_snps = codon_snps.T
+                    codon_snp_freqs = sp.mean(norm_codon_snps,0)
+                    norm_codon_snps = (norm_codon_snps-codon_snp_freqs)/sp.sqrt(codon_snp_freqs*(1-codon_snp_freqs))
+                    norm_codon_snps = norm_codon_snps.T
+
                     
                     #Calculate dn/ds ratios
                     num_syn_subt = sp.sum(is_synonimous_snp)
@@ -376,9 +385,11 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     og.create_dataset('raw_snp_positions', data=all_snp_positions)
                     og.create_dataset('snps', data=sp.array(snps,dtype='int8'), compression='lzf')
                     og.create_dataset('norm_snps', data=sp.array(norm_snps,dtype='single'), compression='lzf')
-                    og.create_dataset('freqs', data=sp.array(freqs,dtype='single'), compression='lzf')
+                    og.create_dataset('freqs', data=sp.array(freqs,dtype='single'))
                     og.create_dataset('snp_positions', data=snp_positions)
-                    og.create_dataset('codon_snps', data=codon_snps)
+                    og.create_dataset('codon_snps', data=sp.array(codon_snps,dtype='single'), compression='lzf')
+                    og.create_dataset('norm_codon_snps', data=sp.array(norm_codon_snps,dtype='single'), compression='lzf')
+                    og.create_dataset('codon_snp_freqs', data=sp.array(codon_snp_freqs,dtype='single'))
                     og.create_dataset('is_synonimous_snp', data=is_synonimous_snp)
                     og.create_dataset('strains', data=strains)
                     og.create_dataset('codon_snp_positions', data=codon_snp_positions)
@@ -420,7 +431,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
         
             var_positions = g['var_positions'][...]
-            num_seg_sites_per_base = len(var_positions)/sg['alignment_length'][...]
+            num_seg_sites_per_base = len(var_positions)/float(sg['alignment_length'][...])
             num_seg_sites.append(num_seg_sites_per_base)
             
             diversity = g['diversity'][...]
