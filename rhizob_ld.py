@@ -540,8 +540,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     ys = []
     for bin_i in range(len(bins)):
         bin_filter = digitize==(bin_i+1)
-        xs.append(sp.mean(plot_distances[bin_filter]))
-        ys.append(sp.mean(avg_r2s[bin_filter]))
+        if len(plot_distances[bin_filter])>0:
+            xs.append(sp.mean(plot_distances[bin_filter]))
+            ys.append(sp.mean(avg_r2s[bin_filter]))
     
     pylab.plot(xs, ys, color='k', linestyle='None', marker='.', alpha=0.5)
     pylab.xlabel(r'Pairwise distance ($d$)')
@@ -555,9 +556,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     ys = []
     for bin_i in range(len(bins)):
         bin_filter = digitize==(bin_i+1)
-        
-        xs.append(sp.mean(dist_1s[bin_filter]))
-        ys.append(sp.mean(dist_1_r2s[bin_filter]))
+        if len(dist_1s[bin_filter])>0:
+            xs.append(sp.mean(dist_1s[bin_filter]))
+            ys.append(sp.mean(dist_1_r2s[bin_filter]))
     pylab.plot(xs,ys, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
 
     bins = sp.arange(0,max(dist_2s),bin_size)
@@ -566,8 +567,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     ys = []
     for bin_i in range(len(bins)):
         bin_filter = digitize==(bin_i+1)
-        xs.append(sp.mean(dist_2s[bin_filter]))
-        ys.append(sp.mean(dist_2_r2s[bin_filter]))    
+        if len(dist_2s[bin_filter])>0:
+            xs.append(sp.mean(dist_2s[bin_filter]))
+            ys.append(sp.mean(dist_2_r2s[bin_filter]))    
     pylab.plot(dist_2s,dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
 
     bins = sp.arange(0,max(dist_0s),bin_size)
@@ -576,8 +578,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     ys = []
     for bin_i in range(len(bins)):
         bin_filter = digitize==(bin_i+1)
-        xs.append(sp.mean(dist_0s[bin_filter]))
-        ys.append(sp.mean(dist_0_r2s[bin_filter]))    
+        if len(dist_0s[bin_filter])>0:
+            xs.append(sp.mean(dist_0s[bin_filter]))
+            ys.append(sp.mean(dist_0_r2s[bin_filter]))    
     pylab.plot(dist_0s,dist_0_r2s, linestyle='None', marker='.', color='blue', alpha=0.5, label=r'$d$ mod $3 = 0$')
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
