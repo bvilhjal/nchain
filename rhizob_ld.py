@@ -230,9 +230,10 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
         #0. Check if there is evidence for CNVs/paralogs?
         seq_ids = g['strains']
         strains_list = map(lambda x: x.split('-')[0], seq_ids)
-        strains = sp.unique(strains_list, return_counts=True)
+        strains, strain_counts = sp.unique(strains_list, return_counts=True)
         if len(strains)<len(strains_list):
             print 'Evidence for paralogs/CNVs'
+            print strain_counts
         elif len(seq_ids)>min_num_strains:
             strains = map(lambda x: x.split('-')[0], seq_ids)
                         
