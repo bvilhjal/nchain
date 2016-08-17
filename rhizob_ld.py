@@ -478,23 +478,25 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         
         #Filtering SNPs with small MAFs
         freqs = g['codon_snp_freqs'][...]
-        mafs = sp.minimum(freqs,1-freqs)
-        maf_filter = mafs>min_maf
-        norm_snps = g['norm_codon_snps'][...]
-        positions = g['codon_snp_positions'][...]
-        norm_snps = norm_snps[maf_filter]
-        positions = positions[maf_filter]
-        M,N = norm_snps.shape
-        
-        ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
-        M,N = norm_snps.shape
-        assert M==len(positions), 'A bug detected.'
-        for i in range(M-1):
-            for j in range(i+1,M):
-                dist = positions[j] - positions[i]
-                if dist<max_dist:
-                    ld_dist_dict[dist]['r2_sum']+=ld_mat[i,j]**2
-                    ld_dist_dict[dist]['snp_count']+=1.0
+        if len(freqs)>1:
+            mafs = sp.minimum(freqs,1-freqs)
+            maf_filter = mafs>min_maf
+            if sp.sum(maf_filter)>1:
+                norm_snps = g['norm_codon_snps'][...]
+                positions = g['codon_snp_positions'][...]
+                norm_snps = norm_snps[maf_filter]
+                positions = positions[maf_filter]
+                M,N = norm_snps.shape
+                
+                ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                M,N = norm_snps.shape
+                assert M==len(positions), 'A bug detected.'
+                for i in range(M-1):
+                    for j in range(i+1,M):
+                        dist = positions[j] - positions[i]
+                        if dist<max_dist:
+                            ld_dist_dict[dist]['r2_sum']+=ld_mat[i,j]**2
+                            ld_dist_dict[dist]['snp_count']+=1.0
     
     avg_r2s = []
     dist_0_r2s = []
