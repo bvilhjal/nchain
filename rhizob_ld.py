@@ -514,9 +514,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.savefig(fig_dir+'/total_ld.png')
 
     pylab.clf()
-    pylab.plot(range(1,max_dist,3),dist_1_r2s, col='green')
-    pylab.plot(range(2,max_dist,3),dist_2_r2s, col='red')
-    pylab.plot(range(3,max_dist,3),dist_0_r2s, col='blue')
+    pylab.plot(range(1,max_dist,3),dist_1_r2s, color='green')
+    pylab.plot(range(2,max_dist,3),dist_2_r2s, color='red')
+    pylab.plot(range(3,max_dist,3),dist_0_r2s, color='blue')
     pylab.savefig(fig_dir+'/part_ld.png')
 
  
