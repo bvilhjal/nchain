@@ -525,7 +525,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                         norm_snps = all_norm_snps[snp_filter]
                         positions = all_positions[snp_filter]
                         
-                        sample_indices = sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False)
+                        sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
                         norm_snps = norm_snps[sample_indices]
                         positions = positions[sample_indices]
                         M,N = norm_snps.shape
