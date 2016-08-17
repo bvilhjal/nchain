@@ -465,11 +465,13 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
-    ld_dist_dict = {}
+    ld_dist_dict = {'all':{}, 'nonsyn':{}, 'syn':{}}
     distances = range(1,max_dist)
     
     for dist in distances:
-        ld_dist_dict[dist]={'r2_sum':0.0, 'snp_count':0.0}
+        ld_dist_dict['all'][dist]={'r2_sum':0.0, 'snp_count':0.0}
+        ld_dist_dict['nonsyn'][dist]={'r2_sum':0.0, 'snp_count':0.0}
+        ld_dist_dict['syn'][dist]={'r2_sum':0.0, 'snp_count':0.0}
     
     for i, gg in enumerate(gene_groups):
         if i%100==0:
@@ -482,110 +484,151 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
             mafs = sp.minimum(freqs,1-freqs)
             maf_filter = mafs>min_maf
             is_synonimous_snp = sp.negative(g['is_synonimous_snp'][...])
-            snp_filter = is_synonimous_snp*maf_filter
-            if sp.sum(snp_filter)>1:
-                norm_snps = g['norm_codon_snps'][...]
-                positions = g['codon_snp_positions'][...]
-                norm_snps = norm_snps[snp_filter]
-                positions = positions[snp_filter]
-                M,N = norm_snps.shape
-                
-                ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
-                M,N = norm_snps.shape
-                assert M==len(positions), 'A bug detected.'
-                for i in range(M-1):
-                    for j in range(i+1,M):
-                        dist = positions[j] - positions[i]
-                        if dist<max_dist:
-                            ld_dist_dict[dist]['r2_sum']+=ld_mat[i,j]**2
-                            ld_dist_dict[dist]['snp_count']+=1.0
+            if sp.sum(is_synonimous_snp)>0.5*len(is_synonimous_snp):
+                if sp.sum(maf_filter)>1:
+                    all_norm_snps = g['norm_codon_snps'][...]
+                    all_positions = g['codon_snp_positions'][...]
+                    norm_snps = all_norm_snps[maf_filter]
+                    positions = all_positions[maf_filter]
+                    M,N = norm_snps.shape
+                    
+                    ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                    assert M==len(positions), 'A bug detected.'
+                    for i in range(M-1):
+                        for j in range(i+1,M):
+                            dist = positions[j] - positions[i]
+                            if dist<max_dist:
+                                ld_dist_dict['all'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                ld_dist_dict['all'][dist]['snp_count']+=1.0
     
-    avg_r2s = []
-    dist_0_r2s = []
-    dist_1_r2s = []
-    dist_2_r2s = []
-    plot_distances = []
-    dist_0s = []
-    dist_1s = []
-    dist_2s = []
-    for dist in distances:
-        if ld_dist_dict[dist]['snp_count']>1:
-            avg_r2 = ld_dist_dict[dist]['r2_sum']/float(ld_dist_dict[dist]['snp_count'])
-            avg_r2s.append(avg_r2)
-            plot_distances.append(dist)
-            if dist%3==0:
-                dist_0_r2s.append(avg_r2)
-                dist_0s.append(dist)
-            elif dist%3==1:
-                dist_1_r2s.append(avg_r2)
-                dist_1s.append(dist)
-            elif dist%3==2:
-                dist_2_r2s.append(avg_r2)
-                dist_2s.append(dist)
+                    is_synonimous_snp = g['is_synonimous_snp'][...]
+                    is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
+                    
+                    snp_filter = is_nonsynonimous_snp*maf_filter
+                    if sp.sum(snp_filter)>1:
+                        norm_snps = all_norm_snps[snp_filter]
+                        positions = all_positions[snp_filter]
+                        M,N = norm_snps.shape
+                        
+                        ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                        assert M==len(positions), 'A bug detected.'
+                        for i in range(M-1):
+                            for j in range(i+1,M):
+                                dist = positions[j] - positions[i]
+                                if dist<max_dist:
+                                    ld_dist_dict['nonsyn'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                    ld_dist_dict['nonsyn'][dist]['snp_count']+=1.0
+                                 
+                    snps_sample_size = sp.sum(snp_filter)
+                       
+                    snp_filter = is_synonimous_snp*maf_filter
+                    if sp.sum(snp_filter)>1:
+                        norm_snps = all_norm_snps[snp_filter]
+                        positions = all_positions[snp_filter]
+                        
+                        sample_indices = sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False)
+                        norm_snps = norm_snps[sample_indices]
+                        positions = positions[sample_indices]
+                        M,N = norm_snps.shape
+                        
+                        ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                        assert M==len(positions), 'A bug detected.'
+                        for i in range(M-1):
+                            for j in range(i+1,M):
+                                dist = positions[j] - positions[i]
+                                if dist<max_dist:
+                                    ld_dist_dict['syn'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                    ld_dist_dict['syn'][dist]['snp_count']+=1.0
+    
+    
+    
+    for plot_type in ld_dist_dict.keys():
+        avg_r2s = []
+        dist_0_r2s = []
+        dist_1_r2s = []
+        dist_2_r2s = []
+        plot_distances = []
+        dist_0s = []
+        dist_1s = []
+        dist_2s = []
+        for dist in distances:
+            if ld_dist_dict[plot_type][dist]['snp_count']>1:
+                avg_r2 = ld_dist_dict[plot_type][dist]['r2_sum']/float(ld_dist_dict[plot_type][dist]['snp_count'])
+                avg_r2s.append(avg_r2)
+                plot_distances.append(dist)
+                if dist%3==0:
+                    dist_0_r2s.append(avg_r2)
+                    dist_0s.append(dist)
+                elif dist%3==1:
+                    dist_1_r2s.append(avg_r2)
+                    dist_1s.append(dist)
+                elif dist%3==2:
+                    dist_2_r2s.append(avg_r2)
+                    dist_2s.append(dist)
+            
+        plot_distances = sp.array(plot_distances)
+        dist_0s = sp.array(dist_0s)
+        dist_1s = sp.array(dist_1s)
+        dist_2s = sp.array(dist_2s)
+        avg_r2s = sp.array(avg_r2s)
+        dist_0_r2s = sp.array(dist_0_r2s)
+        dist_1_r2s = sp.array(dist_1_r2s)
+        dist_2_r2s = sp.array(dist_2_r2s)
+    
         
-    plot_distances = sp.array(plot_distances)
-    dist_0s = sp.array(dist_0s)
-    dist_1s = sp.array(dist_1s)
-    dist_2s = sp.array(dist_2s)
-    avg_r2s = sp.array(avg_r2s)
-    dist_0_r2s = sp.array(dist_0_r2s)
-    dist_1_r2s = sp.array(dist_1_r2s)
-    dist_2_r2s = sp.array(dist_2_r2s)
-
+        
+        bins = sp.arange(0,max(plot_distances),bin_size)
+        digitize = sp.digitize(plot_distances, bins)    
+        xs = []
+        ys = []
+        for bin_i in range(len(bins)):
+            bin_filter = digitize==(bin_i+1)
+            if len(plot_distances[bin_filter])>0:
+                xs.append(sp.mean(plot_distances[bin_filter]))
+                ys.append(sp.mean(avg_r2s[bin_filter]))
+        
+        pylab.plot(xs, ys, color='k', linestyle='None', marker='.', alpha=0.5)
+        pylab.xlabel(r'Pairwise distance ($d$)')
+        pylab.ylabel(r'Squared correlation ($r^2$)')
+        pylab.savefig(fig_dir+'/ld_%s_codons.png'%(plot_type))
     
+        pylab.clf()
+        bins = sp.arange(0,max(dist_1s),bin_size)
+        digitize = sp.digitize(dist_1s, bins)    
+        xs = []
+        ys = []
+        for bin_i in range(len(bins)):
+            bin_filter = digitize==(bin_i+1)
+            if len(dist_1s[bin_filter])>0:
+                xs.append(sp.mean(dist_1s[bin_filter]))
+                ys.append(sp.mean(dist_1_r2s[bin_filter]))
+        pylab.plot(xs,ys, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
     
-    bins = sp.arange(0,max(plot_distances),bin_size)
-    digitize = sp.digitize(plot_distances, bins)    
-    xs = []
-    ys = []
-    for bin_i in range(len(bins)):
-        bin_filter = digitize==(bin_i+1)
-        if len(plot_distances[bin_filter])>0:
-            xs.append(sp.mean(plot_distances[bin_filter]))
-            ys.append(sp.mean(avg_r2s[bin_filter]))
+        bins = sp.arange(0,max(dist_2s),bin_size)
+        digitize = sp.digitize(dist_2s, bins)    
+        xs = []
+        ys = []
+        for bin_i in range(len(bins)):
+            bin_filter = digitize==(bin_i+1)
+            if len(dist_2s[bin_filter])>0:
+                xs.append(sp.mean(dist_2s[bin_filter]))
+                ys.append(sp.mean(dist_2_r2s[bin_filter]))    
+        pylab.plot(dist_2s,dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
     
-    pylab.plot(xs, ys, color='k', linestyle='None', marker='.', alpha=0.5)
-    pylab.xlabel(r'Pairwise distance ($d$)')
-    pylab.ylabel(r'Squared correlation ($r^2$)')
-    pylab.savefig(fig_dir+'/total_ld_nonsyn_codons.png')
-
-    pylab.clf()
-    bins = sp.arange(0,max(dist_1s),bin_size)
-    digitize = sp.digitize(dist_1s, bins)    
-    xs = []
-    ys = []
-    for bin_i in range(len(bins)):
-        bin_filter = digitize==(bin_i+1)
-        if len(dist_1s[bin_filter])>0:
-            xs.append(sp.mean(dist_1s[bin_filter]))
-            ys.append(sp.mean(dist_1_r2s[bin_filter]))
-    pylab.plot(xs,ys, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
-
-    bins = sp.arange(0,max(dist_2s),bin_size)
-    digitize = sp.digitize(dist_2s, bins)    
-    xs = []
-    ys = []
-    for bin_i in range(len(bins)):
-        bin_filter = digitize==(bin_i+1)
-        if len(dist_2s[bin_filter])>0:
-            xs.append(sp.mean(dist_2s[bin_filter]))
-            ys.append(sp.mean(dist_2_r2s[bin_filter]))    
-    pylab.plot(dist_2s,dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
-
-    bins = sp.arange(0,max(dist_0s),bin_size)
-    digitize = sp.digitize(dist_0s, bins)    
-    xs = []
-    ys = []
-    for bin_i in range(len(bins)):
-        bin_filter = digitize==(bin_i+1)
-        if len(dist_0s[bin_filter])>0:
-            xs.append(sp.mean(dist_0s[bin_filter]))
-            ys.append(sp.mean(dist_0_r2s[bin_filter]))    
-    pylab.plot(dist_0s,dist_0_r2s, linestyle='None', marker='.', color='blue', alpha=0.5, label=r'$d$ mod $3 = 0$')
-    pylab.xlabel(r'Pairwise distance ($d$)')
-    pylab.ylabel(r'Squared correlation ($r^2$)')
-    pylab.legend()
-    pylab.savefig(fig_dir+'/part_ld_nonsyn_codons.png')
+        bins = sp.arange(0,max(dist_0s),bin_size)
+        digitize = sp.digitize(dist_0s, bins)    
+        xs = []
+        ys = []
+        for bin_i in range(len(bins)):
+            bin_filter = digitize==(bin_i+1)
+            if len(dist_0s[bin_filter])>0:
+                xs.append(sp.mean(dist_0s[bin_filter]))
+                ys.append(sp.mean(dist_0_r2s[bin_filter]))    
+        pylab.plot(dist_0s,dist_0_r2s, linestyle='None', marker='.', color='blue', alpha=0.5, label=r'$d$ mod $3 = 0$')
+        pylab.xlabel(r'Pairwise distance ($d$)')
+        pylab.ylabel(r'Squared correlation ($r^2$)')
+        pylab.legend()
+        pylab.savefig(fig_dir+'/part_ld_%s_codons.png'%(plot_type))
 
  
 def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
@@ -606,7 +649,7 @@ def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/cal
         if g['codon_snp_freqs'].size>1:
             freqs = g['codon_snp_freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
-            is_synonimous_snp = sp.negative(g['is_synonimous_snp'][...])
+            is_synonimous_snp = g['is_synonimous_snp'][...]
             syn_mafs.extend(mafs[is_synonimous_snp])
             nonsyn_mafs.extend(mafs[sp.negative(is_synonimous_snp)])
             all_mafs.extend(mafs)
