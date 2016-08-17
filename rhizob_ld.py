@@ -460,7 +460,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
     
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
-                 max_dist=3000, min_maf=0.2,
+                 max_dist=3000, min_maf=0.2, bin_size=24,
                  fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
@@ -509,7 +509,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     dist_1s = []
     dist_2s = []
     for dist in distances:
-        if ld_dist_dict[dist]['snp_count']>2:
+        if ld_dist_dict[dist]['snp_count']>1:
             avg_r2 = ld_dist_dict[dist]['r2_sum']/float(ld_dist_dict[dist]['snp_count'])
             avg_r2s.append(avg_r2)
             plot_distances.append(dist)
@@ -534,7 +534,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
 
     
     
-    bins = sp.arange(0,max(plot_distances),15)
+    bins = sp.arange(0,max(plot_distances),bin_size)
     digitize = sp.digitize(plot_distances, bins)    
     xs = []
     ys = []
@@ -549,7 +549,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.savefig(fig_dir+'/total_ld_nonsyn_codons.png')
 
     pylab.clf()
-    bins = sp.arange(0,max(dist_1s),15)
+    bins = sp.arange(0,max(dist_1s),bin_size)
     digitize = sp.digitize(dist_1s, bins)    
     xs = []
     ys = []
@@ -560,7 +560,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         ys.append(sp.mean(dist_1_r2s[bin_filter]))
     pylab.plot(xs,ys, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
 
-    bins = sp.arange(0,max(dist_2s),15)
+    bins = sp.arange(0,max(dist_2s),bin_size)
     digitize = sp.digitize(dist_2s, bins)    
     xs = []
     ys = []
@@ -570,7 +570,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         ys.append(sp.mean(dist_2_r2s[bin_filter]))    
     pylab.plot(dist_2s,dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
 
-    bins = sp.arange(0,max(dist_0s),15)
+    bins = sp.arange(0,max(dist_0s),bin_size)
     digitize = sp.digitize(dist_0s, bins)    
     xs = []
     ys = []
