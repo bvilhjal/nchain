@@ -460,7 +460,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
     
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
-                 max_dist=3000, min_maf=0.2, bin_size=30,
+                 max_dist=3000, min_maf=0.1, bin_size=30,
                  fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
