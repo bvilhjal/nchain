@@ -483,9 +483,13 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
             freqs = g['codon_snp_freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
             maf_filter = mafs>min_maf
-            is_synonimous_snp = g['is_synonimous_snp'][...]
-            if sp.sum(is_synonimous_snp)>0.6*len(is_synonimous_snp):
-                if sp.sum(maf_filter)>1:
+            if sp.sum(maf_filter)>1:
+                is_synonimous_snp = g['is_synonimous_snp'][...]
+                is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
+                syn_snp_filter = is_synonimous_snp*maf_filter
+                nonsyn_snp_filter = is_nonsynonimous_snp*maf_filter
+
+                if sp.sum(syn_snp_filter)>sp.sum(nonsyn_snp_filter):
                     all_norm_snps = g['norm_codon_snps'][...]
                     all_positions = g['codon_snp_positions'][...]
                     norm_snps = all_norm_snps[maf_filter]
@@ -501,10 +505,8 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                                 ld_dist_dict['all'][dist]['r2_sum']+=ld_mat[i,j]**2
                                 ld_dist_dict['all'][dist]['snp_count']+=1.0
     
-                    is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
                     
-                    snp_filter = is_nonsynonimous_snp*maf_filter
-                    if sp.sum(snp_filter)>1:
+                    if sp.sum(nonsyn_snp_filter)>1:
                         norm_snps = all_norm_snps[snp_filter]
                         positions = all_positions[snp_filter]
                         M,N = norm_snps.shape
@@ -518,10 +520,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                                     ld_dist_dict['nonsyn'][dist]['r2_sum']+=ld_mat[i,j]**2
                                     ld_dist_dict['nonsyn'][dist]['snp_count']+=1.0
                                  
-                    snps_sample_size = sp.sum(snp_filter)
+                    snps_sample_size = sp.sum(nonsyn_snp_filter)
                        
-                    snp_filter = is_synonimous_snp*maf_filter
-                    if sp.sum(snp_filter)>1:
+                    if sp.sum(syn_snp_filter)>1:
                         norm_snps = all_norm_snps[snp_filter]
                         positions = all_positions[snp_filter]
                         
