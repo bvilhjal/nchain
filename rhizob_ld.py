@@ -8,6 +8,7 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import pylab
+import collections
 
 nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5, 'N':6}
 nt_decode_map = {1:'A', 2:'C', 3:'G', 4:'T', 5:'-', 6:'N'}
@@ -225,8 +226,15 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
     num_parsed_genes = 0
     for gg in gene_groups:
         g = ag[gg]
-        if len(g['strains'])>min_num_strains:
-            
+        
+        #0. Check if there is evidence for CNVs/paralogs?
+        seq_ids = g['strains']
+        strains_list = map(lambda x: x.split('_')[0], seq_ids)
+        strains, counts = sp.unique(strains_list, return_counts=True)
+        if len(strains)<len(strains_list):
+            print 'Evidence for paralogs/CNVs'
+        elif len(seq_ids)>min_num_strains:
+                        
             #1. Filter indel/bad rows
             nt_mat = g['nsequences'][...]
             num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, nt_mat)
@@ -234,6 +242,16 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
             bad_rows_filter = num_vars<5
             if sp.sum(bad_rows_filter)>0:
                 raw_snps = nt_mat[bad_rows_filter]
+                
+                #Calculate nucleotide diversity
+                M,N = raw_snps.shape
+                diversity = 0.0
+                for i in range(N-1):
+                    for j in range(i+1,N):
+                        sp.sum(raw_snps[:,i]!=raw_snps[:,j])
+                
+                diversity = diversity/len(raw_snps)
+                diversity = 2*diversity/(N*(N-1))
                 
                 #2. Filter non-variable rows
                 ok_num_vars = num_vars[bad_rows_filter]
@@ -367,19 +385,27 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     og.create_dataset('num_syn_sites', data=tot_num_syn_sites)
                     og.create_dataset('num_non_syn_sites', data=tot_num_non_syn_sites)
                     og.create_dataset('dn_ds_ratio', data=dn_ds_ratio)
+                    og.create_dataset('diversity', data=diversity)
                     oh5f.flush()
                     num_parsed_genes +=1
-
+        else:
+            print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
     
     
-def summarize_nonsynonimous_snps(snps_hdf5_file, fig_dir):
+def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', 
+                                 seq_file = '/project/NChain/faststorage/rhizobium/ld/snps2.hdf5',
+                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
     h5f = h5py.File(snps_hdf5_file)
+    sh5f = h5py.File(seq_file)
     gene_groups = sorted(h5f.keys())
     dn_ds_ratios = []
     mean_blosum_62_scores = []
+    num_seg_sites = []
+    
     for gg in gene_groups:
         g = h5f[gg]
+        sg = sh5f['snps'][gg]
         codon_snp_positions = g['codon_snp_positions'][...]
         if len(codon_snp_positions)>100:
             dn_ds_ratio = g['dn_ds_ratio'][...]
@@ -390,6 +416,12 @@ def summarize_nonsynonimous_snps(snps_hdf5_file, fig_dir):
 
             blosum62_scores = sp.mean(g['blosum62_scores'][...])
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
+        
+        var_positions = g['var_positions'][...]
+        num_seg_sites_per_base = len(var_positions)/sg['alignment_length'][...]
+        
+        
+        num_seg_sites.append(num_seg_sites_per_base)
     
     mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
     print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
