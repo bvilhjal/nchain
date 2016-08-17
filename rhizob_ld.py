@@ -233,7 +233,6 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
         strains, strain_counts = sp.unique(strains_list, return_counts=True)
         if len(strains)<len(strains_list):
             print 'Evidence for paralogs/CNVs'
-            print strain_counts
         elif len(seq_ids)>min_num_strains:
             strains = map(lambda x: x.split('-')[0], seq_ids)
                         
@@ -357,16 +356,16 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                         codon_snp_positions.append(snp_pos)
                     
                     #Normalize SNPs
-                    norm_snps = snps.T
+                    norm_snps = sp.transpose(snps)
                     freqs = sp.mean(norm_snps,0)
                     norm_snps = (norm_snps-freqs)/sp.sqrt(freqs*(1-freqs))
-                    norm_snps = norm_snps.T
+                    norm_snps = sp.transpose(norm_snps)
                     
                     
-                    norm_codon_snps = codon_snps.T
+                    norm_codon_snps = sp.transpose(codon_snps)
                     codon_snp_freqs = sp.mean(norm_codon_snps,0)
                     norm_codon_snps = (norm_codon_snps-codon_snp_freqs)/sp.sqrt(codon_snp_freqs*(1-codon_snp_freqs))
-                    norm_codon_snps = norm_codon_snps.T
+                    norm_codon_snps = sp.transpose(norm_codon_snps)
 
                     
                     #Calculate dn/ds ratios
