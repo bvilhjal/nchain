@@ -465,7 +465,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         g = h5f[gg]
         
         #Filtering SNPs with small MAFs
-        freqs = g['freqs']
+        freqs = g['freqs'][...]
         mafs = sp.minimum(freqs,1-freqs)
         maf_filter = mafs>min_maf
         norm_snps = g['norm_snps'][...]
