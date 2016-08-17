@@ -509,7 +509,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     dist_1s = []
     dist_2s = []
     for dist in distances:
-        if ld_dist_dict[dist]['snp_count']>10:
+        if ld_dist_dict[dist]['snp_count']>2:
             avg_r2 = ld_dist_dict[dist]['r2_sum']/float(ld_dist_dict[dist]['snp_count'])
             avg_r2s.append(avg_r2)
             plot_distances.append(dist)
