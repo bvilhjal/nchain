@@ -430,8 +430,8 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
             blosum62_scores = sp.mean(g['blosum62_scores'][...])
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
         
-            var_positions = g['var_positions'][...]
-            num_seg_sites_per_base = len(var_positions)/float(sg['alignment_length'][...])
+            all_snps_positions = g['all_snp_positions'][...]
+            num_seg_sites_per_base = len(all_snps_positions)/float(sg['alignment_length'][...])
             num_seg_sites.append(num_seg_sites_per_base)
             
             diversity = g['diversity'][...]
