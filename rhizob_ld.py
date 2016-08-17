@@ -375,6 +375,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     og.create_dataset('raw_snp_positions', data=all_snp_positions)
                     og.create_dataset('snps', data=sp.array(snps,dtype='int8'), compression='lzf')
                     og.create_dataset('norm_snps', data=sp.array(norm_snps,dtype='single'), compression='lzf')
+                    og.create_dataset('freqs', data=sp.array(freqs,dtype='single'), compression='lzf')
                     og.create_dataset('snp_positions', data=snp_positions)
                     og.create_dataset('codon_snps', data=codon_snps)
                     og.create_dataset('codon_snp_positions', data=codon_snp_positions)
@@ -443,6 +444,29 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
        
     
-def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5'):
-    pass
+def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', max_dist=3000):
+    from itertools import izip
+    h5f = h5py.File(snps_hdf5_file)
+    gene_groups = sorted(h5f.keys())
+    ld_dist_dict = {}
+    for i in range(1,max_dist):
+        ld_dist_dict[i]={'ld_sum':0.0, 'snp_count':0.0}
+    for gg in gene_groups:
+        g = h5f[gg]
+        freqs = g['freqs']
+        norm_snps = g['norm_snps'][...]
+        positions = g['snp_positions'][...]
+        ld_mat = sp.dot(norm_snps,norm_snps.T)
+        M,N = norm_snps.shape
+        assert M==len(positions), 'A bug detected.'
+        for i in range(M-1):
+            for j in range(i+1,M):
+                dist = positions[j] - positions[i]
+                if dist<max_dist:
+                    ld_dist_dict[dist]['ld_sum']+=ld_mat[i,j]
+                    ld_dist_dict[dist]['snp_count']+=1.0
     
+        
+ 
+ 
+ 
