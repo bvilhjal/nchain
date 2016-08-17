@@ -477,13 +477,14 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         g = h5f[gg]
         
         #Filtering SNPs with small MAFs
-        freqs = g['codon_snp_freqs'][...]
-        if len(freqs)>1:
+        if g['codon_snp_freqs'].size>1:
+            freqs = g['codon_snp_freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
             maf_filter = mafs>min_maf
             if sp.sum(maf_filter)>1:
                 norm_snps = g['norm_codon_snps'][...]
                 positions = g['codon_snp_positions'][...]
+                is_synonimous_snp = g['is_synonimous_snp'][...]
                 norm_snps = norm_snps[maf_filter]
                 positions = positions[maf_filter]
                 M,N = norm_snps.shape
