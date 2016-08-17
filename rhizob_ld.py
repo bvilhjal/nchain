@@ -523,8 +523,18 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                 dist_2_r2s.append(avg_r2)
                 dist_2s.append(dist)
         
+    plot_distances = sp.array(plot_distances)
+    dist_0s = sp.array(dist_0s)
+    dist_1s = sp.array(dist_1s)
+    dist_2s = sp.array(dist_2s)
+    avg_r2s = sp.array(avg_r2s)
+    dist_0_r2s = sp.array(dist_0_r2s)
+    dist_1_r2s = sp.array(dist_1_r2s)
+    dist_2_r2s = sp.array(dist_2_r2s)
+
     
-    bins = sp.arange(0,max_dist,15)
+    
+    bins = sp.arange(0,max(plot_distances),15)
     digitize = sp.digitize(plot_distances, bins)    
     xs = []
     ys = []
@@ -539,15 +549,18 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.savefig(fig_dir+'/total_ld_nonsyn_codons.png')
 
     pylab.clf()
+    bins = sp.arange(0,max(dist_1s),15)
     digitize = sp.digitize(dist_1s, bins)    
     xs = []
     ys = []
     for bin_i in range(len(bins)):
         bin_filter = digitize==(bin_i+1)
+        
         xs.append(sp.mean(dist_1s[bin_filter]))
         ys.append(sp.mean(dist_1_r2s[bin_filter]))
     pylab.plot(xs,ys, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
 
+    bins = sp.arange(0,max(dist_2s),15)
     digitize = sp.digitize(dist_2s, bins)    
     xs = []
     ys = []
@@ -557,6 +570,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         ys.append(sp.mean(dist_2_r2s[bin_filter]))    
     pylab.plot(dist_2s,dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
 
+    bins = sp.arange(0,max(dist_0s),15)
     digitize = sp.digitize(dist_0s, bins)    
     xs = []
     ys = []
