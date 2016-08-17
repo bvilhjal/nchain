@@ -526,7 +526,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.plot(plot_distances, avg_r2s, color='k', linestyle='None', marker='.', alpha=0.5)
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
-    pylab.savefig(fig_dir+'/total_ld_syn_codons.png')
+    pylab.savefig(fig_dir+'/total_ld_nonsyn_codons.png')
 
     pylab.clf()
     pylab.plot(dist_1s,dist_1_r2s, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
@@ -535,7 +535,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
     pylab.legend()
-    pylab.savefig(fig_dir+'/part_ld_syn_codons.png')
+    pylab.savefig(fig_dir+'/part_ld_nonsyn_codons.png')
 
  
 
