@@ -248,7 +248,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                 diversity = 0.0
                 for i in range(N-1):
                     for j in range(i+1,N):
-                        sp.sum(raw_snps[:,i]!=raw_snps[:,j])
+                        diversity+=sp.sum(raw_snps[:,i]!=raw_snps[:,j])
                 
                 diversity = diversity/len(raw_snps)
                 diversity = 2*diversity/(N*(N-1))
@@ -402,35 +402,47 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     dn_ds_ratios = []
     mean_blosum_62_scores = []
     num_seg_sites = []
-    
+    pi_diversity = []
     for gg in gene_groups:
         g = h5f[gg]
         sg = sh5f['snps'][gg]
         codon_snp_positions = g['codon_snp_positions'][...]
         if len(codon_snp_positions)>100:
             dn_ds_ratio = g['dn_ds_ratio'][...]
-            if dn_ds_ratio==-1:
-                dn_ds_ratios.append(0)
-            else:
-                dn_ds_ratios.append(1/dn_ds_ratio)
+            dn_ds_ratios.append(dn_ds_ratio)
 
             blosum62_scores = sp.mean(g['blosum62_scores'][...])
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
         
-        var_positions = g['var_positions'][...]
-        num_seg_sites_per_base = len(var_positions)/sg['alignment_length'][...]
-        
-        
-        num_seg_sites.append(num_seg_sites_per_base)
+            var_positions = g['var_positions'][...]
+            num_seg_sites_per_base = len(var_positions)/sg['alignment_length'][...]
+            num_seg_sites.append(num_seg_sites_per_base)
+            
+            diversity = g['diversity'][...]
+            pi_diversity.append(diversity)
     
     mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
     print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
     pylab.hist(dn_ds_ratios, bins=100)
+    pylab.title(r'$\frac{d_n}{d_s}$ (values below 1 suggest purifying selection.)')
     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
         
     pylab.clf()
     pylab.hist(mean_blosum_62_scores)
+    pylab.title('Average BLOSUM62 scores (values above 1 suggest purifying selection)')    
     pylab.savefig(fig_dir+'/mean_blosum_62_scores.png')
+    
+    pylab.clf()
+    pylab.hist(num_seg_sites)
+    pylab.title(r'Number of segregating sites per nucleotide ($S$)')    
+    pylab.savefig(fig_dir+'/segregating_sites.png')
+    
+    pylab.clf()
+    pylab.hist(pi_diversity)
+    pylab.title(r'Nucleotide diversity ($\pi$)')    
+    pylab.savefig(fig_dir+'/nucleotide_diversity.png')
        
     
+def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5'):
+    pass
     
