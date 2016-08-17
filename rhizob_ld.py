@@ -523,14 +523,47 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                 dist_2_r2s.append(avg_r2)
                 dist_2s.append(dist)
         
-    pylab.plot(plot_distances, avg_r2s, color='k', linestyle='None', marker='.', alpha=0.5)
+    
+    bins = sp.arange(0,max_dist,15)
+    digitize = sp.digitize(plot_distances, bins)    
+    xs = []
+    ys = []
+    for bin_i in range(len(bins)):
+        bin_filter = digitize==(bin_i+1)
+        xs.append(sp.mean(plot_distances[bin_filter]))
+        ys.append(sp.mean(avg_r2s[bin_filter]))
+    
+    pylab.plot(xs, ys, color='k', linestyle='None', marker='.', alpha=0.5)
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
     pylab.savefig(fig_dir+'/total_ld_nonsyn_codons.png')
 
     pylab.clf()
-    pylab.plot(dist_1s,dist_1_r2s, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
+    digitize = sp.digitize(dist_1s, bins)    
+    xs = []
+    ys = []
+    for bin_i in range(len(bins)):
+        bin_filter = digitize==(bin_i+1)
+        xs.append(sp.mean(dist_1s[bin_filter]))
+        ys.append(sp.mean(dist_1_r2s[bin_filter]))
+    pylab.plot(xs,ys, linestyle='None', marker='.', color='green', alpha=0.5, label=r'$d$ mod $3 = 1$')
+
+    digitize = sp.digitize(dist_2s, bins)    
+    xs = []
+    ys = []
+    for bin_i in range(len(bins)):
+        bin_filter = digitize==(bin_i+1)
+        xs.append(sp.mean(dist_2s[bin_filter]))
+        ys.append(sp.mean(dist_2_r2s[bin_filter]))    
     pylab.plot(dist_2s,dist_2_r2s, linestyle='None', marker='.', color='red', alpha=0.5, label=r'$d$ mod $3 = 2$')
+
+    digitize = sp.digitize(dist_0s, bins)    
+    xs = []
+    ys = []
+    for bin_i in range(len(bins)):
+        bin_filter = digitize==(bin_i+1)
+        xs.append(sp.mean(dist_0s[bin_filter]))
+        ys.append(sp.mean(dist_0_r2s[bin_filter]))    
     pylab.plot(dist_0s,dist_0_r2s, linestyle='None', marker='.', color='blue', alpha=0.5, label=r'$d$ mod $3 = 0$')
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
