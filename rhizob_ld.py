@@ -484,8 +484,9 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         positions = g['snp_positions'][...]
         norm_snps = norm_snps[maf_filter]
         positions = positions[maf_filter]
+        M,N = norm_snps.shape
         
-        ld_mat = sp.dot(norm_snps,norm_snps.T)
+        ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
         M,N = norm_snps.shape
         assert M==len(positions), 'A bug detected.'
         for i in range(M-1):
@@ -497,7 +498,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     
     avg_r2s = []
     for dist in distances:
-        avg_r2s.append(ld_dist_dict[dist]['r2_sum']/ld_dist_dict[dist]['snp_count'])
+        avg_r2s.append(ld_dist_dict[dist]['r2_sum']/float(ld_dist_dict[dist]['snp_count']))
         
     pylab.plot(distances,avg_r2s)
     pylab.savefig(fig_dir+'/ld.png')
