@@ -481,7 +481,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
             freqs = g['codon_snp_freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
             maf_filter = mafs>min_maf
-            is_synonimous_snp = g['is_synonimous_snp'][...]
+            is_synonimous_snp = sp.negative(g['is_synonimous_snp'][...])
             snp_filter = is_synonimous_snp*maf_filter
             if sp.sum(snp_filter)>1:
                 norm_snps = g['norm_codon_snps'][...]
@@ -547,7 +547,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.plot(xs, ys, color='k', linestyle='None', marker='.', alpha=0.5)
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
-    pylab.savefig(fig_dir+'/total_ld_syn_codons.png')
+    pylab.savefig(fig_dir+'/total_ld_nonsyn_codons.png')
 
     pylab.clf()
     bins = sp.arange(0,max(dist_1s),bin_size)
@@ -585,7 +585,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
     pylab.xlabel(r'Pairwise distance ($d$)')
     pylab.ylabel(r'Squared correlation ($r^2$)')
     pylab.legend()
-    pylab.savefig(fig_dir+'/part_ld_syn_codons.png')
+    pylab.savefig(fig_dir+'/part_ld_nonsyn_codons.png')
 
  
 
