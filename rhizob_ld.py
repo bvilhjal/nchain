@@ -262,14 +262,14 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     print 'Working on gene group: %s'%gg
                     
                     M,N = nt_mat.shape
-                    var_positions = sp.arange(M)[bad_rows_filter]
+                    non_gap_positions = sp.arange(M)[bad_rows_filter]
                     all_snps = raw_snps[var_filter]
-                    all_snp_positions = var_positions[var_filter]
+                    all_snp_positions = non_gap_positions[var_filter]
                     
                     #3. Identify good SNPs (dimorphic SNPs)
                     good_snp_filter = ok_num_vars==2
                     ok_snps = raw_snps[good_snp_filter]
-                    snp_positions = var_positions[good_snp_filter]
+                    snp_positions = non_gap_positions[good_snp_filter]
                     assert len(ok_snps)==len(snp_positions), 'A bug detected!'
                     
                     #4. Call good SNPs
@@ -379,7 +379,6 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     
                     #Store everything to a HDF5 file
                     og = oh5f.create_group(gg)   
-                    og.create_dataset('var_positions', data=var_positions)
                     og.create_dataset('num_vars', data=num_vars)
                     og.create_dataset('raw_snps', data=sp.array(all_snps,dtype='int8'), compression='lzf')
                     og.create_dataset('raw_snp_positions', data=all_snp_positions)
@@ -430,8 +429,8 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
             blosum62_scores = sp.mean(g['blosum62_scores'][...])
             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
         
-            all_snps_positions = g['all_snp_positions'][...]
-            num_seg_sites_per_base = len(all_snps_positions)/float(sg['alignment_length'][...])
+            raw_snp_positions = g['raw_snp_positions'][...]
+            num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
             num_seg_sites.append(num_seg_sites_per_base)
             
             diversity = g['diversity'][...]
