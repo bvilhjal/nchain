@@ -444,17 +444,17 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
         
     pylab.clf()
-    pylab.hist(mean_blosum_62_scores)
+    pylab.hist(mean_blosum_62_scores, bins=100)
     pylab.title('Average BLOSUM62 scores (values above 1 suggest purifying selection)')    
     pylab.savefig(fig_dir+'/mean_blosum_62_scores.png')
     
     pylab.clf()
-    pylab.hist(num_seg_sites)
+    pylab.hist(num_seg_sites, bins=100)
     pylab.title(r'Number of segregating sites per nucleotide ($S$)')    
     pylab.savefig(fig_dir+'/segregating_sites.png')
     
     pylab.clf()
-    pylab.hist(pi_diversity)
+    pylab.hist(pi_diversity, bins=100)
     pylab.title(r'Nucleotide diversity ($\pi$)')    
     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
        
