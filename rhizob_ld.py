@@ -444,18 +444,29 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
        
     
-def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', max_dist=3000):
+def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', max_dist=3000, min_maf=0.2,
+                 fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
     ld_dist_dict = {}
-    for i in range(1,max_dist):
-        ld_dist_dict[i]={'ld_sum':0.0, 'snp_count':0.0}
+    distances = range(1,max_dist)
+    
+    for dist in distances:
+        ld_dist_dict[dist]={'r2_sum':0.0, 'snp_count':0.0}
+    
     for gg in gene_groups:
         g = h5f[gg]
+        
+        #Filtering SNPs with small MAFs
         freqs = g['freqs']
+        mafs = sp.minimum(freqs,1-freqs)
+        maf_filter = mafs>min_maf
         norm_snps = g['norm_snps'][...]
         positions = g['snp_positions'][...]
+        norm_snps = norm_snps[maf_filter]
+        positions = positions[maf_filter]
+        
         ld_mat = sp.dot(norm_snps,norm_snps.T)
         M,N = norm_snps.shape
         assert M==len(positions), 'A bug detected.'
@@ -463,9 +474,16 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
             for j in range(i+1,M):
                 dist = positions[j] - positions[i]
                 if dist<max_dist:
-                    ld_dist_dict[dist]['ld_sum']+=ld_mat[i,j]
+                    ld_dist_dict[dist]['r2_sum']+=ld_mat[i,j]**2
                     ld_dist_dict[dist]['snp_count']+=1.0
     
+    avg_r2s = []
+    for dist in distances:
+        avg_r2s.append(ld_dist_dict[dist]['r2_sum']/ld_dist_dict[dist]['snp_count'])
+        
+    pylab.plot(distances,avg_r2s)
+    pylab.savefig(fig_dir+'/ld.png')
+
         
  
  
