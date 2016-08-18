@@ -520,15 +520,15 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                                     ld_dist_dict['nonsyn'][dist]['r2_sum']+=ld_mat[i,j]**2
                                     ld_dist_dict['nonsyn'][dist]['snp_count']+=1.0
                                  
-#                     snps_sample_size = sp.sum(nonsyn_snp_filter)
+                    snps_sample_size = sp.sum(nonsyn_snp_filter)
                        
                     if sp.sum(syn_snp_filter)>1:
                         norm_snps = all_norm_snps[syn_snp_filter]
                         positions = all_positions[syn_snp_filter]
                         
-#                         sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
-#                         norm_snps = norm_snps[sample_indices]
-#                         positions = positions[sample_indices]
+                        sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
+                        norm_snps = norm_snps[sample_indices]
+                        positions = positions[sample_indices]
                         M,N = norm_snps.shape
                         
                         ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
@@ -590,7 +590,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         pylab.plot(xs, ys, color='k', linestyle='None', marker='.', alpha=0.5)
         pylab.xlabel(r'Pairwise distance ($d$)')
         pylab.ylabel(r'Squared correlation ($r^2$)')
-        pylab.savefig(fig_dir+'/ld_%s_codons.png'%(plot_type))
+        pylab.savefig(fig_dir+'/ld_%s_codons2.png'%(plot_type))
     
         pylab.clf()
         bins = sp.arange(0,max(dist_1s),bin_size)
@@ -628,7 +628,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         pylab.xlabel(r'Pairwise distance ($d$)')
         pylab.ylabel(r'Squared correlation ($r^2$)')
         pylab.legend()
-        pylab.savefig(fig_dir+'/part_ld_%s_codons.png'%(plot_type))
+        pylab.savefig(fig_dir+'/part_ld_%s_codons2.png'%(plot_type))
 
  
 def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
