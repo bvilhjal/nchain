@@ -460,7 +460,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
     
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
-                 max_dist=3000, min_maf=0.1, bin_size=30,
+                 max_dist=3000, min_maf=0.1, bin_size=60,
                  fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
@@ -520,15 +520,15 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                                     ld_dist_dict['nonsyn'][dist]['r2_sum']+=ld_mat[i,j]**2
                                     ld_dist_dict['nonsyn'][dist]['snp_count']+=1.0
                                  
-                    snps_sample_size = sp.sum(nonsyn_snp_filter)
+#                     snps_sample_size = sp.sum(nonsyn_snp_filter)
                        
                     if sp.sum(syn_snp_filter)>1:
                         norm_snps = all_norm_snps[syn_snp_filter]
                         positions = all_positions[syn_snp_filter]
                         
-                        sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
-                        norm_snps = norm_snps[sample_indices]
-                        positions = positions[sample_indices]
+#                         sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
+#                         norm_snps = norm_snps[sample_indices]
+#                         positions = positions[sample_indices]
                         M,N = norm_snps.shape
                         
                         ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
@@ -552,7 +552,7 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         dist_1s = []
         dist_2s = []
         for dist in distances:
-            if ld_dist_dict[plot_type][dist]['snp_count']>1:
+            if ld_dist_dict[plot_type][dist]['snp_count']>0:
                 avg_r2 = ld_dist_dict[plot_type][dist]['r2_sum']/float(ld_dist_dict[plot_type][dist]['snp_count'])
                 avg_r2s.append(avg_r2)
                 plot_distances.append(dist)
