@@ -663,8 +663,11 @@ def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/cal
                 strains = g['strains']
                 indiv_filter = sp.zeros((len(strains)),dtype='bool8')
                 for s_i, s in enumerate(strains):
-                    if pop_map[s]==filter_pop:
-                        indiv_filter[s_i]=True
+                    try:
+                        if pop_map[s]==filter_pop:
+                            indiv_filter[s_i]=True
+                    except:
+                        pass
                 codon_snps = g['codon_snps'][...]
                 codon_snps = codon_snps[:,indiv_filter]
                 t_codon_snps = sp.transpose(codon_snps)
