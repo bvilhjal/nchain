@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use('Agg')
 import pylab
 import collections
+import pandas as pd
 
 nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5, 'N':6}
 nt_decode_map = {1:'A', 2:'C', 3:'G', 4:'T', 5:'-', 6:'N'}
@@ -631,8 +632,20 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         pylab.savefig(fig_dir+'/part_ld_%s_codons2.png'%(plot_type))
 
  
+def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobium_soiltypes_nod.txt'):
+    from itertools import izip
+    
+    pop_map = {}
+    t = pd.read_table(file_name)
+    t = t.rename(columns=lambda x: x.strip())
+    for strain_id, origin in izip(t['Seq ID'], t['Country']):
+        pop_map[strain_id]=origin
+    return pop_map, sp.array(t['Country'])
+    
+
 def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
-                 fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
+                 fig_dir = '/project/NChain/faststorage/rhizobium/ld', filter_pop=None):
+    pop_map = parse_pop_map()
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
@@ -644,10 +657,21 @@ def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/cal
         if i%100==0:
             print '%d: Gene %s'%(i,gg)  
         g = h5f[gg]
-        
-        #Filtering SNPs with small MAFs
         if g['codon_snp_freqs'].size>1:
-            freqs = g['codon_snp_freqs'][...]
+            
+            if filter_pop is not None:
+                strains = g['strains']
+                indiv_filter = sp.zeros((len(strains)),dtype='bool8')
+                for s_i, s in enumerate(strains):
+                    if pop_map[s]==filter_pop:
+                        indiv_filter[s_i]=True
+                codon_snps = g['codon_snps'][...]
+                codon_snps = codon_snps[:,indiv_filter]
+                t_codon_snps = sp.transpose(codon_snps)
+                freqs = sp.mean(t_codon_snps,0)
+                
+            else:
+                freqs = g['codon_snp_freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
             is_synonimous_snp = g['is_synonimous_snp'][...]
             syn_mafs.extend(mafs[is_synonimous_snp])
@@ -655,17 +679,33 @@ def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/cal
             all_mafs.extend(mafs)
             
     
-    pylab.hist(all_mafs, bins=50)
-    pylab.title('SFS (all binary codon SNPs)')
-    pylab.savefig(fig_dir+'/sfs_all.png')
-
-    pylab.clf()
-    pylab.hist(nonsyn_mafs, bins=50)
-    pylab.title('SFS (non-synonimous SNPs)')
-    pylab.savefig(fig_dir+'/sfs_non_syn.png')
-
-    pylab.clf()
-    pylab.hist(syn_mafs, bins=50)
-    pylab.title('SFS (synonimous SNPs)')
-    pylab.savefig(fig_dir+'/sfs_syn.png')
-
+    if filter_pop is not None:
+        pylab.hist(all_mafs, bins=50)
+        pylab.title('SFS (all binary codon SNPs)')
+        pylab.savefig('%s/sfs_all_%s.png'%(fig_dir,filter_pop))
+    
+        pylab.clf()
+        pylab.hist(nonsyn_mafs, bins=50)
+        pylab.title('SFS (non-synonimous SNPs)')
+        pylab.savefig('%s/sfs_non_syn_%s.png'%(fig_dir,filter_pop))
+    
+        pylab.clf()
+        pylab.hist(syn_mafs, bins=50)
+        pylab.title('SFS (synonimous SNPs)')
+        pylab.savefig('%s/sfs_syn_%s.png'%(fig_dir,filter_pop))
+        
+    else:
+        pylab.hist(all_mafs, bins=50)
+        pylab.title('SFS (all binary codon SNPs)')
+        pylab.savefig(fig_dir+'/sfs_all.png')
+    
+        pylab.clf()
+        pylab.hist(nonsyn_mafs, bins=50)
+        pylab.title('SFS (non-synonimous SNPs)')
+        pylab.savefig(fig_dir+'/sfs_non_syn.png')
+    
+        pylab.clf()
+        pylab.hist(syn_mafs, bins=50)
+        pylab.title('SFS (synonimous SNPs)')
+        pylab.savefig(fig_dir+'/sfs_syn.png')
+        
