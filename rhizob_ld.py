@@ -645,7 +645,7 @@ def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobiu
 
 def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                  fig_dir = '/project/NChain/faststorage/rhizobium/ld', filter_pop=None):
-    pop_map = parse_pop_map()
+    pop_map, ct_array = parse_pop_map()
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
