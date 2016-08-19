@@ -462,7 +462,10 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                  max_dist=3000, min_maf=0.1, bin_size=60,
-                 fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
+                 fig_dir = '/project/NChain/faststorage/rhizobium/ld', filter_pop=None):
+    
+    pop_map, ct_array = parse_pop_map()
+
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
@@ -685,6 +688,7 @@ def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/cal
             
     
     if filter_pop is not None:
+        pylab.clf()
         pylab.hist(all_mafs, bins=50)
         pylab.title('SFS (all binary codon SNPs)')
         pylab.savefig('%s/sfs_all_%s.png'%(fig_dir,filter_pop))
@@ -700,6 +704,7 @@ def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/cal
         pylab.savefig('%s/sfs_syn_%s.png'%(fig_dir,filter_pop))
         
     else:
+        pylab.clf()
         pylab.hist(all_mafs, bins=50)
         pylab.title('SFS (all binary codon SNPs)')
         pylab.savefig(fig_dir+'/sfs_all.png')
