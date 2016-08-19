@@ -667,7 +667,8 @@ def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/cal
                         if pop_map[s]==filter_pop:
                             indiv_filter[s_i]=True
                     except:
-                        pass
+                        continue
+                assert sp.sum(indiv_filter)>0, 'WTF?'
                 codon_snps = g['codon_snps'][...]
                 codon_snps = codon_snps[:,indiv_filter]
                 t_codon_snps = sp.transpose(codon_snps)
