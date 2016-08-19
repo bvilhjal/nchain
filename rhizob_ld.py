@@ -726,9 +726,9 @@ def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobiu
     pop_map = {}
     t = pd.read_table(file_name)
     t = t.rename(columns=lambda x: x.strip())
-    for strain_id, origin in izip(t['Seq ID'], t['Country']):
+    for strain_id, origin in izip(t['Seq ID'], t['Genospecies']):
         pop_map[str(strain_id)]=origin
-    return pop_map, sp.array(t['Country'])
+    return pop_map, sp.array(t['Genospecies'])
     
 
 def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
