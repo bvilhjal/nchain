@@ -481,38 +481,41 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         if i%100==0:
             print '%d: Gene %s'%(i,gg)  
         g = h5f[gg]
-        
-        #Filtering SNPs with small MAFs
-        if g['codon_snp_freqs'].size>1:
-            freqs = g['codon_snp_freqs'][...]
-            mafs = sp.minimum(freqs,1-freqs)
-            maf_filter = mafs>min_maf
-            if sp.sum(maf_filter)>1:
-                is_synonimous_snp = g['is_synonimous_snp'][...]
-                is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
-                syn_snp_filter = is_synonimous_snp*maf_filter
-                nonsyn_snp_filter = is_nonsynonimous_snp*maf_filter
 
-                if sp.sum(syn_snp_filter)>sp.sum(nonsyn_snp_filter):
-                    all_norm_snps = g['norm_codon_snps'][...]
-                    all_positions = g['codon_snp_positions'][...]
-                    norm_snps = all_norm_snps[maf_filter]
-                    positions = all_positions[maf_filter]
-                    M,N = norm_snps.shape
-                    
-                    ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
-                    assert M==len(positions), 'A bug detected.'
-                    for i in range(M-1):
-                        for j in range(i+1,M):
-                            dist = positions[j] - positions[i]
-                            if dist<max_dist:
-                                ld_dist_dict['all'][dist]['r2_sum']+=ld_mat[i,j]**2
-                                ld_dist_dict['all'][dist]['snp_count']+=1.0
+        if g['codon_snp_freqs'].size>1:
+            if filter_pop is not None:
+                strains = g['strains']
+                indiv_filter = sp.zeros((len(strains)),dtype='bool8')
+                for s_i, s in enumerate(strains):
+                    try:
+                        if pop_map[s]==filter_pop:
+                            indiv_filter[s_i]=True
+                    except:
+                        continue
+                if sp.sum(indiv_filter)<20:
+                    continue
     
-                    
-                    if sp.sum(nonsyn_snp_filter)>1:
-                        norm_snps = all_norm_snps[nonsyn_snp_filter]
-                        positions = all_positions[nonsyn_snp_filter]
+            
+            if filter_pop is not None:
+                codon_snps = g['codon_snps'][...]
+                codon_snps = codon_snps[:,indiv_filter]
+                norm_codon_snps = sp.transpose(codon_snps)
+                freqs = sp.mean(norm_codon_snps,0)
+                norm_codon_snps = (norm_codon_snps-freqs)/sp.sqrt(freqs*(1-freqs))
+                norm_codon_snps = sp.transpose(norm_codon_snps)
+                mafs = sp.minimum(freqs,1-freqs)
+                maf_filter = mafs>min_maf
+                if sp.sum(maf_filter)>1:
+                    is_synonimous_snp = g['is_synonimous_snp'][...]
+                    is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
+                    syn_snp_filter = is_synonimous_snp*maf_filter
+                    nonsyn_snp_filter = is_nonsynonimous_snp*maf_filter
+    
+                    if sp.sum(syn_snp_filter)>sp.sum(nonsyn_snp_filter):
+                        all_norm_snps = norm_codon_snps
+                        all_positions = g['codon_snp_positions'][...]
+                        norm_snps = all_norm_snps[maf_filter]
+                        positions = all_positions[maf_filter]
                         M,N = norm_snps.shape
                         
                         ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
@@ -521,18 +524,59 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                             for j in range(i+1,M):
                                 dist = positions[j] - positions[i]
                                 if dist<max_dist:
-                                    ld_dist_dict['nonsyn'][dist]['r2_sum']+=ld_mat[i,j]**2
-                                    ld_dist_dict['nonsyn'][dist]['snp_count']+=1.0
-                                 
-                    snps_sample_size = sp.sum(nonsyn_snp_filter)
-                       
-                    if sp.sum(syn_snp_filter)>1:
-                        norm_snps = all_norm_snps[syn_snp_filter]
-                        positions = all_positions[syn_snp_filter]
+                                    ld_dist_dict['all'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                    ld_dist_dict['all'][dist]['snp_count']+=1.0
+        
                         
-                        sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
-                        norm_snps = norm_snps[sample_indices]
-                        positions = positions[sample_indices]
+                        if sp.sum(nonsyn_snp_filter)>1:
+                            norm_snps = all_norm_snps[nonsyn_snp_filter]
+                            positions = all_positions[nonsyn_snp_filter]
+                            M,N = norm_snps.shape
+                            
+                            ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                            assert M==len(positions), 'A bug detected.'
+                            for i in range(M-1):
+                                for j in range(i+1,M):
+                                    dist = positions[j] - positions[i]
+                                    if dist<max_dist:
+                                        ld_dist_dict['nonsyn'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                        ld_dist_dict['nonsyn'][dist]['snp_count']+=1.0
+                                     
+                        snps_sample_size = sp.sum(nonsyn_snp_filter)
+                           
+                        if sp.sum(syn_snp_filter)>1:
+                            norm_snps = all_norm_snps[syn_snp_filter]
+                            positions = all_positions[syn_snp_filter]
+                            
+                            sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
+                            norm_snps = norm_snps[sample_indices]
+                            positions = positions[sample_indices]
+                            M,N = norm_snps.shape
+                            
+                            ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                            assert M==len(positions), 'A bug detected.'
+                            for i in range(M-1):
+                                for j in range(i+1,M):
+                                    dist = positions[j] - positions[i]
+                                    if dist<max_dist:
+                                        ld_dist_dict['syn'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                        ld_dist_dict['syn'][dist]['snp_count']+=1.0            
+            else:
+                #Filtering SNPs with small MAFs
+                freqs = g['codon_snp_freqs'][...]
+                mafs = sp.minimum(freqs,1-freqs)
+                maf_filter = mafs>min_maf
+                if sp.sum(maf_filter)>1:
+                    is_synonimous_snp = g['is_synonimous_snp'][...]
+                    is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
+                    syn_snp_filter = is_synonimous_snp*maf_filter
+                    nonsyn_snp_filter = is_nonsynonimous_snp*maf_filter
+    
+                    if sp.sum(syn_snp_filter)>sp.sum(nonsyn_snp_filter):
+                        all_norm_snps = g['norm_codon_snps'][...]
+                        all_positions = g['codon_snp_positions'][...]
+                        norm_snps = all_norm_snps[maf_filter]
+                        positions = all_positions[maf_filter]
                         M,N = norm_snps.shape
                         
                         ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
@@ -541,8 +585,43 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
                             for j in range(i+1,M):
                                 dist = positions[j] - positions[i]
                                 if dist<max_dist:
-                                    ld_dist_dict['syn'][dist]['r2_sum']+=ld_mat[i,j]**2
-                                    ld_dist_dict['syn'][dist]['snp_count']+=1.0
+                                    ld_dist_dict['all'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                    ld_dist_dict['all'][dist]['snp_count']+=1.0
+        
+                        
+                        if sp.sum(nonsyn_snp_filter)>1:
+                            norm_snps = all_norm_snps[nonsyn_snp_filter]
+                            positions = all_positions[nonsyn_snp_filter]
+                            M,N = norm_snps.shape
+                            
+                            ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                            assert M==len(positions), 'A bug detected.'
+                            for i in range(M-1):
+                                for j in range(i+1,M):
+                                    dist = positions[j] - positions[i]
+                                    if dist<max_dist:
+                                        ld_dist_dict['nonsyn'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                        ld_dist_dict['nonsyn'][dist]['snp_count']+=1.0
+                                     
+                        snps_sample_size = sp.sum(nonsyn_snp_filter)
+                           
+                        if sp.sum(syn_snp_filter)>1:
+                            norm_snps = all_norm_snps[syn_snp_filter]
+                            positions = all_positions[syn_snp_filter]
+                            
+                            sample_indices = sorted(sp.random.choice(sp.arange(len(positions)), snps_sample_size, replace=False))
+                            norm_snps = norm_snps[sample_indices]
+                            positions = positions[sample_indices]
+                            M,N = norm_snps.shape
+                            
+                            ld_mat = sp.dot(norm_snps,norm_snps.T)/float(N)
+                            assert M==len(positions), 'A bug detected.'
+                            for i in range(M-1):
+                                for j in range(i+1,M):
+                                    dist = positions[j] - positions[i]
+                                    if dist<max_dist:
+                                        ld_dist_dict['syn'][dist]['r2_sum']+=ld_mat[i,j]**2
+                                        ld_dist_dict['syn'][dist]['snp_count']+=1.0
     
     
     
@@ -594,7 +673,10 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         pylab.plot(xs, ys, color='k', linestyle='None', marker='.', alpha=0.5)
         pylab.xlabel(r'Pairwise distance ($d$)')
         pylab.ylabel(r'Squared correlation ($r^2$)')
-        pylab.savefig(fig_dir+'/ld_%s_codons2.png'%(plot_type))
+        if filter_pop is not None:
+            pylab.savefig('%s/ld_%s_codons_%s.png'%(fig_dir,plot_type,filter_pop))
+        else:
+            pylab.savefig('%s/ld_%s_codons.png'%(fig_dir,plot_type))
     
         pylab.clf()
         bins = sp.arange(0,max(dist_1s),bin_size)
@@ -632,7 +714,10 @@ def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/call
         pylab.xlabel(r'Pairwise distance ($d$)')
         pylab.ylabel(r'Squared correlation ($r^2$)')
         pylab.legend()
-        pylab.savefig(fig_dir+'/part_ld_%s_codons2.png'%(plot_type))
+        if filter_pop is not None:
+            pylab.savefig('%s/part_ld_%s_codons_%s.png'%(fig_dir,plot_type,filter_pop))
+        else:
+            pylab.savefig(fig_dir+'/part_ld_%s_codons2.png'%(plot_type))
 
  
 def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobium_soiltypes_nod.txt'):
