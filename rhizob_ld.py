@@ -639,7 +639,7 @@ def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobiu
     t = pd.read_table(file_name)
     t = t.rename(columns=lambda x: x.strip())
     for strain_id, origin in izip(t['Seq ID'], t['Country']):
-        pop_map[strain_id]=origin
+        pop_map[str(strain_id)]=origin
     return pop_map, sp.array(t['Country'])
     
 
