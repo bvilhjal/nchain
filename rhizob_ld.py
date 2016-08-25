@@ -510,7 +510,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
     
 def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5',
-                          min_maf = 0.15, min_num_snps = 50):
+                          min_maf = 0.15, min_num_snps = 20):
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
     gene_groups = sorted(h5f.keys())
@@ -518,12 +518,6 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
     pop_map, ct_array = parse_pop_map()
     unique_gs = sp.unique(ct_array)  
     avg_gene_genosp_ld_dict = {'all': {}, 'nonsyn': {}, 'syn': {}}
-    for k in avg_gene_genosp_ld_dict.keys():
-        for i, gg in enumerate(gene_groups):
-            d = {}
-            for gs in unique_gs:
-                d[gs] = {}
-            avg_gene_genosp_ld_dict[k][gg]=d
         
     for i, gg in enumerate(gene_groups):
         if i%100==0:
@@ -547,39 +541,39 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
                 strains = g['strains']
                 gs_list = sp.array([pop_map.get(strain,'NA') for strain in strains])
                 
+                d = {}
                 for gs in unique_gs:          
                     gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
                     gs_snp = (gs_snp - sp.mean(gs_snp))/sp.std(gs_snp)
                     r_list = sp.dot(gs_snp,norm_snps.T)/float(N)
                     r2_list = r_list**2
                     assert M==len(r2_list), 'A bug detected.'
-                    avg_gene_genosp_ld_dict['all'][gg][gs]['mean_r2'] = sp.mean(r2_list)
-                    avg_gene_genosp_ld_dict['all'][gg][gs]['num_snps'] = M
-                    avg_gene_genosp_ld_dict['all'][gg][gs]['r2s'] = r2_list
+                    d[gs] = {'mean_r2': sp.mean(r2_list), 'num_snps': M, 'r2s': r2_list}
+                avg_gene_genosp_ld_dict['all'][gg] = d
                 
                 nonsyn_snp_filter = is_synonimous_snp[maf_filter]
                 M = sp.sum(nonsyn_snp_filter)
                 if M>10:
+                    d = {}
                     for gs in unique_gs:          
                         gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
                         gs_snp = (gs_snp - sp.mean(gs_snp))/sp.std(gs_snp)
                         r2_list = avg_gene_genosp_ld_dict['all'][gg][gs]['r2s'][nonsyn_snp_filter]
                         assert M==len(r2_list), 'A bug detected.'
-                        avg_gene_genosp_ld_dict['nonsyn'][gg][gs]['mean_r2'] = sp.mean(r2_list)
-                        avg_gene_genosp_ld_dict['nonsyn'][gg][gs]['num_snps'] = M
-                        avg_gene_genosp_ld_dict['nonsyn'][gg][gs]['r2s'] = r2_list
+                        d[gs] = {'mean_r2': sp.mean(r2_list), 'num_snps': M, 'r2s': r2_list}
+                    avg_gene_genosp_ld_dict['nonsyn'][gg] = d
                     
                 syn_snp_filter = sp.negative(nonsyn_snp_filter)
                 M = sp.sum(syn_snp_filter)
                 if sp.sum(syn_snp_filter)>10:
+                    d = {}
                     for gs in unique_gs:          
                         gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
                         gs_snp = (gs_snp - sp.mean(gs_snp))/sp.std(gs_snp)
                         r2_list = avg_gene_genosp_ld_dict['all'][gg][gs]['r2s'][syn_snp_filter]
                         assert M==len(r2_list), 'A bug detected.'
-                        avg_gene_genosp_ld_dict['syn'][gg][gs]['mean_r2'] = sp.mean(r2_list)
-                        avg_gene_genosp_ld_dict['syn'][gg][gs]['num_snps'] = M
-                        avg_gene_genosp_ld_dict['syn'][gg][gs]['r2s'] = r2_list
+                        d[gs] = {'mean_r2': sp.mean(r2_list), 'num_snps': M, 'r2s': r2_list}
+                    avg_gene_genosp_ld_dict['syn'][gg] = d
     return avg_gene_genosp_ld_dict
     
 
