@@ -416,62 +416,61 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     h5f = h5py.File(snps_hdf5_file)
     sh5f = h5py.File(seq_file)
     gene_groups = sorted(h5f.keys())
-    dn_ds_ratios = []
-    mean_blosum_62_scores = []
-    num_seg_sites = []
-    pi_diversity = []
-    for gg in gene_groups:
-        g = h5f[gg]
-        sg = sh5f['snps'][gg]
-        codon_snp_positions = g['codon_snp_positions'][...]
-        if len(codon_snp_positions)>100:
-            dn_ds_ratio = g['dn_ds_ratio'][...]
-            dn_ds_ratios.append(dn_ds_ratio)
-
-            blosum62_scores = sp.mean(g['blosum62_scores'][...])
-            mean_blosum_62_scores.append(sp.mean(blosum62_scores))
-        
-            raw_snp_positions = g['raw_snp_positions'][...]
-            num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
-            num_seg_sites.append(num_seg_sites_per_base)
-            
-            diversity = g['diversity'][...]
-            pi_diversity.append(diversity)
-    
-    mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
-    print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
-    pylab.clf()
-    pylab.hist(dn_ds_ratios, bins=100)
-    pylab.title(r'$\frac{d_n}{d_s}$ (values below 1 suggest purifying selection.)')
-    pylab.savefig(fig_dir+'/dn_ds_ratio.png')
+#     dn_ds_ratios = []
+#     mean_blosum_62_scores = []
+#     num_seg_sites = []
+#     pi_diversity = []
+#     for gg in gene_groups:
+#         g = h5f[gg]
+#         sg = sh5f['snps'][gg]
+#         codon_snp_positions = g['codon_snp_positions'][...]
+#         if len(codon_snp_positions)>100:
+#             dn_ds_ratio = g['dn_ds_ratio'][...]
+#             dn_ds_ratios.append(dn_ds_ratio)
+# 
+#             blosum62_scores = sp.mean(g['blosum62_scores'][...])
+#             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
+#         
+#             raw_snp_positions = g['raw_snp_positions'][...]
+#             num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
+#             num_seg_sites.append(num_seg_sites_per_base)
+#             
+#             diversity = g['diversity'][...]
+#             pi_diversity.append(diversity)
+#     
+#     mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
+#     print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
+#     pylab.clf()
+#     pylab.hist(dn_ds_ratios, bins=100)
+#     pylab.title(r'$\frac{d_n}{d_s}$ (values below 1 suggest purifying selection.)')
+#     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
         
 #     pylab.clf()
 #     pylab.hist(mean_blosum_62_scores, bins=100)
 #     pylab.title('Average BLOSUM62 scores (values above 1 suggest purifying selection)')    
 #     pylab.savefig(fig_dir+'/mean_blosum_62_scores.png')
-    
-    pylab.clf()
-    pylab.hist(num_seg_sites, bins=100)
-    pylab.title(r'Number of segregating sites per nucleotide ($S$)')    
-    pylab.savefig(fig_dir+'/segregating_sites.png')
-    
-    pylab.clf()
-    pylab.hist(pi_diversity, bins=100)
-    pylab.title(r'Nucleotide diversity ($\pi$)')    
-    pylab.savefig(fig_dir+'/nucleotide_diversity.png')
+#     
+#     pylab.clf()
+#     pylab.hist(num_seg_sites, bins=100)
+#     pylab.title(r'Number of segregating sites per nucleotide ($S$)')    
+#     pylab.savefig(fig_dir+'/segregating_sites.png')
+#     
+#     pylab.clf()
+#     pylab.hist(pi_diversity, bins=100)
+#     pylab.title(r'Nucleotide diversity ($\pi$)')    
+#     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
     
     pop_map, ct_array = parse_pop_map()
     unique_gs = sp.unique(ct_array)
     avg_gene_genosp_ld_dict = gene_genospecies_corr()
-    print avg_gene_genosp_ld_dict
     #Now plot things per genospecies...
     dn_ds_ratios = {'all':[], 'nonsyn':[], 'syn':[]}
     num_seg_sites = {'all':[], 'nonsyn':[], 'syn':[]}
     pi_diversity = {'all':[], 'nonsyn':[], 'syn':[]}
     mean_r2s = {'all':[], 'nonsyn':[], 'syn':[]}
-    
     for gg in gene_groups:
         g = h5f[gg]
+        sg = sh5f['snps'][gg]
         for snp_type in ['all','nonsyn','syn']:
             ok_genes = set(avg_gene_genosp_ld_dict[snp_type].keys())
             if gg in ok_genes:
