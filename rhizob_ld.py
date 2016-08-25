@@ -464,7 +464,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     unique_gs = sp.unique(ct_array)
     avg_gene_genosp_ld_dict = gene_genospecies_corr()
     #Now plot things per genospecies...
-    dn_ds_ratios = {'all':[], 'nonsyn':[], 'syn':[]}
+    dn_ds_ratios = {'all':[], 'nonsyn':[], 'syn':[]}unique_gsu
     num_seg_sites = {'all':[], 'nonsyn':[], 'syn':[]}
     pi_diversity = {'all':[], 'nonsyn':[], 'syn':[]}
     mean_r2s = {'all':[], 'nonsyn':[], 'syn':[]}
@@ -474,7 +474,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
         for snp_type in ['all','nonsyn','syn']:
             ok_genes = set(avg_gene_genosp_ld_dict[snp_type].keys())
             if gg in ok_genes:
-                mean_r2s[snp_type].append(avg_gene_genosp_ld_dict[snp_type][gg][geno_species])
+                mean_r2s[snp_type].append(avg_gene_genosp_ld_dict[snp_type][gg][geno_species]['mean_r2'])
                 dn_ds_ratio = g['dn_ds_ratio'][...]
                 dn_ds_ratios[snp_type].append(dn_ds_ratio)
               
