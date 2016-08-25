@@ -551,7 +551,8 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
                     d[gs] = {'mean_r2': sp.mean(r2_list), 'num_snps': M, 'r2s': r2_list}
                 avg_gene_genosp_ld_dict['all'][gg] = d
                 
-                nonsyn_snp_filter = is_synonimous_snp[maf_filter]
+                syn_snp_filter = is_synonimous_snp[maf_filter]
+                nonsyn_snp_filter = sp.negative(syn_snp_filter)
                 M = sp.sum(nonsyn_snp_filter)
                 if M>10:
                     d = {}
@@ -563,7 +564,6 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
                         d[gs] = {'mean_r2': sp.mean(r2_list), 'num_snps': M, 'r2s': r2_list}
                     avg_gene_genosp_ld_dict['nonsyn'][gg] = d
                     
-                syn_snp_filter = sp.negative(nonsyn_snp_filter)
                 M = sp.sum(syn_snp_filter)
                 if sp.sum(syn_snp_filter)>10:
                     d = {}
