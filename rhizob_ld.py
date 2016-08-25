@@ -409,7 +409,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
     
     
     
-def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', 
+def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                                  seq_file = '/project/NChain/faststorage/rhizobium/ld/snps2.hdf5',
                                  fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
                                  geno_species='gsA'):
