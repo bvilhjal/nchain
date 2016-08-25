@@ -545,7 +545,7 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
                 norm_snps = all_norm_snps[maf_filter]
                 M,N = norm_snps.shape
                 strains = g['strains']
-                gs_list = sp.array([pop_map[strain] for strain in strains])
+                gs_list = sp.array([pop_map.get(strain,default='NA') for strain in strains])
                 
                 for gs in unique_gs:          
                     gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
