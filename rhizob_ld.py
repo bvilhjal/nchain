@@ -489,6 +489,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
     for snp_type in ['all','nonsyn','syn']:
         pylab.clf()
+        print mean_r2s[snp_type], dn_ds_ratios[snp_type]
         pylab.plot(mean_r2s[snp_type], dn_ds_ratios[snp_type], 'k.', alpha=0.3)
         pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
         pylab.ylabel(r'$\frac{K_a}{K_s}$')
