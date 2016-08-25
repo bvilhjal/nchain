@@ -463,6 +463,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     pop_map, ct_array = parse_pop_map()
     unique_gs = sp.unique(ct_array)
     avg_gene_genosp_ld_dict = gene_genospecies_corr()
+    print avg_gene_genosp_ld_dict
     #Now plot things per genospecies...
     dn_ds_ratios = {'all':[], 'nonsyn':[], 'syn':[]}
     num_seg_sites = {'all':[], 'nonsyn':[], 'syn':[]}
