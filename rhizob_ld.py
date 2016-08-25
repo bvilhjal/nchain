@@ -509,7 +509,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
 
     
     
-def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5',
+def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5',
                           min_maf = 0.15, min_num_snps = 50):
     from itertools import izip
     h5f = h5py.File(snps_hdf5_file)
