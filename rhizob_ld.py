@@ -411,7 +411,8 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
     
 def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5', 
                                  seq_file = '/project/NChain/faststorage/rhizobium/ld/snps2.hdf5',
-                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld'):
+                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
+                                 geno_species='gsA'):
     h5f = h5py.File(snps_hdf5_file)
     sh5f = h5py.File(seq_file)
     gene_groups = sorted(h5f.keys())
@@ -439,14 +440,15 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
     mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
     print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
+    pylab.clf()
     pylab.hist(dn_ds_ratios, bins=100)
     pylab.title(r'$\frac{d_n}{d_s}$ (values below 1 suggest purifying selection.)')
     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
         
-    pylab.clf()
-    pylab.hist(mean_blosum_62_scores, bins=100)
-    pylab.title('Average BLOSUM62 scores (values above 1 suggest purifying selection)')    
-    pylab.savefig(fig_dir+'/mean_blosum_62_scores.png')
+#     pylab.clf()
+#     pylab.hist(mean_blosum_62_scores, bins=100)
+#     pylab.title('Average BLOSUM62 scores (values above 1 suggest purifying selection)')    
+#     pylab.savefig(fig_dir+'/mean_blosum_62_scores.png')
     
     pylab.clf()
     pylab.hist(num_seg_sites, bins=100)
@@ -457,9 +459,128 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     pylab.hist(pi_diversity, bins=100)
     pylab.title(r'Nucleotide diversity ($\pi$)')    
     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
-       
+    
+    pop_map, ct_array = parse_pop_map()
+    unique_gs = sp.unique(ct_array)
+    avg_gene_genosp_ld_dict = gene_genospecies_corr()
+    #Now plot things per genospecies...
+    dn_ds_ratios = {'all':[], 'nonsyn':[], 'syn':[]}
+    num_seg_sites = {'all':[], 'nonsyn':[], 'syn':[]}
+    pi_diversity = {'all':[], 'nonsyn':[], 'syn':[]}
+    mean_r2s = {'all':[], 'nonsyn':[], 'syn':[]}
+    
+    for gg in gene_groups:
+        g = h5f[gg]
+        for snp_type in ['all','nonsyn','syn']:
+            ok_genes = set(avg_gene_genosp_ld_dict[snp_type].keys())
+            if gg in ok_genes:
+                mean_r2s[snp_type].append(avg_gene_genosp_ld_dict[snp_type][gg][geno_species])
+                dn_ds_ratio = g['dn_ds_ratio'][...]
+                dn_ds_ratios[snp_type].append(dn_ds_ratio)
+              
+                
+                raw_snp_positions = g['raw_snp_positions'][...]
+                num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
+                num_seg_sites[snp_type].append(num_seg_sites_per_base)
+                 
+                diversity = g['diversity'][...]
+                pi_diversity[snp_type].append(diversity)
+
+    
+    for snp_type in ['all','nonsyn','syn']:
+        pylab.clf()
+        pylab.plot(mean_r2s[snp_type], dn_ds_ratios[snp_type], 'k.', alpha=0.3)
+        pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
+        pylab.ylabel(r'$\frac{K_a}{K_s}$')
+        pylab.savefig(fig_dir+'/Ka_Ks_vs_%s_corr_%s.png'%(geno_species,snp_type))
+        
+        pylab.clf()
+        pylab.plot(mean_r2s[snp_type], num_seg_sites[snp_type], 'k.', alpha=0.3)
+        pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
+        pylab.ylabel(r'Number of segregating sites per nucleotide ($S$)')
+        pylab.savefig(fig_dir+'/Num_seg_sites_vs_%s_corr_%s.png'%(geno_species,snp_type))
+        
+        pylab.clf()
+        pylab.plot(mean_r2s[snp_type], num_seg_sites[snp_type], 'k.', alpha=0.3)
+        pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
+        pylab.ylabel(r'Nucleotide diversity ($\pi$)')
+        pylab.savefig(fig_dir+'/nt_diversity_vs_%s_corr_%s.png'%(geno_species,snp_type))
+
     
     
+def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5.hdf5',
+                          min_maf = 0.15, min_num_snps = 50):
+    from itertools import izip
+    h5f = h5py.File(snps_hdf5_file)
+    gene_groups = sorted(h5f.keys())
+
+    pop_map, ct_array = parse_pop_map()
+    unique_gs = sp.unique(ct_array)  
+    avg_gene_genosp_ld_dict = {'all': {}, 'nonsyn': {}, 'syn': {}}
+    for k in avg_gene_genosp_ld_dict.keys():
+        for i, gg in enumerate(gene_groups):
+            d = {}
+            for gs in unique_gs:
+                d[gs] = {}
+            avg_gene_genosp_ld_dict[k][gg]=d
+        
+    for i, gg in enumerate(gene_groups):
+        if i%100==0:
+            print '%d: Gene %s'%(i,gg)  
+        g = h5f[gg]
+
+        #Filtering SNPs with small MAFs
+        freqs = g['codon_snp_freqs'][...]
+        mafs = sp.minimum(freqs,1-freqs)
+        maf_filter = mafs>min_maf
+        if sp.sum(maf_filter)>min_num_snps:            
+            is_synonimous_snp = g['is_synonimous_snp'][...]
+            is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
+            syn_snp_filter = is_synonimous_snp*maf_filter
+            nonsyn_snp_filter = is_nonsynonimous_snp*maf_filter
+
+            if sp.sum(syn_snp_filter)>sp.sum(nonsyn_snp_filter):
+                all_norm_snps = g['norm_codon_snps'][...]
+                norm_snps = all_norm_snps[maf_filter]
+                M,N = norm_snps.shape
+                strains = g['strains']
+                gs_list = sp.array([pop_map[strain] for strain in strains])
+                
+                for gs in unique_gs:          
+                    gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
+                    gs_snp = (gs_snp - sp.mean(gs_snp))/sp.std(gs_snp)
+                    r_list = sp.dot(gs_snp,norm_snps.T)/float(N)
+                    r2_list = r_list**2
+                    assert M==len(r2_list), 'A bug detected.'
+                    avg_gene_genosp_ld_dict['all'][gg][gs]['mean_r2'] = sp.mean(r2_list)
+                    avg_gene_genosp_ld_dict['all'][gg][gs]['num_snps'] = M
+                    avg_gene_genosp_ld_dict['all'][gg][gs]['r2s'] = r2_list
+                
+                nonsyn_snp_filter = is_synonimous_snp[maf_filter]
+                if sp.sum(nonsyn_snp_filter)>10:
+                    for gs in unique_gs:          
+                        gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
+                        gs_snp = (gs_snp - sp.mean(gs_snp))/sp.std(gs_snp)
+                        r2_list = avg_gene_genosp_ld_dict['all'][gg][gs]['r2s'][nonsyn_snp_filter]
+                        assert M==len(r2_list), 'A bug detected.'
+                        avg_gene_genosp_ld_dict['nonsyn'][gg][gs]['mean_r2'] = sp.mean(r2_list)
+                        avg_gene_genosp_ld_dict['nonsyn'][gg][gs]['num_snps'] = M
+                        avg_gene_genosp_ld_dict['nonsyn'][gg][gs]['r2s'] = r2_list
+                    
+                syn_snp_filter = sp.negative(nonsyn_snp_filter)
+                if sp.sum(syn_snp_filter)>10:
+                    for gs in unique_gs:          
+                        gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
+                        gs_snp = (gs_snp - sp.mean(gs_snp))/sp.std(gs_snp)
+                        r2_list = avg_gene_genosp_ld_dict['all'][gg][gs]['r2s'][syn_snp_filter]
+                        assert M==len(r2_list), 'A bug detected.'
+                        avg_gene_genosp_ld_dict['syn'][gg][gs]['mean_r2'] = sp.mean(r2_list)
+                        avg_gene_genosp_ld_dict['syn'][gg][gs]['num_snps'] = M
+                        avg_gene_genosp_ld_dict['syn'][gg][gs]['r2s'] = r2_list
+    return avg_gene_genosp_ld_dict
+    
+
+
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                  max_dist=3000, min_maf=0.1, bin_size=60,
                  fig_dir = '/project/NChain/faststorage/rhizobium/ld', filter_pop=None):
