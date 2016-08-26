@@ -508,16 +508,17 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
         dn_ds_list = sp.array(dn_ds_ratios[snp_type])
         
         pylab.clf()
-        bins = sp.arange(0,1+bin_size,bin_size)
+#         bins = sp.arange(0,1+bin_size,bin_size)
+        bins = [0.0,0.4,1.0]
         digitize = sp.digitize(avg_r2s, bins)    
         xs = []
         ys = []
-        for bin_i in range(len(bins)):
+        for bin_i in range(len(bins)-1):
             bin_filter = digitize==(bin_i+1)
             if len(dn_ds_list[bin_filter])>0:
 #                 xs.append(sp.mean(avg_r2s[bin_filter]))
 #                 ys.append(sp.mean(dn_ds_list[bin_filter]))
-                xs.append(bins[bin_i]+0.5*bin_size)
+                xs.append(bins[bin_i]+0.5*bins[bin_i+1])
                 ys.append(dn_ds_list[bin_filter])
 
 #         pylab.plot(xs, ys, 'k.', alpha=0.3)
