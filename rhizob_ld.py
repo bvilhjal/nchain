@@ -484,7 +484,7 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
         for snp_type in ['all','nonsyn','syn']:
             ok_genes = set(avg_gene_genosp_ld_dict[snp_type].keys())
             if gg in ok_genes:
-                mean_r2s[snp_type].append(avg_gene_genosp_ld_dict[snp_type][gg][geno_species]['mean_r2'][0])
+                mean_r2s[snp_type].append(float(avg_gene_genosp_ld_dict[snp_type][gg][geno_species]['mean_r2']))
                 dn_ds_ratio = g['dn_ds_ratio'][...]
                 dn_ds_ratios[snp_type].append(dn_ds_ratio)
                 
@@ -618,7 +618,8 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
 
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                  max_dist=3000, min_maf=0.1, bin_size=60,
-                 fig_dir = '/project/NChain/faststorage/rhizobium/ld', filter_pop=None):
+                 fig_dir = '/project/NChain/faststorage/rhizobium/ld', filter_pop=None,
+                 fix_syn_nonsyn_ratio):
     
     pop_map, ct_array = parse_pop_map()
 
