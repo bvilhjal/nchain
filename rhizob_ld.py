@@ -417,8 +417,216 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
     print 'Parsed %d'%num_parsed_genes
     
 
-def calc_mcdonald_kreitman_stat():
-    pass
+def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
+                                gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5'):
+    """
+    Generate a new set of SNPs to look at.
+    
+    For all nts:
+        if it is a SNP
+            count # of variants. 
+            check AA changes
+            quantify AA change severity    
+    
+    """
+    from itertools import izip
+    pop_map, ct_array = parse_pop_map()
+    codon_syn_map = get_codon_syn_map()
+    h5f = h5py.File(gt_hdf5_file)
+    ag = h5f['alignments']
+    gene_groups = sorted(ag.keys())
+    num_parsed_genes = 0
+    dn_ds_ratio_dict = {}
+    for gg in gene_groups:
+        g = ag[gg]
+        
+        #0. Check if there is evidence for CNVs/paralogs?
+        seq_ids = g['strains']
+        strains_list = sp.array(map(lambda x: x.split('-')[0], seq_ids))
+        gs_list = sp.array([pop_map[strain] for strain in strains_list])
+        gs_filters = [sp.in1d(gs_list,[gs]) for gs in geno_species]
+        common_filter = sp.zeros((len(gs_list)))
+        for i in range(len(geno_species)):
+            common_filter += common_filter[i]
+       
+        gs_strains_lists = [strains_list[gs_filter] for gs_filter in gs_filters]
+
+        
+        gs_strains = [ ]
+        has_paralogs = False
+        for gs_strains_list in gs_strains_lists:
+            gs_strains = sp.unique(gs_strains_list)
+            has_paralogs = len(gs_strains)<len(gs_strains_list)
+            if has_paralogs:
+                break
+        num_strains = []
+        for gs_strains_list in gs_strains_lists:
+            num_strains.append(len(gs_strains_list))
+        num_strains = sp.array(num_strains)
+        
+        if has_paralogs:
+            print 'Evidence for paralogs/CNVs'
+        elif sp.all(num_strains>min_num_strains):
+            gs_strains = gs_strains_lists
+            all_gs_strains = strains_list[common_filter]
+            gs_list = sp.array([pop_map[strain] for strain in all_gs_strains])
+            gs_filters = [sp.in1d(gs_list,[gs]) for gs in geno_species]
+            
+                        
+            #1. Filter rows with indels and missing data
+            nt_mat = g['nsequences'][...]
+            nt_mat = nt_mat[common_filter]
+            
+            no_gaps_no_missing = sp.all(nt_mat<5,0)
+            nt_mat = sp.transpose(nt_mat)
+            if sp.sum(no_gaps_no_missing)>0:
+                raw_snps = nt_mat[no_gaps_no_missing]
+                
+                #First calc within genospcies Ka/Ks
+                d = {}
+                for i, gs in enumerate(geno_species):
+                    gs_filter = gs_filters[i]
+                    gs_raw_snps = raw_snps[:,gs_filter]
+                    
+                    num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, nt_mat[:,gs_filter])
+                    ok_num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 1, gs_raw_snps)
+                    var_filter = ok_num_vars>1                
+
+                    num_raw_snps = sp.sum(var_filter)
+                    if num_raw_snps>0:
+                        
+                        print 'Working on gene group: %s'%gg
+                        print 'Found %d SNPs'%num_raw_snps
+                        
+                        M,N = nt_mat.shape
+                        non_gap_positions = sp.arange(M)[no_gaps_no_missing]
+#                         all_snps = raw_snps[var_filter]
+#                         all_snp_positions = non_gap_positions[var_filter]
+                        
+                        
+                        #3. Identify good SNPs (dimorphic SNPs)
+                        good_snp_filter = ok_num_vars==2
+                        ok_snps = raw_snps[good_snp_filter]
+                        snp_positions = non_gap_positions[good_snp_filter]
+                        assert len(ok_snps)==len(snp_positions), 'A bug detected!'
+                        
+                        #4. Call good SNPs
+                        sequence = g['sequences'][0]
+                        snps = []
+                        nts = []
+                        
+                        codon_snps = []
+                        codon_snp_positions = []
+                        codons = []
+                        aacids = []
+                        is_synonimous_snp =  []
+                        tot_num_syn_sites = 0
+                        tot_num_non_syn_sites = 0
+                        for ok_snp, snp_pos in izip(ok_snps, snp_positions):                    
+                            mean_snp = sp.mean(ok_snp)
+                            snp = sp.zeros(N)
+                            snp[ok_snp>mean_snp]=1
+                            snps.append(snp)
+                            
+                            #Get nucleotides 
+                            nt0 = nt_decode_map[ok_snp.min()]
+                            nt1 = nt_decode_map[ok_snp.max()]
+                            nts.append([nt0,nt1])
+                            
+                            
+                            #5. Check codon position
+                            codon_pos = snp_pos%3
+                            
+                            #6. Identify non-ambiguous codon changes.
+                            #Check if there is a preceding/succeeding SNP within the codon.
+                            if codon_pos==0:
+                                if not (no_gaps_no_missing[snp_pos+1] and no_gaps_no_missing[snp_pos+2]):
+                                    continue
+                                if not(num_vars[snp_pos+1]==1 and num_vars[snp_pos+2]==1):
+                                    continue
+                                cdseq12 = sequence[snp_pos+1:snp_pos+3]
+                                codon0 = nt0+cdseq12
+                                codon1 = nt1+cdseq12
+                                
+                            elif codon_pos==1:
+                                if not (no_gaps_no_missing[snp_pos-1] and no_gaps_no_missing[snp_pos+1]):
+                                    continue
+                                if not(num_vars[snp_pos-1]==1 and num_vars[snp_pos+1]==1):
+                                    continue
+                                cdseq0 = sequence[snp_pos-1]
+                                cdseq2 = sequence[snp_pos+1]
+                                codon0 = cdseq0+nt0+cdseq2
+                                codon1 = cdseq0+nt1+cdseq2
+                            
+                            elif codon_pos==2:
+                                if not (no_gaps_no_missing[snp_pos-1] and no_gaps_no_missing[snp_pos-2]):
+                                    continue
+                                if not(num_vars[snp_pos-1]==1 and num_vars[snp_pos-2]==1):
+                                    continue
+                                cdseq01 = sequence[snp_pos-2:snp_pos]
+                                codon0 = cdseq01+nt0
+                                codon1 = cdseq01+nt1
+                            
+                            assert codon0!=codon1, 'Codons are identical?'
+                            
+                            #This appears to be a unique codon change with a dimorphic SNP.
+                            codons.append([codon0,codon1])
+                            freq = sp.mean(snp,0)
+                            
+                            #7. Check non-synonimous/synonimous
+                            num_syn_sites = freq*codon_syn_map[codon0]+(1-freq)*codon_syn_map[codon1]
+                            num_non_syn_sites = 3-num_syn_sites
+                            tot_num_syn_sites += num_syn_sites
+                            tot_num_non_syn_sites += num_non_syn_sites
+    
+                            aa0 = codontable[codon0]
+                            aa1 = codontable[codon1]
+                            aacids.append([aa0,aa1])
+                            is_synon = aa0==aa1
+                            is_synonimous_snp.append(is_synon)
+                            
+                            
+                            #Get BLOUSUM62 score
+    
+                            codon_snps.append(snp)
+                            codon_snp_positions.append(snp_pos)
+                        
+                        #Normalize SNPs
+                        norm_snps = sp.transpose(snps)
+                        freqs = sp.mean(norm_snps,0)
+                        norm_snps = (norm_snps-freqs)/sp.sqrt(freqs*(1-freqs))
+                        norm_snps = sp.transpose(norm_snps)                   
+                    
+                        norm_codon_snps = sp.transpose(codon_snps)
+                        codon_snp_freqs = sp.mean(norm_codon_snps,0)
+                        norm_codon_snps = (norm_codon_snps-codon_snp_freqs)/sp.sqrt(codon_snp_freqs*(1-codon_snp_freqs))
+                        norm_codon_snps = sp.transpose(norm_codon_snps)
+                        
+                        #Calculate dn/ds ratios
+                        num_syn_subt = sp.sum(is_synonimous_snp)
+                        num_non_syn_subt = len(is_synonimous_snp)-num_syn_subt
+                        if num_syn_subt>0:
+                            dn_ds_ratio = (num_non_syn_subt/tot_num_non_syn_sites)/(num_syn_subt/tot_num_syn_sites)
+                        else:
+                            dn_ds_ratio=-1
+
+                        d[gs]={'dn_ds_ratio':dn_ds_ratio, 'num_syn_subt':num_syn_subt, 'num_non_syn_subt':num_non_syn_subt, 'M':len(nt_mat)}
+                    else:
+                        d[gs]={'dn_ds_ratio':-1, 'num_syn_subt':0, 'num_non_syn_subt':0, 'M':len(nt_mat)}
+                
+                dn_ds_ratio_dict[gg]=d
+                
+                
+                #Now the between genospecies non-syn syn rates.
+                #FINISH!!!!
+                
+                
+                
+                num_parsed_genes +=1
+        else:
+            print 'Too few strains..'
+    print 'Parsed %d'%num_parsed_genes
+    return dn_ds_ratio_dict
 
     
 def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
