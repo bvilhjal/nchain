@@ -474,7 +474,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     
 
     
-def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
+def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5', 
                                  seq_file = '/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
                                  fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
                                  geno_species='gsA', bin_size=0.2):
