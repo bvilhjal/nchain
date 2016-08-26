@@ -205,7 +205,7 @@ def check_variants(gt_hdf5_file='snps2.hdf5'):
     
     
     
-def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_strains=100, 
+def call_variants(gt_hdf5_file='snps.hdf5', out_file='new_snps.hdf5', min_num_strains=100, 
                   blosum62_file='/home/bjarni/NChain/faststorage/rhizobium/ld/blosum62.txt'):
     """
     Generate a new set of SNPs to look at.
@@ -240,12 +240,13 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
             #1. Filter indel/bad rows
             nt_mat = g['nsequences'][...]
             num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, nt_mat)
+            no_gaps_no_missing = sp.all(nt_mat<5,0)
             nt_mat = sp.transpose(nt_mat)
-            bad_rows_filter = num_vars<5
+            bad_rows_filter = (num_vars<5)*no_gaps_no_missing
             if sp.sum(bad_rows_filter)>0:
                 raw_snps = nt_mat[bad_rows_filter]
                 
-                #Calculate nucleotide diversity
+                #Calculate nucleotide diversity and ani
                 M,N = raw_snps.shape
                 diversity = 0.0
                 ani=0.0
@@ -405,6 +406,7 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                     og.create_dataset('num_non_syn_sites', data=tot_num_non_syn_sites)
                     og.create_dataset('dn_ds_ratio', data=dn_ds_ratio)
                     og.create_dataset('diversity', data=diversity)
+                    og.create_dataset('ani', data=ani)
                     oh5f.flush()
                     num_parsed_genes +=1
         else:
