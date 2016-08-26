@@ -248,12 +248,16 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
                 #Calculate nucleotide diversity
                 M,N = raw_snps.shape
                 diversity = 0.0
+                ani=0.0
                 for i in range(N-1):
                     for j in range(i+1,N):
                         diversity+=sp.sum(raw_snps[:,i]!=raw_snps[:,j])
+                        ani+=sp.sum(raw_snps[:,i]==raw_snps[:,j])
                 
                 diversity = diversity/len(raw_snps)
-                diversity = 2*diversity/(N*(N-1))
+                diversity = 2*diversity/(N*(N-1.0))
+                ani = ani/len(raw_snps)
+                ani = 2*ani/(N*(N-1.0))
                 
                 #2. Filter non-variable rows
                 ok_num_vars = num_vars[bad_rows_filter]
@@ -486,14 +490,14 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
             if gg in ok_genes:
                 mean_r2s[snp_type].append(float(avg_gene_genosp_ld_dict[snp_type][gg][geno_species]['mean_r2']))
                 dn_ds_ratio = g['dn_ds_ratio'][...]
-                dn_ds_ratios[snp_type].append(dn_ds_ratio)
+                dn_ds_ratios[snp_type].append(float(dn_ds_ratio))
                 
                 raw_snp_positions = g['raw_snp_positions'][...]
                 num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
-                num_seg_sites[snp_type].append(num_seg_sites_per_base)
+                num_seg_sites[snp_type].append(float(num_seg_sites_per_base))
                  
                 diversity = g['diversity'][...]
-                pi_diversity[snp_type].append(diversity)
+                pi_diversity[snp_type].append(float(diversity))
 
     
     for snp_type in ['all','nonsyn','syn']:
