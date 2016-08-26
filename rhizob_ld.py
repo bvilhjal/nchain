@@ -619,7 +619,7 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                  max_dist=3000, min_maf=0.1, bin_size=60,
                  fig_dir = '/project/NChain/faststorage/rhizobium/ld', filter_pop=None,
-                 fix_syn_nonsyn_ratio):
+                 fix_syn_nonsyn_ratio=True):
     
     pop_map, ct_array = parse_pop_map()
 
