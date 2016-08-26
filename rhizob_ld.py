@@ -520,7 +520,7 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
             if len(dn_ds_list[bin_filter])>0:
 #                 xs.append(sp.mean(avg_r2s[bin_filter]))
 #                 ys.append(sp.mean(dn_ds_list[bin_filter]))
-                xs.append(bins[bin_i]+0.5*bins[bin_i+1])
+                xs.append(bins[bin_i]+0.5*(bins[bin_i+1]-bins[bin_i]))
                 ys.append(dn_ds_list[bin_filter])
 
 #         pylab.plot(xs, ys, 'k.', alpha=0.3)
