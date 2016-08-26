@@ -407,7 +407,10 @@ def call_variants(gt_hdf5_file='snps2.hdf5', out_file='new_snps.hdf5', min_num_s
             print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
     
-    
+
+def calc_mcdonald_kreitman_stat():
+    pass
+
     
 def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                                  seq_file = '/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
@@ -460,7 +463,7 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     pylab.title(r'Nucleotide diversity ($\pi$)')    
     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
     
-    
+
     
 def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
                                  seq_file = '/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
@@ -481,7 +484,7 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
         for snp_type in ['all','nonsyn','syn']:
             ok_genes = set(avg_gene_genosp_ld_dict[snp_type].keys())
             if gg in ok_genes:
-                mean_r2s[snp_type].append(avg_gene_genosp_ld_dict[snp_type][gg][geno_species]['mean_r2'])
+                mean_r2s[snp_type].append(avg_gene_genosp_ld_dict[snp_type][gg][geno_species]['mean_r2'][0])
                 dn_ds_ratio = g['dn_ds_ratio'][...]
                 dn_ds_ratios[snp_type].append(dn_ds_ratio)
                 
