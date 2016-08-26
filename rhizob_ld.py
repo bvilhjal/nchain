@@ -205,8 +205,9 @@ def check_variants(gt_hdf5_file='snps2.hdf5'):
     
     
     
-def call_variants(gt_hdf5_file='snps.hdf5', out_file='new_snps.hdf5', min_num_strains=100, 
-                  blosum62_file='/home/bjarni/NChain/faststorage/rhizobium/ld/blosum62.txt'):
+def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5', 
+                  out_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5', min_num_strains=100, 
+                  blosum62_file='/project/NChain/faststorage/rhizobium/ld/blosum62.txt'):
     """
     Generate a new set of SNPs to look at.
     
