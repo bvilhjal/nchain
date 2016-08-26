@@ -589,7 +589,7 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
             syn_snp_filter = is_synonimous_snp*maf_filter
             nonsyn_snp_filter = is_nonsynonimous_snp*maf_filter
 
-            if sp.sum(syn_snp_filter)>sp.sum(nonsyn_snp_filter):
+            if sp.sum(syn_snp_filter)>0:
                 all_norm_snps = g['norm_codon_snps'][...]
                 norm_snps = all_norm_snps[maf_filter]
                 M,N = norm_snps.shape
@@ -605,11 +605,11 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
                     assert M==len(r2_list), 'A bug detected.'
                     d[gs] = {'mean_r2': sp.mean(r2_list), 'num_snps': M, 'r2s': r2_list}
                 avg_gene_genosp_ld_dict['all'][gg] = d
-                
+                    
                 syn_snp_filter = is_synonimous_snp[maf_filter]
                 nonsyn_snp_filter = sp.negative(syn_snp_filter)
                 M = sp.sum(nonsyn_snp_filter)
-                if M>10:
+                if M>5:
                     d = {}
                     for gs in unique_gs:          
                         gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
@@ -620,7 +620,7 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
                     avg_gene_genosp_ld_dict['nonsyn'][gg] = d
                     
                 M = sp.sum(syn_snp_filter)
-                if sp.sum(syn_snp_filter)>10:
+                if sp.sum(syn_snp_filter)>5:
                     d = {}
                     for gs in unique_gs:          
                         gs_snp = sp.array(sp.in1d(gs_list,[gs]),dtype='single')
