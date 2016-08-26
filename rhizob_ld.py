@@ -503,8 +503,8 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
 
     
     for snp_type in ['all','nonsyn','syn']:
-        avg_r2s = mean_r2s[snp_type]
-        dn_ds_list = dn_ds_ratios[snp_type]
+        avg_r2s = sp.array(mean_r2s[snp_type])
+        dn_ds_list = sp.array(dn_ds_ratios[snp_type])
         
         pylab.clf()
         bins = sp.arange(0,1+bin_size,bin_size)
@@ -522,7 +522,7 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
         pylab.ylabel(r'$\frac{K_a}{K_s}$')
         pylab.savefig(fig_dir+'/Ka_Ks_vs_%s_corr_%s.png'%(geno_species,snp_type))
         
-        nss_list = num_seg_sites[snp_type]
+        nss_list = sp.array(num_seg_sites[snp_type])
         xs = []
         ys = []
         for bin_i in range(len(bins)):
@@ -537,7 +537,7 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
         pylab.ylabel(r'Number of segregating sites per nucleotide ($S$)')
         pylab.savefig(fig_dir+'/Num_seg_sites_vs_%s_corr_%s.png'%(geno_species,snp_type))
         
-        pi_div_list = pi_diversity[snp_type]
+        pi_div_list = sp.array(pi_diversity[snp_type])
         xs = []
         ys = []
         for bin_i in range(len(bins)):
