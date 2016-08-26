@@ -515,10 +515,16 @@ def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststo
         for bin_i in range(len(bins)):
             bin_filter = digitize==(bin_i+1)
             if len(dn_ds_list[bin_filter])>0:
-                xs.append(sp.mean(avg_r2s[bin_filter]))
-                ys.append(sp.mean(dn_ds_list[bin_filter]))
+#                 xs.append(sp.mean(avg_r2s[bin_filter]))
+#                 ys.append(sp.mean(dn_ds_list[bin_filter]))
+                xs.append(bins[bin_i]+0.5*bin_size)
+                ys.append(dn_ds_list[bin_filter])
 
-        pylab.plot(xs, ys, 'k.', alpha=0.3)
+#         pylab.plot(xs, ys, 'k.', alpha=0.3)
+        fig = pylab.figure(1, figsize=(9, 6))
+        ax = fig.add_subplot(111)
+        ax.boxplot(ys)
+        ax.set_xticklabels(['%0.1f'%i for i in xs])
         pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
         pylab.ylabel(r'$\frac{K_a}{K_s}$')
         pylab.savefig(fig_dir+'/Ka_Ks_vs_%s_corr_%s.png'%(geno_species,snp_type))
