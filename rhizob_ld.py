@@ -416,52 +416,59 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
     h5f = h5py.File(snps_hdf5_file)
     sh5f = h5py.File(seq_file)
     gene_groups = sorted(h5f.keys())
-#     dn_ds_ratios = []
-#     mean_blosum_62_scores = []
-#     num_seg_sites = []
-#     pi_diversity = []
-#     for gg in gene_groups:
-#         g = h5f[gg]
-#         sg = sh5f['snps'][gg]
-#         codon_snp_positions = g['codon_snp_positions'][...]
-#         if len(codon_snp_positions)>100:
-#             dn_ds_ratio = g['dn_ds_ratio'][...]
-#             dn_ds_ratios.append(dn_ds_ratio)
-# 
-#             blosum62_scores = sp.mean(g['blosum62_scores'][...])
-#             mean_blosum_62_scores.append(sp.mean(blosum62_scores))
-#         
-#             raw_snp_positions = g['raw_snp_positions'][...]
-#             num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
-#             num_seg_sites.append(num_seg_sites_per_base)
-#             
-#             diversity = g['diversity'][...]
-#             pi_diversity.append(diversity)
-#     
-#     mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
-#     print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
-#     pylab.clf()
-#     pylab.hist(dn_ds_ratios, bins=100)
-#     pylab.title(r'$\frac{d_n}{d_s}$ (values below 1 suggest purifying selection.)')
-#     pylab.savefig(fig_dir+'/dn_ds_ratio.png')
-        
-#     pylab.clf()
-#     pylab.hist(mean_blosum_62_scores, bins=100)
-#     pylab.title('Average BLOSUM62 scores (values above 1 suggest purifying selection)')    
-#     pylab.savefig(fig_dir+'/mean_blosum_62_scores.png')
-#     
-#     pylab.clf()
-#     pylab.hist(num_seg_sites, bins=100)
-#     pylab.title(r'Number of segregating sites per nucleotide ($S$)')    
-#     pylab.savefig(fig_dir+'/segregating_sites.png')
-#     
-#     pylab.clf()
-#     pylab.hist(pi_diversity, bins=100)
-#     pylab.title(r'Nucleotide diversity ($\pi$)')    
-#     pylab.savefig(fig_dir+'/nucleotide_diversity.png')
+    dn_ds_ratios = []
+    mean_blosum_62_scores = []
+    num_seg_sites = []
+    pi_diversity = []
+    for gg in gene_groups:
+        g = h5f[gg]
+        sg = sh5f['snps'][gg]
+        codon_snp_positions = g['codon_snp_positions'][...]
+        if len(codon_snp_positions)>100:
+            dn_ds_ratio = g['dn_ds_ratio'][...]
+            dn_ds_ratios.append(dn_ds_ratio)
+ 
+            blosum62_scores = sp.mean(g['blosum62_scores'][...])
+            mean_blosum_62_scores.append(sp.mean(blosum62_scores))
+         
+            raw_snp_positions = g['raw_snp_positions'][...]
+            num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
+            num_seg_sites.append(num_seg_sites_per_base)
+             
+            diversity = g['diversity'][...]
+            pi_diversity.append(diversity)
+     
+    mean_blosum_62_scores = sp.nan_to_num(mean_blosum_62_scores)
+    print 'Average dn/ds ration: %0.4f'%sp.mean(dn_ds_ratios)
+    pylab.clf()
+    pylab.hist(dn_ds_ratios, bins=100)
+    pylab.title(r'$\frac{d_n}{d_s}$ (values below 1 suggest purifying selection.)')
+    pylab.savefig(fig_dir+'/dn_ds_ratio.png')
+          
+    pylab.clf()
+    pylab.hist(mean_blosum_62_scores, bins=100)
+    pylab.title('Average BLOSUM62 scores (values above 1 suggest purifying selection)')    
+    pylab.savefig(fig_dir+'/mean_blosum_62_scores.png')
+     
+    pylab.clf()
+    pylab.hist(num_seg_sites, bins=100)
+    pylab.title(r'Number of segregating sites per nucleotide ($S$)')    
+    pylab.savefig(fig_dir+'/segregating_sites.png')
+     
+    pylab.clf()
+    pylab.hist(pi_diversity, bins=100)
+    pylab.title(r'Nucleotide diversity ($\pi$)')    
+    pylab.savefig(fig_dir+'/nucleotide_diversity.png')
     
-    pop_map, ct_array = parse_pop_map()
-    unique_gs = sp.unique(ct_array)
+    
+    
+def summarize_genospecies_correlations(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
+                                 seq_file = '/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
+                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
+                                 geno_species='gsA', bin_size=0.2):
+    h5f = h5py.File(snps_hdf5_file)
+    sh5f = h5py.File(seq_file)
+    gene_groups = sorted(h5f.keys())
     avg_gene_genosp_ld_dict = gene_genospecies_corr()
     #Now plot things per genospecies...
     dn_ds_ratios = {'all':[], 'nonsyn':[], 'syn':[]}
@@ -477,7 +484,6 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
                 mean_r2s[snp_type].append(avg_gene_genosp_ld_dict[snp_type][gg][geno_species]['mean_r2'])
                 dn_ds_ratio = g['dn_ds_ratio'][...]
                 dn_ds_ratios[snp_type].append(dn_ds_ratio)
-              
                 
                 raw_snp_positions = g['raw_snp_positions'][...]
                 num_seg_sites_per_base = len(raw_snp_positions)/float(sg['alignment_length'][...])
@@ -488,25 +494,55 @@ def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/r
 
     
     for snp_type in ['all','nonsyn','syn']:
+        avg_r2s = mean_r2s[snp_type]
+        dn_ds_list = dn_ds_ratios[snp_type]
+        
         pylab.clf()
-        print mean_r2s[snp_type], dn_ds_ratios[snp_type]
-        pylab.plot(mean_r2s[snp_type], dn_ds_ratios[snp_type], 'k.', alpha=0.3)
+        bins = sp.arange(0,1+bin_size,bin_size)
+        digitize = sp.digitize(avg_r2s, bins)    
+        xs = []
+        ys = []
+        for bin_i in range(len(bins)):
+            bin_filter = digitize==(bin_i+1)
+            if len(dn_ds_list[bin_filter])>0:
+                xs.append(sp.mean(avg_r2s[bin_filter]))
+                ys.append(sp.mean(dn_ds_list[bin_filter]))
+
+        pylab.plot(xs, ys, 'k.', alpha=0.3)
         pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
         pylab.ylabel(r'$\frac{K_a}{K_s}$')
         pylab.savefig(fig_dir+'/Ka_Ks_vs_%s_corr_%s.png'%(geno_species,snp_type))
         
+        nss_list = num_seg_sites[snp_type]
+        xs = []
+        ys = []
+        for bin_i in range(len(bins)):
+            bin_filter = digitize==(bin_i+1)
+            if len(nss_list[bin_filter])>0:
+                xs.append(sp.mean(avg_r2s[bin_filter]))
+                ys.append(sp.mean(nss_list[bin_filter]))
+
         pylab.clf()
-        pylab.plot(mean_r2s[snp_type], num_seg_sites[snp_type], 'k.', alpha=0.3)
+        pylab.plot(xs, ys, 'k.', alpha=0.3)
         pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
         pylab.ylabel(r'Number of segregating sites per nucleotide ($S$)')
         pylab.savefig(fig_dir+'/Num_seg_sites_vs_%s_corr_%s.png'%(geno_species,snp_type))
         
+        pi_div_list = pi_diversity[snp_type]
+        xs = []
+        ys = []
+        for bin_i in range(len(bins)):
+            bin_filter = digitize==(bin_i+1)
+            if len(pi_div_list[bin_filter])>0:
+                xs.append(sp.mean(avg_r2s[bin_filter]))
+                ys.append(sp.mean(pi_div_list[bin_filter]))
+
         pylab.clf()
-        pylab.plot(mean_r2s[snp_type], num_seg_sites[snp_type], 'k.', alpha=0.3)
+        pylab.plot(xs, ys, 'k.', alpha=0.3)
         pylab.xlabel('Mean r2 between SNPs within a gene and %s'%geno_species)
         pylab.ylabel(r'Nucleotide diversity ($\pi$)')
         pylab.savefig(fig_dir+'/nt_diversity_vs_%s_corr_%s.png'%(geno_species,snp_type))
-
+    
     
     
 def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5',
@@ -575,7 +611,6 @@ def gene_genospecies_corr(snps_hdf5_file = '/project/NChain/faststorage/rhizobiu
                         d[gs] = {'mean_r2': sp.mean(r2_list), 'num_snps': M, 'r2s': r2_list}
                     avg_gene_genosp_ld_dict['syn'][gg] = d
     return avg_gene_genosp_ld_dict
-    
 
 
 def gen_ld_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
