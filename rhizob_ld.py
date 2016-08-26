@@ -235,6 +235,8 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
         strains, strain_counts = sp.unique(strains_list, return_counts=True)
         if len(strains)<len(strains_list):
             print 'Evidence for paralogs/CNVs'
+            print strain_counts
+            print '%d strains have unique gene copies'
         elif len(seq_ids)>min_num_strains:
             strains = map(lambda x: x.split('-')[0], seq_ids)
                         
