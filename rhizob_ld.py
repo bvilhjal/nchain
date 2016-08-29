@@ -527,8 +527,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                         assert len(ok_snps)==len(snp_positions), 'A bug detected!'
                         
                         #4. Call good SNPs                        
-                        good_snps_dict = call_good_snps(g['sequences'][0], ok_snps, snp_positions, codon_syn_map=codon_syn_map,
-                                        ok_seq_filter = no_gaps_no_missing, seq_num_vars=num_vars)
+                        good_snps_dict = call_good_snps(g['sequences'][0], ok_snps, snp_positions, codon_syn_map = codon_syn_map,
+                                                        ok_seq_filter = no_gaps_no_missing, seq_num_vars = num_vars)
                         
 #                         codon_snps = good_snps_dict['codon_snps']
                         is_synonimous_snp = good_snps_dict['is_synonimous_snp']
@@ -560,7 +560,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 gs2 = geno_species[1]                
                 const_seq_filter1 = d[gs1]['const_seq_filter']
                 const_seq_filter2 = d[gs2]['const_seq_filter']
-                constrained_seq_filter = const_seq_filter1*const_seq_filter2
+                constrained_seq_filter = const_seq_filter1 * const_seq_filter2
                 
                 
                 #Filter seq_num_var array to the two genospecies considered
@@ -659,7 +659,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
 
     with gzip.open(out_file,'wb') as f:
         cPickle.dump(dn_ds_ratio_dict, f, protocol=0)
-    return  dn_ds_ratio_dict
+    return  dn_ds_ratio_dict, ni_stats
 
     
 def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
