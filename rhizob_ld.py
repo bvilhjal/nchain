@@ -676,8 +676,6 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     pylab.xlabel(r'$\log(NI)_10$ (McDonald-Kreitman Neutrality Index)')
     pylab.savefig(fig_dir+'/MK_stats_%s_%s.png'%(geno_species[0],geno_species[1]))
 
-    with gzip.open(out_file,'wb') as f:
-        cPickle.dump(dn_ds_ratio_dict, f, protocol=0)
     return  dn_ds_ratio_dict, ni_stats
 
     
