@@ -439,7 +439,7 @@ def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_
 def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                                 gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
-                                out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats.pickled.gz'):
+                                out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats.pickled_gsA_gsB.gz'):
     """
     Generate a new set of SNPs to look at.
     
@@ -657,7 +657,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     print 'Number of NI stats: %d'%len(ni_stats)
     pylab.hist(sp.log10(ni_stats),bins=100)
     pylab.xlabel(r'$\log(NI)_10$ (McDonald-Kreitman Neutrality Index)')
-    pylab.savefig(fig_dir+'/MK_stats.png')
+    pylab.savefig(fig_dir+'/MK_stats_%s_%s.png'%(geno_species[0],geno_species[1]))
 
     with gzip.open(out_file,'wb') as f:
         cPickle.dump(dn_ds_ratio_dict, f, protocol=0)
