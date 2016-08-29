@@ -624,7 +624,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                     pn_ps_ratio = -1
                     
                 #Now calculate the neutrality index (MK statistic)
-                if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>=0:
+                if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>=0 and pn_ps_ratio>0:
                     ni_stat = d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']/pn_ps_ratio
                     print 'Found NI stat to be %0.3f'%ni_stat
                 else:
