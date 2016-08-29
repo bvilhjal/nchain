@@ -459,7 +459,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     gene_groups = sorted(ag.keys())
     num_parsed_genes = 0
     dn_ds_ratio_dict = {}
-    oh5f = h5py.File(out_file)
+    oh5f = h5py.File(out_file,'w')
     for gg in gene_groups:
         g = ag[gg]
         
