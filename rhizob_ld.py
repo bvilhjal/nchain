@@ -464,7 +464,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
         gs_filters = [sp.in1d(gs_list,[gs]) for gs in geno_species]
         common_filter = sp.zeros((len(gs_list)))
         for i in range(len(geno_species)):
-            common_filter += common_filter[i]
+            common_filter += gs_filters[i]
        
         gs_strains_lists = [strains_list[gs_filter] for gs_filter in gs_filters]
 
