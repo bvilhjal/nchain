@@ -605,13 +605,13 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                         
                     else:
                         print 'No binary variants were found to be specific to either genospecies within the gene.'
-                        d['%s_%s'%(gs1,gs1)]={'dn_ds_ratio':-1, 'num_syn_subt':0, 'num_non_syn_subt':0, 
+                        d['%s_%s'%(gs1,gs2)]={'dn_ds_ratio':-1, 'num_syn_subt':0, 'num_non_syn_subt':0, 
                                               'constr_seq_len':constr_seq_len, 
                                               'num_const_seq_bin_snps':num_const_seq_bin_snps}
  
                 else:
                     print 'No sequence was found to be constrained in both genospecies within the gene.'
-                    d['%s_%s'%(gs1,gs1)]={'dn_ds_ratio':-1, 'num_syn_subt':0, 'num_non_syn_subt':0, 
+                    d['%s_%s'%(gs1,gs2)]={'dn_ds_ratio':-1, 'num_syn_subt':0, 'num_non_syn_subt':0, 
                                             'constr_seq_len':constr_seq_len, 
                                             'num_const_seq_bin_snps':0}
 
@@ -626,12 +626,12 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                     pn_ps_ratio = -1
                     
                 #Now calculate the neutrality index (MK statistic)
-                if d['%s_%s'%(gs1,gs1)]['dn_ds_ratio']>=0:
-                    ni_stat = d['%s_%s'%(gs1,gs1)]['dn_ds_ratio']/pn_ps_ratio
+                if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>=0:
+                    ni_stat = d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']/pn_ps_ratio
                 else:
                     ni_stat = -1
                     
-                d['%s_%s'%(gs1,gs1)]['ni_stat']=ni_stat
+                d['%s_%s'%(gs1,gs2)]['ni_stat']=ni_stat
                 dn_ds_ratio_dict[gg]=d
 
                 num_parsed_genes +=1
