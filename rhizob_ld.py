@@ -498,7 +498,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
             
             no_gaps_no_missing = sp.all(nt_mat<5,0)
             nt_mat = sp.transpose(nt_mat)
-            if sp.sum(no_gaps_no_missing)>0:
+            if sp.sum(no_gaps_no_missing)>5:
                 raw_snps = nt_mat[no_gaps_no_missing]
                 
 #                 print 'Working on gene group: %s'%gg
@@ -567,12 +567,12 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
 
 
                 constr_seq_len = sp.sum(constrained_seq_filter)
-                if constr_seq_len>0:
+                if constr_seq_len>5:
                     constr_seq = raw_snps[constrained_seq_filter]
                     constr_num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 1, constr_seq)
                     constr_bin_snps_filter = constr_num_vars==2
                     num_const_seq_bin_snps = sp.sum(constr_bin_snps_filter)
-                    if num_const_seq_bin_snps>0:
+                    if num_const_seq_bin_snps>5:
                         gs_specific_snps = constr_seq[constr_bin_snps_filter]
                         
                         #Get positions for constrained SNPs
