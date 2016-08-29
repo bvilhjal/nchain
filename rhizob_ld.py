@@ -352,7 +352,7 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
 def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_filter=None, seq_num_vars=None):
     from itertools import izip
     
-    N = len(ok_snps)
+    M,N = ok_snps.shape
     snps = []
     nts = []
     
