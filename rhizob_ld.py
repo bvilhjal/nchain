@@ -6,10 +6,13 @@ import scipy as sp
 import h5py 
 import os
 import matplotlib
+from bsddb.test.test_pickle import cPickle
 matplotlib.use('Agg')
 import pylab
 import collections
 import pandas as pd
+import cPickle
+import gzip
 
 nt_map = {'A':1, 'C':2, 'G':3, 'T':4, '-':5, 'N':6}
 nt_decode_map = {1:'A', 2:'C', 3:'G', 4:'T', 5:'-', 6:'N'}
@@ -437,7 +440,7 @@ def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_
 def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                                 gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
-                                ):
+                                out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats.pickled.gz'):
     """
     Generate a new set of SNPs to look at.
     
@@ -606,7 +609,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                                               'num_const_seq_bin_snps':num_const_seq_bin_snps}                        
                         
                     else:
-                        print 'No binary variants were found to be specific to either genospecies within the gene.'
+#                         print 'No binary variants were found to be specific to either genospecies within the gene.'
                         d['%s_%s'%(gs1,gs2)]={'dn_ds_ratio':-1, 'num_syn_subt':0, 'num_non_syn_subt':0, 
                                               'constr_seq_len':constr_seq_len, 
                                               'num_const_seq_bin_snps':num_const_seq_bin_snps}
@@ -628,17 +631,20 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                     pn_ps_ratio = -1
                     
                 #Now calculate the neutrality index (MK statistic)
-                if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>=0 and pn_ps_ratio>0:
-                    ni_stat = d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']/pn_ps_ratio
+                if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>0 and pn_ps_ratio>=0:
+                    ni_stat = pn_ps_ratio/d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']
                     num_subt = d['%s_%s'%(gs1,gs2)]['num_syn_subt']+d['%s_%s'%(gs1,gs2)]['num_non_syn_subt']
                     num_pol = d[gs1]['num_syn_pol']+d[gs1]['num_non_syn_pol'] + d[gs2]['num_syn_pol']+d[gs2]['num_non_syn_pol']
                     if num_subt>10 and num_pol>10:
                         print 'Found NI stat to be %0.3f'%ni_stat
-                        ni_stats.append(ni_stats)
+                        ni_stats.append(ni_stat)
                 else:
                     ni_stat = -1
+
+                mk_alpha = 1-ni_stat
                     
                 d['%s_%s'%(gs1,gs2)]['ni_stat']=ni_stat
+                d['%s_%s'%(gs1,gs2)]['MK_alpha']=mk_alpha
                 dn_ds_ratio_dict[gg]=d
 
                 num_parsed_genes +=1
@@ -647,12 +653,14 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
 #             print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
     
-    
-    pylab.hist(ni_stats)
+    print 'Number of NI stats: %d'%len(ni_stats)
+    pylab.hist(ni_stats,bins=100)
     pylab.xlabel('Neutrality index (McDonald-Kreitman)')
     pylab.savefig(fig_dir+'/MK_stats.png')
-    
-    return dn_ds_ratio_dict
+
+    with gzip.open(out_file,'wb') as f:
+        cPickle.dump(dn_ds_ratio_dict, f, protocol=0)
+    return  dn_ds_ratio_dict
 
     
 def summarize_nonsynonimous_snps(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
