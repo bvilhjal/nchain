@@ -436,7 +436,7 @@ def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_
             'num_syn_sites':tot_num_syn_sites, 'num_non_syn_sites':tot_num_non_syn_sites, }
 
 
-def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
+def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30, min_num_sub_pol=10,
                                 gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
                                 out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats.pickled_gsA_gsB.gz'):
@@ -635,7 +635,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 #Now calculate the neutrality index (MK statistic)
                 if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>0 and pn_ps_ratio>=0:
                     ni_stat = pn_ps_ratio/d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']
-                    if num_subt>10 and num_pol>10:
+                    if num_subt>min_num_sub_pol and num_pol>min_num_sub_pol:
                         print 'Found NI stat to be %0.3f'%ni_stat
                         ni_stats.append(ni_stat)
                 else:
