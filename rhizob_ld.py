@@ -514,7 +514,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                     good_snp_filter = ok_num_vars==2
 
                     num_bin_snps = sp.sum(good_snp_filter)
-                    if num_bin_snps>0:
+                    if num_bin_snps>5:
                         
                         M,N = nt_mat.shape
                         non_gap_positions = sp.arange(M)[no_gaps_no_missing]
