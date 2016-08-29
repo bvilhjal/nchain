@@ -527,7 +527,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                         assert len(ok_snps)==len(snp_positions), 'A bug detected!'
                         
                         #4. Call good SNPs                        
-                        good_snps_dict = call_good_snps(g['sequences'][0], ok_snps, snp_positions, codon_syn_map = codon_syn_map,
+                        sequences = (g['sequences'][...])[common_filter] 
+                        good_snps_dict = call_good_snps(sequences[0], ok_snps, snp_positions, codon_syn_map = codon_syn_map,
                                                         ok_seq_filter = no_gaps_no_missing, seq_num_vars = num_vars)
                         
 #                         codon_snps = good_snps_dict['codon_snps']
