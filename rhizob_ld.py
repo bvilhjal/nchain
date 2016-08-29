@@ -638,6 +638,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
 
                 num_parsed_genes +=1
         else:
+            pass
 #             print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
     return dn_ds_ratio_dict
