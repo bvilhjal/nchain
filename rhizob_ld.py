@@ -468,7 +468,6 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
        
         gs_strains_lists = [strains_list[gs_filter] for gs_filter in gs_filters]
 
-        
         gs_strains = [ ]
         has_paralogs = False
         for gs_strains_list in gs_strains_lists:
@@ -486,9 +485,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
         elif sp.all(num_strains>min_num_strains):
             gs_strains = gs_strains_lists
             all_gs_strains = strains_list[common_filter]
-            gs_list = sp.array([pop_map[strain] for strain in all_gs_strains])
+            gs_list = sp.array([pop_map.get(strain,'NA') for strain in all_gs_strains])
             gs_filters = [sp.in1d(gs_list,[gs]) for gs in geno_species]
-            
                         
             #1. Filter rows with indels and missing data
             nt_mat = g['nsequences'][...]
