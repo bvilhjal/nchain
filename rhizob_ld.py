@@ -497,7 +497,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
             if sp.sum(no_gaps_no_missing)>0:
                 raw_snps = nt_mat[no_gaps_no_missing]
                 
-                #First calc within genospcies Ka/Ks
+                print 'Working on gene group: %s'%gg
+               #First calc within genospcies Ka/Ks
                 d = {}
                 for i, gs in enumerate(geno_species):
                     gs_filter = gs_filters[i]
@@ -510,9 +511,6 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
 
                     num_bin_snps = sp.sum(good_snp_filter)
                     if num_bin_snps>0:
-                        
-                        print 'Working on gene group: %s'%gg
-                        print 'Found %d binary SNPs'%num_bin_snps
                         
                         M,N = nt_mat.shape
                         non_gap_positions = sp.arange(M)[no_gaps_no_missing]
@@ -628,6 +626,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 #Now calculate the neutrality index (MK statistic)
                 if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>=0:
                     ni_stat = d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']/pn_ps_ratio
+                    print 'Found NI stat to be %0.3f'%ni_stat
                 else:
                     ni_stat = -1
                     
