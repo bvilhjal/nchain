@@ -481,7 +481,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
         num_strains = sp.array(num_strains)
         
         if has_paralogs:
-            print 'Evidence for paralogs/CNVs'
+            pass
+#             print 'Evidence for paralogs/CNVs'
         elif sp.all(num_strains>min_num_strains):
             gs_strains = gs_strains_lists
             all_gs_strains = strains_list[common_filter]
@@ -498,7 +499,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 raw_snps = nt_mat[no_gaps_no_missing]
                 
                 print 'Working on gene group: %s'%gg
-               #First calc within genospcies Ka/Ks
+                #First calc within genospcies Ka/Ks
                 d = {}
                 for i, gs in enumerate(geno_species):
                     gs_filter = gs_filters[i]
