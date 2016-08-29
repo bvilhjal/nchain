@@ -6,7 +6,6 @@ import scipy as sp
 import h5py 
 import os
 import matplotlib
-from bsddb.test.test_pickle import cPickle
 matplotlib.use('Agg')
 import pylab
 import collections
