@@ -635,7 +635,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 num_pol = d[gs1]['num_syn_pol']+d[gs1]['num_non_syn_pol'] + d[gs2]['num_syn_pol']+d[gs2]['num_non_syn_pol']
                 #Now calculate the neutrality index (MK statistic)
                 if d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']>0 and pn_ps_ratio>=0:
-                    ni_stat = pn_ps_ratio/d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']
+                    ni_stat = float(pn_ps_ratio/float(d['%s_%s'%(gs1,gs2)]['dn_ds_ratio']))
                     if num_subt>min_num_sub_pol and num_pol>min_num_sub_pol:
                         print 'Found NI stat to be %0.3f'%ni_stat
                         ni_stats.append(ni_stat)
@@ -669,6 +669,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     oh5f.close()
     
     print 'Number of NI stats: %d'%len(ni_stats)
+    ni_stats = sp.array(ni_stats)
     ni_stats[ni_stats<0.005]=0.005
     log_nis = sp.log10(ni_stats)
     pylab.hist(log_nis,bins=100)
