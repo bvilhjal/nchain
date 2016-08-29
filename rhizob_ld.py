@@ -653,8 +653,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     print 'Parsed %d'%num_parsed_genes
     
     print 'Number of NI stats: %d'%len(ni_stats)
-    pylab.hist(ni_stats,bins=100)
-    pylab.xlabel('Neutrality index (McDonald-Kreitman)')
+    pylab.hist(sp.log10(ni_stats),bins=100)
+    pylab.xlabel(r'$\log(NI)_10$ (McDonald-Kreitman Neutrality Index)')
     pylab.savefig(fig_dir+'/MK_stats.png')
 
     with gzip.open(out_file,'wb') as f:
