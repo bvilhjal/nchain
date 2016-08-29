@@ -439,7 +439,7 @@ def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_
 def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30, min_num_sub_pol=10,
                                 gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
-                                out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats.pickled_gsA_gsB.gz'):
+                                out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats_gsA_gsB.hdf5'):
     """
     Generate a new set of SNPs to look at.
     
@@ -459,6 +459,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     gene_groups = sorted(ag.keys())
     num_parsed_genes = 0
     dn_ds_ratio_dict = {}
+    oh5f = h5py.File(out_file)
     for gg in gene_groups:
         g = ag[gg]
         
@@ -640,7 +641,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                         ni_stats.append(ni_stat)
                 else:
                     ni_stat = -1
-
+                
                 mk_alpha = 1-ni_stat
                     
                 d['%s_%s'%(gs1,gs2)]['ni_stat']=ni_stat
@@ -648,12 +649,24 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 d['%s_%s'%(gs1,gs2)]['num_subt']=num_subt
                 d['%s_%s'%(gs1,gs2)]['num_pol']=num_pol
                 dn_ds_ratio_dict[gg]=d
+                
+                o_gg = oh5f.create_group(gg)
+                o_gg.create_dataset('ni_stat',data=ni_stat)
+                o_gg.create_dataset('mk_alpha',data=mk_alpha)
+                o_gg.create_dataset('num_subt',data=num_subt)
+                o_gg.create_dataset('num_pol',data=num_pol)
+                
+                o_gg.create_dataset('pn_ps_ratio1',data=d[gs1]['pn_ps_ratio'])
+                o_gg.create_dataset('pn_ps_ratio2',data=d[gs1]['pn_ps_ratio'])
+                o_gg.create_dataset('pn_ps_ratio',data=pn_ps_ratio)
+                o_gg.create_dataset('dn_ds_ratio',data=d['%s_%s'%(gs1,gs2)]['dn_ds_ratio'])
 
                 num_parsed_genes +=1
         else:
             pass
 #             print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
+    oh5f.close()
     
     print 'Number of NI stats: %d'%len(ni_stats)
     ni_stats[ni_stats<0.005]=0.005
