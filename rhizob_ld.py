@@ -503,7 +503,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                     gs_filter = gs_filters[i]
                     gs_raw_snps = raw_snps[:,gs_filter]
                     
-                    num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, nt_mat[:,gs_filter])
+                    num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 1, nt_mat[:,gs_filter])
                     ok_num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 1, gs_raw_snps)
                     const_seq_filter = ok_num_vars==1
                     good_snp_filter = ok_num_vars==2
@@ -561,7 +561,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 
                 #Filter seq_num_var array to the two genospecies considered
                 gs_filter = gs_filters[0]+gs_filters[1]
-                num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 0, nt_mat[:,gs_filter])
+                num_vars = sp.apply_along_axis(lambda x: len(sp.unique(x)), 1, nt_mat[:,gs_filter])
 
 
                 constr_seq_len = sp.sum(constrained_seq_filter)
