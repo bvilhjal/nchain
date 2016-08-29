@@ -435,7 +435,9 @@ def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_
 
 
 def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
-                                gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5'):
+                                gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
+                                fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
+                                ):
     """
     Generate a new set of SNPs to look at.
     
@@ -447,6 +449,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     
     """
     from itertools import izip
+    ni_stats = []
     pop_map, ct_array = parse_pop_map()
     codon_syn_map = get_codon_syn_map()
     h5f = h5py.File(gt_hdf5_file)
@@ -498,7 +501,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
             if sp.sum(no_gaps_no_missing)>0:
                 raw_snps = nt_mat[no_gaps_no_missing]
                 
-                print 'Working on gene group: %s'%gg
+#                 print 'Working on gene group: %s'%gg
                 #First calc within genospcies Ka/Ks
                 d = {}
                 for i, gs in enumerate(geno_species):
@@ -631,6 +634,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                     num_pol = d[gs1]['num_syn_pol']+d[gs1]['num_non_syn_pol'] + d[gs2]['num_syn_pol']+d[gs2]['num_non_syn_pol']
                     if num_subt>10 and num_pol>10:
                         print 'Found NI stat to be %0.3f'%ni_stat
+                        ni_stats.append(ni_stats)
                 else:
                     ni_stat = -1
                     
@@ -642,6 +646,12 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
             pass
 #             print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
+    
+    
+    pylab.hist(ni_stats)
+    pylab.xlabel('Neutrality index (McDonald-Kreitman)')
+    pylab.savefig(fig_dir+'/MK_stats.png')
+    
     return dn_ds_ratio_dict
 
     
