@@ -460,7 +460,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
         #0. Check if there is evidence for CNVs/paralogs?
         seq_ids = g['strains']
         strains_list = sp.array(map(lambda x: x.split('-')[0], seq_ids))
-        gs_list = sp.array([pop_map[strain] for strain in strains_list])
+        gs_list = sp.array([pop_map.get(strain,'NA') for strain in strains_list])
         gs_filters = [sp.in1d(gs_list,[gs]) for gs in geno_species]
         common_filter = sp.zeros((len(gs_list)))
         for i in range(len(geno_species)):
