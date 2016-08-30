@@ -440,10 +440,10 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_nonsyn_snps  = K_nonsyn_snps/counts_mat_nonsyn_snps  #element-wise division
 
     if plot_figures:
-        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps.png', figure_dir=figure_dir)
-        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps.png', figure_dir=figure_dir)
-        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps.png', figure_dir=figure_dir)
-        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps.png', figure_dir=figure_dir)
+        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps.png', figure_dir=figure_dir, strains=ordered_strains)
+        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps.png', figure_dir=figure_dir, strains=ordered_strains)
+        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps.png', figure_dir=figure_dir, strains=ordered_strains)
+        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps.png', figure_dir=figure_dir, strains=ordered_strains)
 
     
     return {'K_snps':K_snps, 'K_codon_snps':K_codon_snps, 'counts_mat_snps':counts_mat_snps, 'counts_mat_codon_snps':counts_mat_codon_snps,
@@ -455,7 +455,8 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', figure_dir = '/project/NC
     from scipy import linalg
     
     evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
-    pc1,pc2 = evecs[0],evecs[1]
+    sort_indices = sp.argsort(evals)
+    pc1,pc2 = evecs[sort_indices[-1]],evecs[sort_indices[-2]]
     pylab.clf()
     
     if strains is not None:    
