@@ -397,34 +397,35 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         counts_mat_snps[strain_mask] = counts_mat_snps_slice
 
         codon_snps = data_g['norm_codon_snps'][...]
-        K_codon_snps_slice = K_codon_snps[strain_mask]
-        K_codon_snps_slice[:,strain_mask] += sp.dot(codon_snps.T,codon_snps)
-        K_codon_snps[strain_mask] = K_codon_snps_slice
-        counts_mat_codon_snps_slice = counts_mat_codon_snps[strain_mask]
-        counts_mat_codon_snps_slice[:,strain_mask] += len(codon_snps.T)
-        counts_mat_codon_snps[strain_mask] = counts_mat_codon_snps_slice
-
-
-        is_synonimous_snp = data_g['is_synonimous_snp'][...]
-        
-        if sp.sum(is_synonimous_snp)>0:
-            syn_snps = codon_snps[is_synonimous_snp]
-            K_syn_snps_slice = K_syn_snps[strain_mask]
-            K_syn_snps_slice[:,strain_mask] += sp.dot(syn_snps.T,syn_snps)
-            K_syn_snps[strain_mask] = K_syn_snps_slice
-            counts_mat_syn_snps_slice = counts_mat_syn_snps[strain_mask]
-            counts_mat_syn_snps_slice[:,strain_mask] += len(syn_snps.T)
-            counts_mat_syn_snps[strain_mask] = counts_mat_syn_snps_slice
+        if len(codon_snps)>0:
+            K_codon_snps_slice = K_codon_snps[strain_mask]
+            K_codon_snps_slice[:,strain_mask] += sp.dot(codon_snps.T,codon_snps)
+            K_codon_snps[strain_mask] = K_codon_snps_slice
+            counts_mat_codon_snps_slice = counts_mat_codon_snps[strain_mask]
+            counts_mat_codon_snps_slice[:,strain_mask] += len(codon_snps.T)
+            counts_mat_codon_snps[strain_mask] = counts_mat_codon_snps_slice
     
-        is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
-        if sp.sum(is_nonsynonimous_snp)>0:
-            nonsyn_snps = codon_snps[is_nonsynonimous_snp]
-            K_nonsyn_snps_slice = K_nonsyn_snps[strain_mask]
-            K_nonsyn_snps_slice[:,strain_mask] += sp.dot(nonsyn_snps.T,nonsyn_snps)
-            K_nonsyn_snps[strain_mask] = K_nonsyn_snps_slice
-            counts_mat_nonsyn_snps_slice = counts_mat_nonsyn_snps[strain_mask]
-            counts_mat_nonsyn_snps_slice[:,strain_mask] += len(nonsyn_snps.T)
-            counts_mat_nonsyn_snps[strain_mask] = counts_mat_nonsyn_snps_slice
+    
+            is_synonimous_snp = data_g['is_synonimous_snp'][...]
+            
+            if sp.sum(is_synonimous_snp)>0:
+                syn_snps = codon_snps[is_synonimous_snp]
+                K_syn_snps_slice = K_syn_snps[strain_mask]
+                K_syn_snps_slice[:,strain_mask] += sp.dot(syn_snps.T,syn_snps)
+                K_syn_snps[strain_mask] = K_syn_snps_slice
+                counts_mat_syn_snps_slice = counts_mat_syn_snps[strain_mask]
+                counts_mat_syn_snps_slice[:,strain_mask] += len(syn_snps.T)
+                counts_mat_syn_snps[strain_mask] = counts_mat_syn_snps_slice
+        
+            is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
+            if sp.sum(is_nonsynonimous_snp)>0:
+                nonsyn_snps = codon_snps[is_nonsynonimous_snp]
+                K_nonsyn_snps_slice = K_nonsyn_snps[strain_mask]
+                K_nonsyn_snps_slice[:,strain_mask] += sp.dot(nonsyn_snps.T,nonsyn_snps)
+                K_nonsyn_snps[strain_mask] = K_nonsyn_snps_slice
+                counts_mat_nonsyn_snps_slice = counts_mat_nonsyn_snps[strain_mask]
+                counts_mat_nonsyn_snps_slice[:,strain_mask] += len(nonsyn_snps.T)
+                counts_mat_nonsyn_snps[strain_mask] = counts_mat_nonsyn_snps_slice
 
     
     
