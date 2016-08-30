@@ -358,7 +358,7 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
 def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
                  plot_figures = False, 
                  figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
-                 min_maf = 0.2):
+                 min_maf = 0.1):
     """
     Calculates the kinship
     """
@@ -481,7 +481,7 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', figure_dir = '/project/NC
         unique_geno_species = sp.unique(geno_species)
         for gs in unique_geno_species:
             gs_mask = sp.in1d(geno_species,[gs])
-            pylab.plot(pc1[gs_mask],pc2[gs_mask], linestyle='None', marker='.', alpha=0.5, label=gs)
+            pylab.plot(pc1[gs_mask],pc2[gs_mask], linestyle='None', marker='.', alpha=0.4, label=gs)
         pylab.legend()
         
     else:
