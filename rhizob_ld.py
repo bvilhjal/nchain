@@ -400,9 +400,9 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
 
     
     K_snps  = K_snps/counts_mat_snps  #element-wise division
-    K_codon_snps  = counts_mat_codon_snps/counts_mat_snps  #element-wise division
+    K_codon_snps  = K_codon_snps/counts_mat_codon_snps  #element-wise division
     
-    return K_snps, K_codon_snps
+    return {'K_snps':K_snps, 'K_codon_snps':K_codon_snps, 'counts_mat_snps':counts_mat_snps, 'counts_mat_codon_snps':counts_mat_codon_snps}
     
     
 
