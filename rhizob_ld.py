@@ -360,6 +360,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     Calculates the kinship
     """
     h5f = h5py.File(snps_file)
+    gene_groups = h5f.keys()
     all_strains = set()
     for gg in gene_groups:
         data_g = h5f[gg]
@@ -374,7 +375,6 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_codon_snps = sp.zeros((num_strains,num_strains))
     counts_mat_codon_snps = sp.zeros((num_strains,num_strains))
         
-    gene_groups = h5f.keys()
     for gg in gene_groups:
         data_g = h5f[gg]
         strains = data_g['strains'][...]
