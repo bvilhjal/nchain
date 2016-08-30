@@ -375,6 +375,12 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_codon_snps = sp.zeros((num_strains,num_strains))
     counts_mat_codon_snps = sp.zeros((num_strains,num_strains))
         
+    K_nonsyn_snps = sp.zeros((num_strains,num_strains))
+    counts_mat_nonsyn_snps = sp.zeros((num_strains,num_strains))
+    
+    K_syn_snps = sp.zeros((num_strains,num_strains))
+    counts_mat_syn_snps = sp.zeros((num_strains,num_strains))
+
     for i, gg in enumerate(gene_groups):
         if i%100==0:
             print 'Working on gene nr. %d'%i 
@@ -398,11 +404,36 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         counts_mat_codon_snps_slice[:,strain_mask] += len(codon_snps.T)
         counts_mat_codon_snps[strain_mask] = counts_mat_codon_snps_slice
 
+
+        is_synonimous_snp = data_g['is_synonimous_snp'][...]
+        
+        syn_snps = codon_snps[is_synonimous_snp]
+        K_syn_snps_slice = K_syn_snps[strain_mask]
+        K_syn_snps_slice[:,strain_mask] += sp.dot(syn_snps.T,syn_snps)
+        K_syn_snps[strain_mask] = K_syn_snps_slice
+        counts_mat_syn_snps_slice = counts_mat_syn_snps[strain_mask]
+        counts_mat_syn_snps_slice[:,strain_mask] += len(codon_snps.T)
+        counts_mat_syn_snps[strain_mask] = counts_mat_syn_snps_slice
+    
+        syn_snps = codon_snps[is_synonimous_snp]
+        K_nonsyn_snps_slice = K_nonsyn_snps[strain_mask]
+        K_nonsyn_snps_slice[:,strain_mask] += sp.dot(syn_snps.T,syn_snps)
+        K_nonsyn_snps[strain_mask] = K_nonsyn_snps_slice
+        counts_mat_nonsyn_snps_slice = counts_mat_nonsyn_snps[strain_mask]
+        counts_mat_nonsyn_snps_slice[:,strain_mask] += len(codon_snps.T)
+        counts_mat_nonsyn_snps[strain_mask] = counts_mat_nonsyn_snps_slice
+
+    
     
     K_snps  = K_snps/counts_mat_snps  #element-wise division
     K_codon_snps  = K_codon_snps/counts_mat_codon_snps  #element-wise division
+
+    K_syn_snps  = K_syn_snps/counts_mat_syn_snps  #element-wise division
+    K_nonsyn_snps  = K_nonsyn_snps/counts_mat_nonsyn_snps  #element-wise division
+
     
-    return {'K_snps':K_snps, 'K_codon_snps':K_codon_snps, 'counts_mat_snps':counts_mat_snps, 'counts_mat_codon_snps':counts_mat_codon_snps}
+    return {'K_snps':K_snps, 'K_codon_snps':K_codon_snps, 'counts_mat_snps':counts_mat_snps, 'counts_mat_codon_snps':counts_mat_codon_snps,
+            'K_syn_snps':K_syn_snps, 'K_nonsyn_snps':K_nonsyn_snps, 'counts_mat_syn_snps':counts_mat_syn_snps, 'counts_mat_nonsyn_snps':counts_mat_nonsyn_snps,}
     
     
 
