@@ -355,7 +355,9 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
     
     
     
-def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5'):
+def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
+                 figure_fn = None, 
+                 figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures'):
     """
     Calculates the kinship
     """
@@ -437,17 +439,42 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_syn_snps  = K_syn_snps/counts_mat_syn_snps  #element-wise division
     K_nonsyn_snps  = K_nonsyn_snps/counts_mat_nonsyn_snps  #element-wise division
 
+    if figure_fn is not None:
+        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps.png', figure_dir=figure_dir)
+        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps.png', figure_dir=figure_dir)
+        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps.png', figure_dir=figure_dir)
+        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps.png', figure_dir=figure_dir)
+
     
     return {'K_snps':K_snps, 'K_codon_snps':K_codon_snps, 'counts_mat_snps':counts_mat_snps, 'counts_mat_codon_snps':counts_mat_codon_snps,
             'K_syn_snps':K_syn_snps, 'K_nonsyn_snps':K_nonsyn_snps, 'counts_mat_syn_snps':counts_mat_syn_snps, 'counts_mat_nonsyn_snps':counts_mat_nonsyn_snps,
             'strains':ordered_strains}
     
 
-def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',):
+def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',strains=None):
     from scipy import linalg
-    evals, evecs = linalg.eig(kinship_mat)
-    pylab.plot(evecs[0],evecs[1],'k.')
+    
+    evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
+    pc1,pc2 = evecs[0],evecs[1]
+    pylab.clf()
+    
+    if strains is not None:    
+        pop_map, ct_array = parse_pop_map()
+        geno_species = []
+        for s in strains:
+            geno_species.append(pop_map.get(s,'NA'))
+        
+        sp.array(geno_species)       
+        unique_geno_species = sp.unique(geno_species)
+        for gs in unique_geno_species:
+            gs_mask = sp.in1d(geno_species,[gs])
+            pylab.plot(pc1[gs_mask],pc2[gs_mask], linestyle='None', marker='.', alpha=0.5, label=gs)
+        pylab.legend()
+        
+    else:
+        pylab.plot(pc1,pc2,'k.')
     pylab.savefig(figure_dir+'/'+figure_fn)
+    
 
 
 def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_filter=None, seq_num_vars=None):
