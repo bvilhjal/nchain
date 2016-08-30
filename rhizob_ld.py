@@ -356,7 +356,7 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
     
     
 def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
-                 figure_fn = None, 
+                 plot_figures = False, 
                  figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures'):
     """
     Calculates the kinship
@@ -439,7 +439,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_syn_snps  = K_syn_snps/counts_mat_syn_snps  #element-wise division
     K_nonsyn_snps  = K_nonsyn_snps/counts_mat_nonsyn_snps  #element-wise division
 
-    if figure_fn is not None:
+    if plot_figures:
         plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps.png', figure_dir=figure_dir)
         plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps.png', figure_dir=figure_dir)
         plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps.png', figure_dir=figure_dir)
