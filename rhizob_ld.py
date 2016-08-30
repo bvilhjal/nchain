@@ -381,13 +381,23 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         data_g = h5f[gg]
         strains = data_g['strains'][...]
         strain_mask = strain_index.get_indexer(strains)
+        
         snps = data_g['norm_snps'][...]
-        K_snps[strain_mask,strain_mask] += sp.dot(snps.T,snps)
-        counts_mat_snps[strain_mask,strain_mask] += len(snps.T)
+        K_snps_slice = K_snps[strain_mask]
+        K_snps_slice[:,strain_mask] += sp.dot(snps.T,snps)
+        K_snps[strain_mask] = K_snps_slice
+        counts_mat_snps_slice = counts_mat_snps[strain_mask]
+        counts_mat_snps_slice[:,strain_mask] += len(snps.T)
+        counts_mat_snps[strain_mask] = counts_mat_snps_slice
 
         codon_snps = data_g['norm_codon_snps'][...]
-        K_codon_snps[strain_mask,strain_mask] += sp.dot(codon_snps.T,codon_snps)
-        counts_mat_codon_snps[strain_mask,strain_mask] += len(codon_snps.T)
+        K_codon_snps_slice = K_codon_snps[strain_mask]
+        K_codon_snps_slice[:,strain_mask] += sp.dot(codon_snps.T,codon_snps)
+        K_codon_snps[strain_mask] = K_codon_snps_slice
+        counts_mat_codon_snps_slice = counts_mat_codon_snps[strain_mask]
+        counts_mat_codon_snps_slice[:,strain_mask] += len(codon_snps.T)
+        counts_mat_codon_snps[strain_mask] = counts_mat_codon_snps_slice
+
     
     K_snps  = K_snps/counts_mat_snps  #element-wise division
     K_codon_snps  = counts_mat_codon_snps/counts_mat_snps  #element-wise division
