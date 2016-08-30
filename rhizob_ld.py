@@ -396,6 +396,8 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         mafs = sp.minimum(freqs,1-freqs)
         maf_mask = mafs>min_maf
         snps = snps[maf_mask]
+        if len(snps)==0:
+            continue
         K_snps_slice = K_snps[strain_mask]
         K_snps_slice[:,strain_mask] += sp.dot(snps.T,snps)
         K_snps[strain_mask] = K_snps_slice
@@ -404,14 +406,14 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         counts_mat_snps[strain_mask] = counts_mat_snps_slice
 
         codon_snps = data_g['norm_codon_snps'][...]
+        if len(codon_snps)==0:
+            continue
         freqs = data_g['codon_snp_freqs'][...]
         mafs = sp.minimum(freqs,1-freqs)
         maf_mask = mafs>min_maf
         codon_snps = codon_snps[maf_mask]
         is_synonimous_snp = data_g['is_synonimous_snp'][...]
         is_synonimous_snp = is_synonimous_snp[maf_mask]
-#         assert sp.all(sp.absolute(sp.var(codon_snps,1)-1)<0.0001)
-#         assert sp.all(sp.absolute(sp.mean(codon_snps,1))<0.0001)
         if len(codon_snps)>0:
             K_codon_snps_slice = K_codon_snps[strain_mask]
             K_codon_snps_slice[:,strain_mask] += sp.dot(codon_snps.T,codon_snps)
