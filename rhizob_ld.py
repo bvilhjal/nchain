@@ -360,7 +360,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
                  figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id = 'accessory',
                  min_maf = 0.1,
-                 max_strain_num=150):
+                 max_strain_num=200):
     """
     Calculates the kinship
     """
