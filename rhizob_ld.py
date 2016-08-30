@@ -375,17 +375,19 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_codon_snps = sp.zeros((num_strains,num_strains))
     counts_mat_codon_snps = sp.zeros((num_strains,num_strains))
         
-    for gg in gene_groups:
+    for i, gg in enumerate(gene_groups):
+        if i%100==0:
+            print 'Working on gene nr. %d'%i 
         data_g = h5f[gg]
         strains = data_g['strains'][...]
         strain_mask = strain_index.get_indexer(strains)
         snps = data_g['norm_snps'][...]
-        K_snps[strain_mask,strain_mask] += sp.dot(snps.T,snps)
-        counts_mat_snps[strain_mask,strain_mask] += len(snps)
+        K_snps[strain_mask,strain_mask] += sp.dot(snps,snps.T)
+        counts_mat_snps[strain_mask,strain_mask] += len(snps.T)
 
         codon_snps = data_g['norm_codon_snps'][...]
-        K_codon_snps[strain_mask,strain_mask] += sp.dot(snps.T,snps)
-        counts_mat_codon_snps[strain_mask,strain_mask] += len(snps)
+        K_codon_snps[strain_mask,strain_mask] += sp.dot(codon_snps,codon_snps.T)
+        counts_mat_codon_snps[strain_mask,strain_mask] += len(codon_snps.T)
     
     K_snps  = K_snps/counts_mat_snps  #element-wise division
     K_codon_snps  = counts_mat_codon_snps/counts_mat_snps  #element-wise division
