@@ -370,7 +370,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         data_g = h5f[gg]
         strains = data_g['strains'][...]
         if len(strains)<max_strain_num:
-            all_strains = set().union(all_strains)
+            all_strains = set(strains).union(all_strains)
     num_strains = len(all_strains)
     print 'Found %d "distinct" strains'%num_strains
     
