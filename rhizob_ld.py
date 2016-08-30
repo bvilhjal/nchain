@@ -358,7 +358,7 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
 def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
                  plot_figures = False, 
                  figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
-                 fig_id = 'accessory',
+                 fig_id = 'all',
                  min_maf = 0.1,
                  max_strain_num=200):
     """
