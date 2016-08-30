@@ -503,7 +503,6 @@ def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_
         nt1 = nt_decode_map[ok_snp.max()]
         nts.append([nt0,nt1])
         
-        
         #5. Check codon position
         codon_pos = snp_pos%3
         
