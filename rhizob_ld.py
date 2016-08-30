@@ -457,10 +457,10 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_nonsyn_snps  = K_nonsyn_snps/counts_mat_nonsyn_snps  #element-wise division
 
     if plot_figures:
-        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps.png'%fig_id, k_figure_fn='K_all_snps.png', figure_dir=figure_dir, strains=ordered_strains)
-        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps.png', k_figure_fn='K_codon_snps.png', figure_dir=figure_dir, strains=ordered_strains)
-        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps.png', k_figure_fn='K_syn_snps.png', figure_dir=figure_dir, strains=ordered_strains)
-        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps.png', k_figure_fn='K_nonsyn_snps.png', figure_dir=figure_dir, strains=ordered_strains)
+        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps_%s.png'%fig_id, k_figure_fn='K_all_snps_%s.png'%fig_id, figure_dir=figure_dir, strains=ordered_strains)
+        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps_%s.png'%fig_id, k_figure_fn='K_codon_snps_%s.png'%fig_id, figure_dir=figure_dir, strains=ordered_strains)
+        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps_%s.png'%fig_id, k_figure_fn='K_syn_snps_%s.png'%fig_id, figure_dir=figure_dir, strains=ordered_strains)
+        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps_%s.png'%fig_id, k_figure_fn='K_nonsyn_snps_%s.png'%fig_id, figure_dir=figure_dir, strains=ordered_strains)
 
     print counts_mat_snps
     
