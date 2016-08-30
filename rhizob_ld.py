@@ -398,6 +398,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
 
         codon_snps = data_g['norm_codon_snps'][...]
         assert sp.all(sp.absolute(sp.var(codon_snps,1)-1)<0.0001)
+        assert sp.all(sp.absolute(sp.mean(codon_snps,1))<0.0001)
         if len(codon_snps)>0:
             K_codon_snps_slice = K_codon_snps[strain_mask]
             K_codon_snps_slice[:,strain_mask] += sp.dot(codon_snps.T,codon_snps)
