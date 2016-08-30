@@ -220,8 +220,10 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
             quantify AA change severity    
     
     """
+    pop_map, ct_array = parse_pop_map()
+    
     from itertools import izip
-    blosum62_matrix, blosum62_dict = parse_blosum62(blosum62_file)
+#     blosum62_matrix, blosum62_dict = parse_blosum62(blosum62_file)
     codon_syn_map = get_codon_syn_map()
     h5f = h5py.File(gt_hdf5_file)
     ag = h5f['alignments']
@@ -309,7 +311,6 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
                     codon_snp_freqs = sp.mean(norm_codon_snps,0)
                     norm_codon_snps = (norm_codon_snps-codon_snp_freqs)/sp.sqrt(codon_snp_freqs*(1-codon_snp_freqs))
                     norm_codon_snps = sp.transpose(norm_codon_snps)
-
                     
                     #Calculate dn/ds ratios
                     num_syn_subt = sp.sum(is_synonimous_snp)
@@ -319,6 +320,8 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
                     else:
                         dn_ds_ratio=-1
 
+
+                    #Calculate McDonald-Kreitman Statistics..
                     
                     #Store everything to a HDF5 file
                     og = oh5f.create_group(gg)   
@@ -349,6 +352,46 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
         else:
             print 'Too few strains..'
     print 'Parsed %d'%num_parsed_genes
+    
+    
+    
+def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5'):
+    """
+    Calculates the kinship
+    """
+    h5f = h5py.File(snps_file)
+    all_strains = set()
+    for gg in gene_groups:
+        data_g = h5f[gg]
+        all_strains = set(data_g['strains'][...]).union(all_strains)
+    num_strains = len(all_strains)
+    print 'Found %d "distinct" strains'%num_strains
+    
+    ordered_strains = sorted(list(all_strains))
+    strain_index = pd.Index(ordered_strains)
+    K_snps = sp.zeros((num_strains,num_strains))
+    counts_mat_snps = sp.zeros((num_strains,num_strains))
+    K_codon_snps = sp.zeros((num_strains,num_strains))
+    counts_mat_codon_snps = sp.zeros((num_strains,num_strains))
+        
+    gene_groups = h5f.keys()
+    for gg in gene_groups:
+        data_g = h5f[gg]
+        strains = data_g['strains'][...]
+        strain_mask = strain_index.get_indexer(strains)
+        snps = data_g['norm_snps'][...]
+        K_snps[strain_mask,strain_mask] += sp.dot(snps.T,snps)
+        counts_mat_snps[strain_mask,strain_mask] += len(snps)
+
+        codon_snps = data_g['norm_codon_snps'][...]
+        K_codon_snps[strain_mask,strain_mask] += sp.dot(snps.T,snps)
+        counts_mat_codon_snps[strain_mask,strain_mask] += len(snps)
+    
+    K_snps  = K_snps/counts_mat_snps  #element-wise division
+    K_codon_snps  = counts_mat_codon_snps/counts_mat_snps  #element-wise division
+    
+    return K_snps, K_codon_snps
+    
     
 
 def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_filter=None, seq_num_vars=None):
