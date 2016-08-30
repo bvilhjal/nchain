@@ -397,6 +397,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         counts_mat_snps[strain_mask] = counts_mat_snps_slice
 
         codon_snps = data_g['norm_codon_snps'][...]
+        assert sp.all(sp.var(codon_snps,0)==1)
         if len(codon_snps)>0:
             K_codon_snps_slice = K_codon_snps[strain_mask]
             K_codon_snps_slice[:,strain_mask] += sp.dot(codon_snps.T,codon_snps)
@@ -419,7 +420,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         
             is_nonsynonimous_snp = sp.negative(is_synonimous_snp)
             if sp.sum(is_nonsynonimous_snp)>0:
-                nonsyn_snps = codon_snps[is_nonsynonimous_snp]
+                nonsyn_snps = codon_snps[is_nonsynonimous_snp]                
                 K_nonsyn_snps_slice = K_nonsyn_snps[strain_mask]
                 K_nonsyn_snps_slice[:,strain_mask] += sp.dot(nonsyn_snps.T,nonsyn_snps)
                 K_nonsyn_snps[strain_mask] = K_nonsyn_snps_slice
