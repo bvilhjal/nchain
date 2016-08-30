@@ -357,7 +357,8 @@ def call_variants(gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hd
     
 def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
                  plot_figures = False, 
-                 figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures'):
+                 figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
+                 min_maf = 0.2):
     """
     Calculates the kinship
     """
@@ -391,6 +392,10 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         strain_mask = strain_index.get_indexer(strains)
         
         snps = data_g['norm_snps'][...]
+        freqs = data_g['freqs'][...]
+        mafs = sp.minimum(freqs,1-freqs)
+        maf_mask = mafs>min_maf
+        snps = snps[maf_mask]
         K_snps_slice = K_snps[strain_mask]
         K_snps_slice[:,strain_mask] += sp.dot(snps.T,snps)
         K_snps[strain_mask] = K_snps_slice
@@ -399,6 +404,12 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         counts_mat_snps[strain_mask] = counts_mat_snps_slice
 
         codon_snps = data_g['norm_codon_snps'][...]
+        freqs = data_g['codon_snp_freqs'][...]
+        mafs = sp.minimum(freqs,1-freqs)
+        maf_mask = mafs>min_maf
+        codon_snps = codon_snps[maf_mask]
+        is_synonimous_snp = data_g['is_synonimous_snp'][...]
+        is_synonimous_snp = is_synonimous_snp[maf_mask]
 #         assert sp.all(sp.absolute(sp.var(codon_snps,1)-1)<0.0001)
 #         assert sp.all(sp.absolute(sp.mean(codon_snps,1))<0.0001)
         if len(codon_snps)>0:
@@ -410,7 +421,6 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
             counts_mat_codon_snps[strain_mask] = counts_mat_codon_snps_slice
     
     
-            is_synonimous_snp = data_g['is_synonimous_snp'][...]
             
             if sp.sum(is_synonimous_snp)>0:
                 syn_snps = codon_snps[is_synonimous_snp]
@@ -456,7 +466,7 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', figure_dir = '/project/NC
     
     evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
     sort_indices = sp.argsort(evals)
-    pc1,pc2 = evecs[sort_indices[-1]],evecs[sort_indices[-2]]
+    pc1,pc2 = evecs[sort_indices[-2]],evecs[sort_indices[-3]]
     pylab.clf()
     
     if strains is not None:    
