@@ -468,7 +468,7 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', figure_dir = '/project/NC
     
     evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
     sort_indices = sp.argsort(evals)
-    pc1,pc2 = evecs[sort_indices[-1]],evecs[sort_indices[-2]]
+    pc1,pc2 = evecs[:,sort_indices[-1]],evecs[:,sort_indices[-2]]
     pylab.clf()
     
     if strains is not None:    
