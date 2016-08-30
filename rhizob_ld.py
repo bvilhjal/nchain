@@ -442,7 +442,13 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
             'K_syn_snps':K_syn_snps, 'K_nonsyn_snps':K_nonsyn_snps, 'counts_mat_syn_snps':counts_mat_syn_snps, 'counts_mat_nonsyn_snps':counts_mat_nonsyn_snps,
             'strains':ordered_strains}
     
-    
+
+def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',):
+    from scipy import linalg
+    evals, evecs = linalg.eig(kinship_mat)
+    pylab.plot(evecs[0],evecs[1],'k.')
+    pylab.savefig(figure_dir+'/'+figure_fn)
+
 
 def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_filter=None, seq_num_vars=None):
     from itertools import izip
