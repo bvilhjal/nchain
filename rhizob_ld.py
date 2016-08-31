@@ -8,7 +8,7 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import pylab
-pylab.rcParams['legend.numpoints'] = 1
+# pylab.rcParams['legend.numpoints'] = 1
 
 import collections
 import pandas as pd
@@ -490,7 +490,7 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
     
     
     if strains is not None:    
-        ct_marker_map = {'DK':'*','UK':'s', 'F':'o', 'NA': '^'}
+        ct_marker_map = {'DK':'*','UK':'^', 'F':'o', 'NA': 's'}
         gs_color_map = {'gsA':'m','gsB':'g', 'gsC':'r', 'gsE': 'b', 'NA':'c'}
         pop_map = parse_pop_map()
         for i, strain in enumerate(strains):
@@ -505,10 +505,11 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
         for gs in gs_color_map:
             pylab.scatter([], [], color=gs_color_map[gs], marker = 's', label=gs, s=40, edgecolor='none')
         for country in ct_marker_map:
-            pylab.scatter([], [], color='k', marker = ct_marker_map[country], label=country, s=40, facecolors='none')
+            if country !='NA':
+                pylab.scatter([], [], color='k', marker = ct_marker_map[country], label=country, s=40, facecolors='none')
 
         
-        pylab.legend()
+        pylab.legend(scatterpoints=1)
         
     else:
         pylab.plot(pc1,pc2,'k.')
