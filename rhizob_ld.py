@@ -495,14 +495,14 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
             else:
                 gs = d['genospecies']
                 country = d['country']
-            pylab.plot(pc1[i],pc2[i], linestyle='None', marker=ct_marker_map[country], color=gs_color_map[gs], alpha=0.4)
+            pylab.plot(pc1[i],pc2[i], linestyle='None', marker=ct_marker_map[country], color=gs_color_map[gs], alpha=0.4, size=30.)
         for gs in gs_color_map:
-            pylab.plot([], [], linestyle='None', color=gs_color_map[gs], marker = 's', label=gs)
+            pylab.plot([], [], linestyle='None', color=gs_color_map[gs], marker = 's', label=gs, size=30.)
         for country in ct_marker_map:
-            pylab.plot([], [], linestyle='None', color='k', marker = ct_marker_map[country], label=country)
+            pylab.plot([], [], linestyle='None', color='k', marker = ct_marker_map[country], label=country, size=30.)
 
         
-        pylab.legend()
+        pylab.legend(numpoints = 1)
         
     else:
         pylab.plot(pc1,pc2,'k.')
