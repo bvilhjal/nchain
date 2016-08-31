@@ -462,14 +462,18 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
         plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps_%s.png'%fig_id, k_figure_fn='K_syn_snps_%s.png'%fig_id, figure_dir=figure_dir, strains=ordered_strains)
         plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps_%s.png'%fig_id, k_figure_fn='K_nonsyn_snps_%s.png'%fig_id, figure_dir=figure_dir, strains=ordered_strains)
 
-    print counts_mat_snps
+    print 'Average number of SNPs: %0.2f.'%sp.mean(counts_mat_snps)
+    print 'Average number of codon SNPs: %0.2f.'%sp.mean(counts_mat_snps)
+    print 'Average number of codon SNPs: %0.2f.'%sp.mean(counts_mat_snps)
+    print 'Average number of codon SNPs: %0.2f.'%sp.mean(counts_mat_snps)
     
     return {'K_snps':K_snps, 'K_codon_snps':K_codon_snps, 'counts_mat_snps':counts_mat_snps, 'counts_mat_codon_snps':counts_mat_codon_snps,
             'K_syn_snps':K_syn_snps, 'K_nonsyn_snps':K_nonsyn_snps, 'counts_mat_syn_snps':counts_mat_syn_snps, 'counts_mat_nonsyn_snps':counts_mat_nonsyn_snps,
             'strains':ordered_strains}
     
 
-def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_heatmap.png', figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',strains=None):
+def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_heatmap.png', title=None,
+                   figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',strains=None):
     from scipy import linalg
     
     evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
@@ -478,21 +482,32 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
     pc1,pc2 = evecs[:,sort_indices[-1]],evecs[:,sort_indices[-2]]
     pylab.clf()
     
+    
     if strains is not None:    
-        pop_map, ct_array = parse_pop_map()
-        geno_species = []
-        for s in strains:
-            geno_species.append(pop_map.get(s,'NA'))
+        ct_marker_map = {'DK':'*','UK':'s', 'F':'o', 'NA': '^'}
+        gs_color_map = {'gsA':'m','gsB':'g', 'gsC':'r', 'gsE': 'b', 'NA':'c'}
+        pop_map = parse_pop_map()
+        for i, strain in enumerate(strains):
+            d = pop_map.get(strain,'NA')
+            if d=='NA':
+                gs = 'NA'
+                country = 'NA'
+            else:
+                gs = d['genospecies']
+                country = d['country']
+            pylab.plot(pc1[i],pc2[i], linestyle='None', marker=ct_marker_map[country], color=gs_color_map[gs], alpha=0.4)
+        for gs in gs_color_map:
+            pylab.plot([], [], linestyle='None', color=gs_color_map[gs], marker = 's', label=gs)
+        for country in ct_marker_map:
+            pylab.plot([], [], linestyle='None', color='k', marker = ct_marker_map[country], label=country)
+
         
-        sp.array(geno_species)       
-        unique_geno_species = sp.unique(geno_species)
-        for gs in unique_geno_species:
-            gs_mask = sp.in1d(geno_species,[gs])
-            pylab.plot(pc1[gs_mask],pc2[gs_mask], linestyle='None', marker='.', alpha=0.4, label=gs)
         pylab.legend()
         
     else:
         pylab.plot(pc1,pc2,'k.')
+    if title is not None:
+        pylab.title(title)
     pylab.savefig(figure_dir+'/'+figure_fn)
     
     pylab.clf()
@@ -1307,9 +1322,9 @@ def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobiu
     pop_map = {}
     t = pd.read_table(file_name)
     t = t.rename(columns=lambda x: x.strip())
-    for strain_id, origin in izip(t['Seq ID'], t['Genospecies']):
-        pop_map[str(strain_id)]=origin
-    return pop_map, sp.array(t['Genospecies'])
+    for strain_id, origin, country in izip(t['Seq ID'], t['Genospecies'], t['Country']):
+        pop_map[str(strain_id)]={'genospecies':origin, 'country':country}
+    return pop_map
     
 
 def gen_sfs_plots(snps_hdf5_file = '/project/NChain/faststorage/rhizobium/ld/called_snps.hdf5', 
