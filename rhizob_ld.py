@@ -483,8 +483,10 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
     from scipy import linalg
     
     evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
-    sort_indices = sp.argsort(evals)
-    print evals[sort_indices]
+    evals[evals<0]=0
+    sort_indices = sp.argsort(evals,)
+    ordered_evals = evals[sort_indices]
+    print ordered_evals[-10:]/sp.sum(ordered_evals)
     pc1,pc2 = evecs[:,sort_indices[-1]],evecs[:,sort_indices[-2]]
     pylab.clf()
     
@@ -515,6 +517,8 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
         pylab.plot(pc1,pc2,'k.')
     if title is not None:
         pylab.title(title)
+    pylab.xlabel('PC1')
+    pylab.xlabel('PC2')
     pylab.tight_layout()
     pylab.savefig(figure_dir+'/'+figure_fn,format='pdf')
     pylab.clf()
