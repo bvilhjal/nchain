@@ -501,7 +501,7 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
             else:
                 gs = d['genospecies']
                 country = d['country']
-            pylab.scatter(pc1[i],pc2[i], marker=ct_marker_map[country], c=gs_color_map[gs], alpha=0.3, s=40, edgecolor=None)
+            pylab.scatter(pc1[i],pc2[i], marker=ct_marker_map[country], c=gs_color_map[gs], alpha=0.3, s=40, edgecolor='none')
         for gs in gs_color_map:
             pylab.scatter([], [], color=gs_color_map[gs], marker = 's', label=gs, s=40, edgecolor='none')
         for country in ct_marker_map:
