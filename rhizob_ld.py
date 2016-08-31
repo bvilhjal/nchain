@@ -459,13 +459,13 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     K_nonsyn_snps  = K_nonsyn_snps/counts_mat_nonsyn_snps  #element-wise division
 
     if plot_figures:
-        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps_%s.png'%fig_id, k_figure_fn='K_all_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps_%s.pdf'%fig_id, k_figure_fn='K_all_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='All SNPs')
-        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps_%s.png'%fig_id, k_figure_fn='K_codon_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps_%s.pdf'%fig_id, k_figure_fn='K_codon_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='Codon SNPs')
-        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps_%s.png'%fig_id, k_figure_fn='K_syn_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps_%s.pdf'%fig_id, k_figure_fn='K_syn_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='Synonymous SNPs')
-        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps_%s.png'%fig_id, k_figure_fn='K_nonsyn_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps_%s.pdf'%fig_id, k_figure_fn='K_nonsyn_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='Non-Synonymous SNPs')
 
     print 'Average number of SNPs: %0.2f.'%sp.mean(counts_mat_snps)
@@ -501,12 +501,12 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
             else:
                 gs = d['genospecies']
                 country = d['country']
-            pylab.scatter(pc1[i],pc2[i], marker=ct_marker_map[country], c=gs_color_map[gs], alpha=0.3, s=40, edgecolor='none')
+            pylab.scatter(pc1[i],pc2[i], marker=ct_marker_map[country], c=gs_color_map[gs], alpha=0.3, s=60, edgecolor='none')
         for gs in gs_color_map:
-            pylab.scatter([], [], color=gs_color_map[gs], marker = 's', label=gs, s=40, edgecolor='none')
+            pylab.scatter([], [], color=gs_color_map[gs], marker = 's', label=gs, s=60, edgecolor='none')
         for country in ct_marker_map:
             if country !='NA':
-                pylab.scatter([], [], color='k', marker = ct_marker_map[country], label=country, s=40, facecolors='none')
+                pylab.scatter([], [], color='k', marker = ct_marker_map[country], label=country, s=60, facecolors='none')
 
         
         pylab.legend(scatterpoints=1)
@@ -516,7 +516,7 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
     if title is not None:
         pylab.title(title)
     pylab.tight_layout()
-    pylab.savefig(figure_dir+'/'+figure_fn)
+    pylab.savefig(figure_dir+'/'+figure_fn,format='pdf')
     pylab.clf()
     pylab.imshow(kinship_mat, cmap='hot', interpolation='nearest')
     pylab.savefig(figure_dir+'/'+k_figure_fn)
