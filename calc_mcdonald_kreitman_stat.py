@@ -1,4 +1,39 @@
+import scipy as sp
+import h5py 
+import os
+import matplotlib
+matplotlib.use('Agg')
+import pylab
+# pylab.rcParams['legend.numpoints'] = 1
 
+import collections
+import pandas as pd
+import cPickle
+import gzip
+
+def get_codon_syn_map():
+    all_codons = ['AAA', 'AAC', 'AAG', 'AAT', 'ACA', 'ACC', 'ACG', 'ACT', 'AGA', 
+                  'AGC', 'AGG', 'AGT', 'ATA', 'ATC', 'ATG', 'ATT', 'CAA', 'CAC', 
+                  'CAG', 'CAT', 'CCA', 'CCC', 'CCG', 'CCT', 'CGA', 'CGC', 'CGG', 
+                  'CGT', 'CTA', 'CTC', 'CTG', 'CTT', 'GAA', 'GAC', 'GAG', 'GAT', 
+                  'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'GTA', 
+                  'GTC', 'GTG', 'GTT', 'TAA', 'TAC', 'TAG', 'TAT', 'TCA', 'TCC', 
+                  'TCG', 'TCT', 'TGA', 'TGC', 'TGG', 'TGT', 'TTA', 'TTC', 'TTG', 
+                  'TTT']
+
+
+
+ 
+def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobium_soiltypes_new.txt'):
+    from itertools import izip
+    
+    pop_map = {}
+    t = pd.read_table(file_name)
+    t = t.rename(columns=lambda x: x.strip())
+    for strain_id, origin, country in izip(t['Seq ID'], t['Genospecies rpoB'], t['Country']):
+        pop_map[str(strain_id)]={'genospecies':origin, 'country':country}
+    print pop_map
+    return pop_map
 
 
 
@@ -6,7 +41,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                                 gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
                                 fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
                                 out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats_gsA_gsB.hdf5'):
-    """
+"""
     Generate a new set of SNPs to look at.
     
     For all nts:
@@ -16,9 +51,10 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
             quantify AA change severity    
     
     """
-    from itertools import izip
     ni_stats = []
-    pop_map, ct_array = parse_pop_map()
+    pop = parse_pop_map()
+    pop_map = pop.keys()
+    ct_array = pop.values()
     codon_syn_map = get_codon_syn_map()
     h5f = h5py.File(gt_hdf5_file)
     ag = h5f['alignments']
@@ -243,3 +279,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     pylab.savefig(fig_dir+'/MK_stats_%s_%s.png'%(geno_species[0],geno_species[1]))
 
     return  dn_ds_ratio_dict, ni_stats
+
+calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30, min_num_sub_pol=10,
+                                gt_hdf5_file='/project/NChain/faststorage/rhizobium/ld/snps.hdf5',
+                                fig_dir = '/project/NChain/faststorage/rhizobium/ld/figures',
+                                out_file = '/project/NChain/faststorage/rhizobium/ld/mk_stats_gsA_gsB.hdf5'):

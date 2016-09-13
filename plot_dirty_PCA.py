@@ -2,13 +2,14 @@
 """
 Code for analysing LD of rhizobium
 """
-
+import numpy as np
 import scipy as sp
 import h5py 
 import os
 import matplotlib
 matplotlib.use('Agg')
 import pylab
+from matplotlib import pyplot as plt
 # pylab.rcParams['legend.numpoints'] = 1
 
 import collections
@@ -118,13 +119,13 @@ def get_kinships(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/n
     K_nonsyn_snps  = K_nonsyn_snps/counts_mat_nonsyn_snps  #element-wise division
 
     if plot_figures:
-        plot_dirty_PCA(K_snps,figure_fn='PCA_all_snps_%s.pdf'%fig_id, k_figure_fn='K_all_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_snps,figure_fn='PCA34_all_snps_%s.pdf'%fig_id, k_figure_fn='K_all_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='All SNPs')
-        plot_dirty_PCA(K_codon_snps,figure_fn='PCA_codon_snps_%s.pdf'%fig_id, k_figure_fn='K_codon_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_codon_snps,figure_fn='PCA34_codon_snps_%s.pdf'%fig_id, k_figure_fn='K_codon_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='Codon SNPs')
-        plot_dirty_PCA(K_syn_snps,figure_fn='PCA_syn_snps_%s.pdf'%fig_id, k_figure_fn='K_syn_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_syn_snps,figure_fn='PCA34_syn_snps_%s.pdf'%fig_id, k_figure_fn='K_syn_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='Synonymous SNPs')
-        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_nonsyn_snps_%s.pdf'%fig_id, k_figure_fn='K_nonsyn_snps_%s.png'%fig_id, 
+        plot_dirty_PCA(K_nonsyn_snps,figure_fn='PCA_34nonsyn_snps_%s.pdf'%fig_id, k_figure_fn='K_nonsyn_snps_%s.png'%fig_id, 
                        figure_dir=figure_dir, strains=ordered_strains, title='Non-Synonymous SNPs')
 
     print 'Average number of SNPs: %0.2f.'%sp.mean(counts_mat_snps)
@@ -148,7 +149,7 @@ def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicod
     return pop_map
 
 def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_heatmap.png', title=None,
-                   figure_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode',strains=None):
+                   pcs34 = True, figure_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode',strains=None):
     from scipy import linalg
     
     evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
@@ -157,10 +158,45 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
     ordered_evals = evals[sort_indices]
     print ordered_evals[-10:]/sp.sum(ordered_evals)
     pc1,pc2 = evecs[:,sort_indices[-1]],evecs[:,sort_indices[-2]]
-    pc3,pc4 = evecs[:,sort_indices[-3]],evecs[:,sort_indices[-4]]  
+    pc3,pc4 = evecs[:,sort_indices[-3]],evecs[:,sort_indices[-4]]
+    if pcs34 == True:
+        pc1 = pc3
+        pc2 = pc4  
     pylab.clf()
-    
-    print strains
+
+    tot = sum(evals)
+    var_exp = [(i / tot)*100 for i in sorted(evals, reverse=True)]
+    np.savetxt('test.out', var_exp, delimiter=',') 
+    cum_var_exp = np.cumsum(var_exp)
+    print cum_var_exp
+
+    # Ploting the variance explained
+    with plt.style.context('seaborn-whitegrid'):
+        plt.figure(figsize=(6, 6))
+        plt.bar(range(198), var_exp, alpha= 1, align='center', label='individual explained variance')
+        plt.step(range(198), cum_var_exp, where='mid', label='cumulative explained variance')
+        plt.ylabel('Explained variance ratio')
+        plt.xlabel('Principal components')
+        plt.legend(loc='best')
+        #plt.tight_layout()
+        plt.savefig('variance_explained_PC1234')
+        plt.show()
+
+
+    #Trying PCA 3D
+    from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.mplot3d import proj3d
+
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(111, projection='3d')
+    plt.rcParams['legend.fontsize'] = 10   
+    ax.plot(pc2, pc3, 'o', markersize=8, color='blue', alpha=0.5, label='data points')
+    plt.title('Principal Component Analysis (2 and 3)')
+    ax.legend(loc='upper right')
+    plt.xlabel('PC2 (' + str(round(var_exp[2])) + '%)')
+    plt.ylabel('PC3 (' + str(round(var_exp[3])) + '%)')
+    plt.savefig('PCA23_3D')
+
     if strains is not None:    
         ct_marker_map = {'DK':'*','UK':'^', 'F':'o', 'nan': 's'}
         gs_color_map = {'gsA':'m','gsB':'g', 'gsC':'r', 'gsE': 'b','gsD': 'y', 'nan':'c'}
@@ -188,8 +224,8 @@ def plot_dirty_PCA(kinship_mat, figure_fn = 'pca.png', k_figure_fn = 'kinship_he
         pylab.plot(pc1,pc2,'k.')
     if title is not None:
         pylab.title(title)
-    pylab.xlabel('PC1')
-    pylab.xlabel('PC2')
+    pylab.xlabel('PC3')
+    pylab.xlabel('PC4')
     pylab.tight_layout()
     pylab.savefig(figure_dir+'/'+figure_fn,format='pdf')
     pylab.clf()
