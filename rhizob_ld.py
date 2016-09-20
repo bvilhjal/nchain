@@ -819,7 +819,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                     ni_stat = -1
                 
                 mk_alpha = 1-ni_stat
-                    
+
                 d['%s_%s'%(gs1,gs2)]['ni_stat']=ni_stat
                 d['%s_%s'%(gs1,gs2)]['MK_alpha']=mk_alpha
                 d['%s_%s'%(gs1,gs2)]['num_subt']=num_subt
@@ -831,6 +831,13 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 o_gg.create_dataset('mk_alpha',data=mk_alpha)
                 o_gg.create_dataset('num_subt',data=num_subt)
                 o_gg.create_dataset('num_pol',data=num_pol)
+                o_gg.create_dataset('pn', data = (num_non_syn_pol/num_non_syn_pol_sites)
+                o_gg.create_dataset('ps', data = (num_syn_pol/num_syn_pol_sites)  
+                o_gg.create_dataset('num_non_syn_pol', data = num_non_syn_pol) # from both groups
+                o_gg.create_dataset('num_syn_pol', data = num_syn_pol) # from both groups
+                o_gg.create_dataset('num_syn_pol_sites', data = num_syn_pol_sites)
+                o_gg.create_dataset('num_non_syn_pol_sites', data = num_non_syn_pol_sites)
+
                 
                 o_gg.create_dataset('pn_ps_ratio1',data=d[gs1]['pn_ps_ratio'])
                 o_gg.create_dataset('pn_ps_ratio2',data=d[gs1]['pn_ps_ratio'])
