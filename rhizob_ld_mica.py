@@ -628,7 +628,7 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
     """
     from itertools import izip
     ni_stats = []
-    pop_map, ct_array = parse_pop_map()
+    pop_map = parse_pop_map()
     codon_syn_map = get_codon_syn_map()
     h5f = h5py.File(gt_hdf5_file)
     ag = h5f['alignments']
@@ -831,11 +831,22 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 o_gg.create_dataset('mk_alpha',data=mk_alpha)
                 o_gg.create_dataset('num_subt',data=num_subt)
                 o_gg.create_dataset('num_pol',data=num_pol)
-                
+
+                o_gg.create_dataset('pn', data = (num_non_syn_pol/num_non_syn_pol_sites)
+                o_gg.create_dataset('ps', data = (num_syn_pol/num_syn_pol_sites)  
+                o_gg.create_dataset('num_non_syn_pol', data = num_non_syn_pol) # from both groups
+                o_gg.create_dataset('num_syn_pol', data = num_syn_pol) # from both groups
+                o_gg.create_dataset('num_syn_pol_sites', data = num_syn_pol_sites)
+                o_gg.create_dataset('num_non_syn_pol_sites', data = num_non_syn_pol_sites)
+
                 o_gg.create_dataset('pn_ps_ratio1',data=d[gs1]['pn_ps_ratio'])
                 o_gg.create_dataset('pn_ps_ratio2',data=d[gs1]['pn_ps_ratio'])
                 o_gg.create_dataset('pn_ps_ratio',data=pn_ps_ratio)
                 o_gg.create_dataset('dn_ds_ratio',data=d['%s_%s'%(gs1,gs2)]['dn_ds_ratio'])
+
+
+                ###### Creating the contingency table: non-synonymous synonymous fixed polymorphic
+                # fixed are those
 
                 num_parsed_genes +=1
         else:
@@ -1331,9 +1342,11 @@ def parse_pop_map(file_name = '/project/NChain/faststorage/rhizobium/ld/Rhizobiu
     from itertools import izip
     
     pop_map = {}
+    print file(file_name).read()
     t = pd.read_table(file_name)
     t = t.rename(columns=lambda x: x.strip())
-    for strain_id, origin, country in izip(t['Seq ID'], t['Genospecies rpoB'], t['Country']):
+    print t
+    for strain_id, origin, country in izip(t['Seq ID'], t['Genospecies'], t['Country']):
         pop_map[str(strain_id)]={'genospecies':origin, 'country':country}
     return pop_map
     
