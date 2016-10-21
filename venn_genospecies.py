@@ -2,15 +2,10 @@
 
 import scipy as sp
 import itertools 
-import h5py 
-import os
 import matplotlib
-matplotlib.use('Agg')
 import pylab as pl
-import collections
 import numpy as np
 import json
-import collections
 import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib_venn import venn3, venn3_circles
@@ -59,13 +54,13 @@ json.dump(venn_dictionary, open("text.txt",'w'))
 
 # # # Subset sizes
 s = (
-     1082,    # Abc # UK
-     898,    # aBc #DK # It is zero, just put a number to be able to visualize
-     332,    # ABc #UK/DK
-     3567,    # abC #FR # it is just 1 bu i put100 to be able to see
-     1141,    # AbC #UK/FR
-     1290,  #  DK/FR
-     5904,    # ABC #DK/FR/UK
+     1082,   # Abc 
+     898,    # aBc 
+     332,    # ABc  
+     3567,   # abC
+     1141,   # AbC
+     1290,   # DK/FR
+     5904,   # ABC 
   )
 
 v = venn3(subsets=s, set_labels=('Genospecies A', 'Genospecies B', 'Genospecies C'))
@@ -100,7 +95,7 @@ plt.savefig('venn_diagram_abc.pdf')
 plt.clf()
 
 
-# # ###### Venn Diagram for organic and non-organic strains
+# # ###### Venn Diagram for Genospecies D and E
 s = (
    3*83,  # Ab
    3*463,  # aB
