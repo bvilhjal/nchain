@@ -46,19 +46,9 @@ def average_nucleotide_identity(snps_hdf5_file = 'C:/Users/MariaIzabel/Desktop/M
 
 	# Names
 	strains_names = sorted(pop_map, key=lambda x: pop[x]['genospecies'])
-	print 'The type of the strain is', type(strains_names)
-
-	strains = []
-	for i in ag['1000']['strains']:
-		strains.append(i[:4]) 
-
-	print strains
-	#map(lambda x: str.replace(x, "3859", "3293"), words)
-	print strains_names
+	print 'These are the strains evaluated', strains_names
 	strains_names.remove('3859')
 	strains_names.remove('3260')
-
-	print strains_names
 
 	# Making the matrix to update the ani 
 	ani_matrix = np.zeros((198,198))
@@ -69,6 +59,8 @@ def average_nucleotide_identity(snps_hdf5_file = 'C:/Users/MariaIzabel/Desktop/M
 		if len(ag[gene]['strains']) == 198:
 			gene_groups.append(gene)
 	counting = 0
+
+	print 'total number of genes is:', len(gene_groups)
 
 	for gg1 in gene_groups:
 		start_time = time.time()
