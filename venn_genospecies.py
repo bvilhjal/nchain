@@ -1,11 +1,12 @@
 # Creating a venn diagram based on genospecies
-
 import scipy as sp
 import itertools 
 import matplotlib
 import pylab as pl
 import numpy as np
 import json
+import collections
+from collections import Counter
 import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib_venn import venn3, venn3_circles
@@ -21,7 +22,34 @@ def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicod
         pop_map[str(strain_id)]={'genospecies':origin, 'country':country}
     return pop_map
 
-gene_groups = np.load('C:/Users/MariaIzabel/Desktop/MASTER/PHD/Syn-Non/gene_groups/gene_groups.npy').item()
+def make_histograms(dicts, xlab = None, ylab = None, save_name = None, fig_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/figures'):
+  X = np.arange(len(dicts))
+  pl.bar(X, dicts.values(), align='center', width=0.5)
+  pl.xticks(X, dicts.keys())
+  ymax = max(dicts.values())*1.05
+  xmax = len(dicts)
+  pl.xlabel(xlab)
+  pl.ylabel(ylab)
+  pl.ylim(0, ymax)
+  pl.xlim(-1,xmax)
+  pl.grid(True)
+  pl.savefig('%s/figure_%s.pdf'%(fig_dir,save_name))
+  pl.show()
+
+
+#gene_groups = np.load('C:/Users/MariaIzabel/Desktop/MASTER/PHD/Syn-Non/gene_groups/gene_groups.npy').item()
+
+# Opening the list of genes and its respective strains
+genes_strains = open('C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/PCA_gene_level_all_strains/presence_absence_headers.txt', 'r').read().split()
+# Using ordered dictionary to maintain the gene structure
+gene_groups = collections.OrderedDict() 
+for i in range(len(genes_strains)):
+  temp = genes_strains[i].split('|')
+  if str(temp[0]) not in gene_groups:
+    gene_groups[str(temp[0])] = [int(temp[1])] # creating a list
+  else:
+    gene_groups[(temp[0])].append(int(temp[1]))
+    
 
 pop = parse_pop_map()
 
@@ -38,19 +66,54 @@ def define_combinations(genospecies):
 genospecies = ['gsA', 'gsB', 'gsC', 'gsD', 'gsE']
 
 venn_dictionary = define_combinations(genospecies)
+total_geno = {'gsA': 0, 'gsB':0, 'gsC': 0,'gsD': 0, 'gsE': 0}
+hist_per_geno = {'gsA': {}, 'gsB':{}, 'gsC': {},'gsD': {}, 'gsE': {}}
 
 for gene in gene_groups:
-	strains = gene_groups[gene]
-	gs_list = sp.array([pop[strain]['genospecies'] for strain in strains])
-	gs_list = "".join(sorted(sp.unique(gs_list)))
-	#print gs_list
-	venn_dictionary[gs_list] += 1
+  strains = gene_groups[gene]
+  gs_list = sp.array([pop[str(strain)]['genospecies'] for strain in strains])
+  counts_dict = Counter(gs_list)
 
-print 'All the possible combinations is: ', venn_dictionary
+  # How many genes in total are present in each genospecies?
+  gs_list = sp.unique(gs_list)
+  for i in gs_list:
+    total_geno[i] += 1
 
+  # How many genes contain a given amount of strains from a certain genospecies?:
+  for geno, counts in counts_dict.items():
+    tup = (geno, counts)
+    if tup[1] not in hist_per_geno[tup[0]]:
+      hist_per_geno[tup[0]][tup[1]] = 1
+    else:
+      hist_per_geno[tup[0]][tup[1]] += 1
+
+  # How many genes are shared by each possible combination of genospecies?:    
+  gs_list_joined = "".join(sorted(sp.unique(gs_list)))
+  venn_dictionary[gs_list_joined] += 1
+
+
+print '\nAll the possible combinations is:', venn_dictionary
+print '\nTotal amount of genes present in each genospecies', total_geno
+print '\nDistribution of genes per genospecies', hist_per_geno
 json.dump(venn_dictionary, open("text.txt",'w'))
 
- #### Creating the venn diagram
+
+'''Figures'''
+
+### Creating histograms
+'''Total number of strains present in each genopecies'''
+strains_geno = {'gsC': 116, 'gsB': 34, 'gsA': 33, 'gsE': 11, 'gsD': 5}
+
+'''Total number of genes present in each genospecies'''
+
+make_histograms(total_geno, xlab = 'Genospecies', ylab = 'Genes', save_name = 'genes_genospecies.pdf')
+
+make_histograms(strains_geno, xlab = 'Genospecies', ylab = 'Strains', save_name = 'strains_genospecies.pdf')
+
+for i in strains_geno.keys():
+  make_histograms(hist_per_geno[i], xlab= 'Strains', ylab = 'Genes', save_name = i)
+
+#### Creating the venn diagram
 
 # # # Subset sizes
 s = (
