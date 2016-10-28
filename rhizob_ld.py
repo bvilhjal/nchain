@@ -593,9 +593,9 @@ def call_good_snps(sequence, ok_snps, snp_positions, codon_syn_map=None, ok_seq_
         freq = sp.mean(snp,0)
         
         #7. Check non-synonimous/synonimous
-        num_syn_sites = freq*codon_syn_map[codon0]+(1-freq)*codon_syn_map[codon1]
-        num_non_syn_sites = 3-num_syn_sites
-        tot_num_syn_sites += num_syn_sites
+        is_syn_site = int(codontable[codon0]==codontable[codon1]) #freq*codon_syn_map[codon0]+(1-freq)*codon_syn_map[codon1]
+        num_non_syn_sites = 3-is_syn_site
+        tot_num_syn_sites += is_syn_site
         tot_num_non_syn_sites += num_non_syn_sites
         
         aa0 = codontable[codon0]
@@ -831,8 +831,8 @@ def calc_mcdonald_kreitman_stat(geno_species=['gsA', 'gsB'], min_num_strains=30,
                 o_gg.create_dataset('mk_alpha',data=mk_alpha)
                 o_gg.create_dataset('num_subt',data=num_subt)
                 o_gg.create_dataset('num_pol',data=num_pol)
-                o_gg.create_dataset('pn', data = (num_non_syn_pol/num_non_syn_pol_sites)
-                o_gg.create_dataset('ps', data = (num_syn_pol/num_syn_pol_sites)  
+                o_gg.create_dataset('pn', data = (num_non_syn_pol/num_non_syn_pol_sites))
+                o_gg.create_dataset('ps', data = (num_syn_pol/num_syn_pol_sites) ) 
                 o_gg.create_dataset('num_non_syn_pol', data = num_non_syn_pol) # from both groups
                 o_gg.create_dataset('num_syn_pol', data = num_syn_pol) # from both groups
                 o_gg.create_dataset('num_syn_pol_sites', data = num_syn_pol_sites)
