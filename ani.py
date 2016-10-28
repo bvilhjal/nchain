@@ -7,6 +7,16 @@ import time
 #import matplotlib.pyplot as plt
 #import seaborn as sns
 
+ani = pd.DataFrame.from_csv('ani_sorted_by_genospecies_500_genes.csv')
+pl.pcolor(ani)
+pl.colorbar()
+pl.xlim([0,ani.shape[1]])
+pl.ylim([0,ani.shape[0]])
+pl.title('Average nucleotide identity - 198 strains - 500 genes')
+pl.savefig('heat_map_allcoregenes.png')
+pl.show()
+
+
 def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'):
     from itertools import izip   
     pop_map = {}
@@ -32,7 +42,6 @@ def average_nucleotide_identity(snps_hdf5_file = 'C:/Users/MariaIzabel/Desktop/M
                                  seq_file = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/snps.hdf5',
                                  fig_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/figures',
                                  geno_species='gsA', bin_size=0.2,
-                                 out_file = '/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
                                  gt_hdf5_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/snps.hdf5'):
 	pop = parse_pop_map()
 	print pop
