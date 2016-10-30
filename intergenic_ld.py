@@ -6,15 +6,15 @@ Goal: Identify genes that are more correlated with each other than we expect.
 First idea: Correlate gene-specific GRM with each other, accounting for overall GRM (population structure).
 
 
-4. Use pseudo-SNPs to calculate gene-specific GRMs.
 5. Perform Mantel test between all genes.
-6. Identify intersting genes.
+6. Identify interesting genes.
 7. Write a Nature paper. 
 
 
 """
 import kinship
 import scipy as sp
+from scipy.sparse import identity
 from scipy import linalg
 import h5py
 import pandas as pd
@@ -62,7 +62,7 @@ def get_snps(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
 
 if __name__ == '__main__':
     
-    # 1. Calcuate genome-wide GRM.
+    # 1. Calculate genome-wide GRM.
     k_dict = kinship.get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
                  plot_figures=False,
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
@@ -77,6 +77,12 @@ if __name__ == '__main__':
     cholesky_decomp_inv_snp_cov = linalg.cholesky(linalg.pinv(K_snps))  
     
     # 3. Calculate the pseudo-SNPs (x*A)
+    pseudo_snps = cholesky_decomp_inv_snp_cov*identity(len(cholesky_decomp_inv_snp_cov))
+
+    # 4. Use pseudo-SNPs to calculate gene-specific GRMs.
+    # Here we calculate the gene-GRM
+
+    #
     
     
     
