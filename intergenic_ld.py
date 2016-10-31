@@ -6,7 +6,6 @@ Goal: Identify genes that are more correlated with each other than we expect.
 First idea: Correlate gene-specific GRM with each other, accounting for overall GRM (population structure).
 
 
-5. Perform Mantel test between all genes.
 6. Identify interesting genes.
 7. Write a Nature paper. 
 
@@ -18,6 +17,23 @@ from scipy.sparse import identity
 from scipy import linalg
 import h5py
 import pandas as pd
+from skbio.math.stats.distance import mantel
+
+def normalize(matrix, direction = 1):
+    """Normalizes a matrix default (columns) to mean 0 and std 1."""
+    mean = np.mean(matrix, axis= direction)
+    std = np.std(matrix, axis= direction)
+    matrix = (matrix - mean) / std
+    return np.nan_to_num(matrix)
+
+def pseudo_snps_GRM(matrix):
+    """ Calculate the pseudo gene matrix and returns the GRM"""
+    standard_matrix = normalize(matrix, direction = 1)
+    chol = linalg.cholesky(linalg.pinv(standard_matrix))  
+    pseudo_snps = sp.dot(chol, standard_matrix)
+    GRM = sp.dot(pseudo_snps.T, pseudo_snps)/pseudo_snps.shape[1]
+    return GRM
+
 
 def get_snps(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
                  plot_figures=False,
@@ -62,7 +78,7 @@ def get_snps(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
 
 if __name__ == '__main__':
     
-    # 1. Calculate genome-wide GRM.
+    # 1. Calculate genome-wide GRM (X*X'/M).
     k_dict = kinship.get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
                  plot_figures=False,
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
@@ -70,19 +86,44 @@ if __name__ == '__main__':
                  min_maf=0.1,
                  max_strain_num=200)
     
-    K_snps = k_dict['K_snps']
+    K_snps = k_dict['K_snps'] 
     
     # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
     # Approximation.. may be improved by using a better SNP covariance matrix.
     cholesky_decomp_inv_snp_cov = linalg.cholesky(linalg.pinv(K_snps))  
     
     # 3. Calculate the pseudo-SNPs (x*A)
-    pseudo_snps = cholesky_decomp_inv_snp_cov*identity(len(cholesky_decomp_inv_snp_cov))
+    pseudo_snps = cholesky_decomp_inv_snp_cov*K_snps
+    GRM = sp.dot(pseudo_snps.T, pseudo_snps)/pseudo_snps.shape[0] # dont remember 
 
     # 4. Use pseudo-SNPs to calculate gene-specific GRMs.
     # Here we calculate the gene-GRM
 
-    #
+    # 5. Perform Mantel test between all genes.
+    # How do we deal with matrices of different shapes?
+    # Genes correlating with GRM are respecting genospecies boundaries
+
+    # Genes that do not correlates with GRM are disrespecting genospecies boundaries and may be functionally important for all the genospecies (like symbiotic genes)
+
+    # To simplify, let's first look at genes with the same dimensions
+    core_genes = []
+    for g in gene_groups:
+        if len(gene_groups) == 198:
+            core_genes.append(g)
+
+    for g1 in core_genes:
+        for g2 in core_genes:
+            if g1 != g2:
+                GRM_g1 = pseudo_snps_GRM(g1)
+                GRM_g2 = pseudo_snps_GRM(g2)
+
+                # Mantel test
+                coeff, p_value = mantel(GRM_g1, GRM_g2, method='pearson', permutations=100, alternative='two-sided')
+
+
+
+
+
     
     
     
