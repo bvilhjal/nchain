@@ -1,7 +1,5 @@
 ## GC content of pacbio data
 
-contigs = open('polished_assembly.fasta', 'r').read().split('>')
-
 def gc_content(sequence):
 	sequence = sequence.upper()
 	GC = (sequence.count('G') + sequence.count('C'))/float(len(sequence))
