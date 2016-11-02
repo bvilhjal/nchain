@@ -5,6 +5,7 @@ Code to calculate the kinship.
 import scipy as sp
 import h5py
 import pandas as pd
+import numpy as np 
 import matplotlib
 import rhizob_ld
 matplotlib.use('Agg')
@@ -83,8 +84,6 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
                 counts_mat_codon_snps_slice[:, strain_mask] += len(codon_snps)
                 counts_mat_codon_snps[strain_mask] = counts_mat_codon_snps_slice
         
-        
-                
                 if sp.sum(is_synonimous_snp) > 0:
                     syn_snps = codon_snps[is_synonimous_snp]
                     K_syn_snps_slice = K_syn_snps[strain_mask]
@@ -126,7 +125,7 @@ def get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hd
     print 'Average number of codon SNPs: %0.2f.' % sp.mean(counts_mat_snps)
     print 'Average number of codon SNPs: %0.2f.' % sp.mean(counts_mat_snps)
     print 'Average number of codon SNPs: %0.2f.' % sp.mean(counts_mat_snps)
-    
+
     return {'K_snps':K_snps, 'K_codon_snps':K_codon_snps, 'counts_mat_snps':counts_mat_snps, 'counts_mat_codon_snps':counts_mat_codon_snps,
             'K_syn_snps':K_syn_snps, 'K_nonsyn_snps':K_nonsyn_snps, 'counts_mat_syn_snps':counts_mat_syn_snps, 'counts_mat_nonsyn_snps':counts_mat_nonsyn_snps,
             'strains':ordered_strains}

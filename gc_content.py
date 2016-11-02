@@ -17,7 +17,6 @@ def parse_fasta(filename):
 		seq = entry.splitlines()
 		header = seq[0] #these are the first elements of the list 
 		seq = ''.join(seq[1:]) #joining the sequences 
-	#making a tuple:
 		sequences[header] = seq
 	return sequences
 
