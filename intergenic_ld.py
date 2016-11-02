@@ -11,39 +11,63 @@ First idea: Correlate gene-specific GRM with each other, accounting for overall 
 
 
 """
-import kinship
+import glob
+import bottleneck as bn
+import numpy as np
+import Mantel
 import scipy as sp
-from scipy.sparse import identity
 from scipy import linalg
 import h5py
 import pandas as pd
-from skbio.math.stats.distance import mantel
+import pylab as pl
+#import ecopy as ep
+#conda install -c https://conda.anaconda.org/biocore scikit-bio
 
 def normalize(matrix, direction = 1):
     """Normalizes a matrix default (columns) to mean 0 and std 1."""
     mean = np.mean(matrix, axis= direction)
     std = np.std(matrix, axis= direction)
+    if direction == 1:
+        mean = mean[:, None]
+        std = std[:, None]
+
     matrix = (matrix - mean) / std
     return np.nan_to_num(matrix)
+            
+def replace_column_nans_by_mean(matrix):
+    # Set the value of gaps/dashes in each column to be the average of the other values in the column.
+    nan_indices = np.where(np.isnan(matrix))
+    # Note: bn.nanmean() instead of np.nanmean() because it is a lot(!) faster.
+    column_nanmeans = bn.nanmean(matrix, axis=0)
 
-def pseudo_snps_GRM(matrix):
-    """ Calculate the pseudo gene matrix and returns the GRM"""
-    standard_matrix = normalize(matrix, direction = 1)
-    chol = linalg.cholesky(linalg.pinv(standard_matrix))  
-    pseudo_snps = sp.dot(chol, standard_matrix)
-    GRM = sp.dot(pseudo_snps.T, pseudo_snps)/pseudo_snps.shape[1]
-    return GRM
+    # For each column, assign the NaNs in that column the column's mean.
+    # See http://stackoverflow.com/a/18689440 for an explanation of the following line.
+    matrix[nan_indices] = np.take(column_nanmeans, nan_indices[1])
 
+# 2. Calculate A, the cholesky decomp of the inverse of the GRM.
+# Approximation.. may be improved by using a better SNP covariance matrix.
 
-def get_snps(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
+# Cholesky factorization requires a matrix that is symmetric and positive definite.
+# A matrix is positive definite and and only if all eigenvalues are positive
+
+def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
+                 out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD',
                  plot_figures=False,
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
                  min_maf=0.1,
                  max_strain_num=200):
+    
     """
-    Calculates the kinship
+    Take the genes concatenate their snps, calculate GRM, decomposition, calculate pseudo snps.
     """
+    
+    snp_matrices = []
+    matrix_lengths = []
+    matrix_file_paths = []
+    strain_list_masks = []
+    snps_to_remove = []
+
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
     all_strains = set()
@@ -57,77 +81,128 @@ def get_snps(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
     
     ordered_strains = sorted(list(all_strains))
     strain_index = pd.Index(ordered_strains)
+    K_snps = sp.zeros((num_strains, num_strains))
 
+    snp_matrices = []
     for i, gg in enumerate(gene_groups):
         if i % 100 == 0:
             print 'Working on gene nr. %d' % i 
         data_g = h5f[gg]
         strains = data_g['strains'][...]
+        #print strains
         if len(strains) < max_strain_num:
             strain_mask = strain_index.get_indexer(strains)
-            
             snps = data_g['norm_snps'][...]
-            freqs = data_g['freqs'][...]
-            mafs = sp.minimum(freqs, 1 - freqs)
-            maf_mask = mafs > min_maf
-            snps = snps[maf_mask]
-            if len(snps) == 0:
-                continue
-            
-            
 
-if __name__ == '__main__':
+            # Strains in rows and snps in collumns
+            snps = snps.T
+
+            # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
+            # correct rows filled in by the data from the SNP file.
+            full_matrix = np.empty((198, snps.shape[1]))
+            full_matrix[:] = np.NAN
+            full_matrix[strain_mask, :] = snps[:,]
+
+            #print full_matrix.shape
+
+            snp_matrices.append(full_matrix)
+    
+            strain_list_masks.append(strain_mask)
+            matrix_lengths.append(full_matrix.shape[1])
+            matrix_file_paths.append(gg) # The name of the gene
+
+    snp_boundaries = np.cumsum(matrix_lengths).tolist()
+    print("Normalizing genotype matrix...")
+    full_genotype_matrix = np.hstack(snp_matrices)
+
+    print full_genotype_matrix
+
+    replace_column_nans_by_mean(full_genotype_matrix)
+    full_genotype_matrix = normalize(full_genotype_matrix, direction=1)
     
     # 1. Calculate genome-wide GRM (X*X'/M).
-    k_dict = kinship.get_kinships(snps_file='/project/NChain/faststorage/rhizobium/ld/new_snps.hdf5',
-                 plot_figures=False,
-                 figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
-                 fig_id='all',
-                 min_maf=0.1,
-                 max_strain_num=200)
-    
-    K_snps = k_dict['K_snps'] 
+    print("Calculating genotype matrix covariance...")
+    #cov = np.cov(full_genotype_matrix)
+
+    # Or 
+    cov = np.dot(full_genotype_matrix, full_genotype_matrix.T)/full_genotype_matrix.shape[1]
     
     # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
-    # Approximation.. may be improved by using a better SNP covariance matrix.
-    cholesky_decomp_inv_snp_cov = linalg.cholesky(linalg.pinv(K_snps))  
-    
+    print("Finding inverse and sqrt of covariance matrix...")
+
+    # Genetically identical individuals results in singular (i.e. non-invertible). This can happen for a subset of the
+    # data but should not happen for the entire dataset. Use the pseudo inverse instead. When a matrix is invertible,
+    # its pseudo inverse is its inverse anyway. Similarly, pseudo inverses might not be positive definite, meaning that
+    # we can't use Cholesky decomposition. If that happens, we can use SciPy's linalg.sqrtm() method (I don't actually
+    # know if that is equivalent). Anyway, use linalg.sqrtm(linalg.pinv(cov)) when dealing with small sample sizes.
+    inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
+
+    print inv_cov_sqrt
+
     # 3. Calculate the pseudo-SNPs (x*A)
-    pseudo_snps = cholesky_decomp_inv_snp_cov*K_snps
-    GRM = sp.dot(pseudo_snps.T, pseudo_snps)/pseudo_snps.shape[0] # dont remember 
+    print("Calculating pseudo SNPS...")
+    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
+    del full_genotype_matrix
 
-    # 4. Use pseudo-SNPs to calculate gene-specific GRMs.
-    # Here we calculate the gene-GRM
+    pl.matshow(cov)
+    pl.title('Kinship - 198 strains - all good genes')
+    pl.savefig('heat_map_allgenes.png')
 
-    # 5. Perform Mantel test between all genes.
-    # How do we deal with matrices of different shapes?
-    # Genes correlating with GRM are respecting genospecies boundaries
+    pl.show()
+    pl.matshow(np.cov(pseudo_snps))
+    pl.title('After structure correction')
+    pl.savefig('heat_map_structured_genes.png')
 
-    # Genes that do not correlates with GRM are disrespecting genospecies boundaries and may be functionally important for all the genospecies (like symbiotic genes)
+    print("Creating files corrected for Population Structure...")
+    # Extract the original genes from the large pseudo SNP matrix.
+    for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
+        strains_list_mask = strain_list_masks[i]
+        #print (start, end)
+        snps = pseudo_snps[strains_list_mask, start:end]
+        strains = strains_list_mask
 
-    # To simplify, let's first look at genes with the same dimensions
-    core_genes = []
-    for g in gene_groups:
-        if len(gene_groups) == 198:
-            core_genes.append(g)
-
-    for g1 in core_genes:
-        for g2 in core_genes:
-            if g1 != g2:
-                GRM_g1 = pseudo_snps_GRM(g1)
-                GRM_g2 = pseudo_snps_GRM(g2)
-
-                # Mantel test
-                coeff, p_value = mantel(GRM_g1, GRM_g2, method='pearson', permutations=100, alternative='two-sided')
-
-
-
-
-
+        file_name = 'group'+matrix_file_paths[i] # the name of the gene
+        
+        np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
     
+def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/*.npz'):
+    distance_to_ld = {}
+
+    #This is the gene SNPs matrix
+    genes = []
+    for f in glob.glob("*.npz"):
+        with np.load(f) as data:
+            genes.append((data["matrix"], data["strains"])) # creating a tuple
+    # genes = [np.load(f) for f in glob.glob("*.npz")]
     
-    
-    
-    
-    
-    
+    r_scores = []
+    p_values = []
+    z_scores = []
+    for gene1 in genes:
+        for gene2 in genes:
+
+            # 5. Perform Mantel test between all genes
+            if gene1[0].shape[0] == gene2[0].shape[0]:
+                g1 = np.dot(gene1[0], gene1[0].T)/gene1[0].shape[1]
+                
+                # Tranforming the diagonal to zero
+                g1 = g1 - np.diag(np.diag(g1))
+                
+                g2 = np.dot(gene2[0], gene2[0].T)/gene2[0].shape[1]
+                g2 = g2 - np.diag(np.diag(g2))
+                r, p, z = Mantel.mantel_test(g1, g2, perms=10, method='pearson', tail='two-tail')
+                r_scores.append(r)
+                p_values.append(p)
+                z_scores.append(z)
+
+    LD_stats = pd.DataFrame(
+    {'r_scores': r_scores,
+    'p_values': p_values,
+    'z_scores': z_scores
+    })
+    LD_stats.to_csv('intergenic_LD_stats.csv', header = True)
+    return LD_stats
+
+#print pseudo_snps()
+print intergenic_ld()
+
