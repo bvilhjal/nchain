@@ -44,12 +44,6 @@ def replace_column_nans_by_mean(matrix):
     # See http://stackoverflow.com/a/18689440 for an explanation of the following line.
     matrix[nan_indices] = np.take(column_nanmeans, nan_indices[1])
 
-# 2. Calculate A, the cholesky decomp of the inverse of the GRM.
-# Approximation.. may be improved by using a better SNP covariance matrix.
-
-# Cholesky factorization requires a matrix that is symmetric and positive definite.
-# A matrix is positive definite and and only if all eigenvalues are positive
-
 def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
                  out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD',
                  plot_figures=False,
@@ -103,8 +97,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             full_matrix[:] = np.NAN
             full_matrix[strain_mask, :] = snps[:,]
 
-            #print full_matrix.shape
-
             snp_matrices.append(full_matrix)
     
             strain_list_masks.append(strain_mask)
@@ -154,10 +146,10 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     pl.savefig('heat_map_structured_genes.png')
 
     print("Creating files corrected for Population Structure...")
+
     # Extract the original genes from the large pseudo SNP matrix.
     for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
         strains_list_mask = strain_list_masks[i]
-        #print (start, end)
         snps = pseudo_snps[strains_list_mask, start:end]
         strains = strains_list_mask
 
@@ -172,8 +164,8 @@ def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Int
     genes = []
     for f in glob.glob("*.npz"):
         with np.load(f) as data:
-            genes.append((data["matrix"], data["strains"])) # creating a tuple
-    # genes = [np.load(f) for f in glob.glob("*.npz")]
+            # Creating a tuple
+            genes.append((data["matrix"], data["strains"])) 
     
     r_scores = []
     p_values = []
@@ -187,7 +179,7 @@ def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Int
                 
                 # Tranforming the diagonal to zero
                 g1 = g1 - np.diag(np.diag(g1))
-                
+
                 g2 = np.dot(gene2[0], gene2[0].T)/gene2[0].shape[1]
                 g2 = g2 - np.diag(np.diag(g2))
                 r, p, z = Mantel.mantel_test(g1, g2, perms=10, method='pearson', tail='two-tail')
