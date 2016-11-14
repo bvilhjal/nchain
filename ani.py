@@ -7,14 +7,14 @@ import time
 #import matplotlib.pyplot as plt
 #import seaborn as sns
 
-ani = pd.DataFrame.from_csv('ani_sorted_by_genospecies_500_genes.csv')
-pl.pcolor(ani)
-pl.colorbar()
-pl.xlim([0,ani.shape[1]])
-pl.ylim([0,ani.shape[0]])
-pl.title('Average nucleotide identity - 198 strains - 500 genes')
-pl.savefig('heat_map_allcoregenes.png')
-pl.show()
+#ani = pd.DataFrame.from_csv('ani_sorted_by_genospecies_500_genes.csv')
+#pl.pcolor(ani)
+#pl.colorbar()
+#pl.xlim([0,ani.shape[1]])
+#pl.ylim([0,ani.shape[0]])
+#pl.title('Average nucleotide identity - 198 strains - 500 genes')
+#pl.savefig('heat_map_allcoregenes.png')
+#pl.show()
 
 
 def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'):
@@ -89,8 +89,7 @@ def average_nucleotide_identity(snps_hdf5_file = 'C:/Users/MariaIzabel/Desktop/M
 	return ani_matrix
 				  
 ani = average_nucleotide_identity()
-print ani
-ani.to_csv('ani_sorted_by_genospecies.csv', header = True)
+#ani.to_csv('ani_sorted_by_genospecies.csv', header = True)
 
 # A heatmap of the matrix
 pl.pcolor(ani)

@@ -170,22 +170,26 @@ def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Int
     r_scores = []
     p_values = []
     z_scores = []
+    count = 0
     for gene1 in genes:
+        print gene1
         for gene2 in genes:
-
+            if count <= 1000:
+                print 'working on %d', (count)
             # 5. Perform Mantel test between all genes
-            if gene1[0].shape[0] == gene2[0].shape[0]:
-                g1 = np.dot(gene1[0], gene1[0].T)/gene1[0].shape[1]
+                if gene1[0].shape[0] == gene2[0].shape[0]:
+                    g1 = np.dot(gene1[0], gene1[0].T)/gene1[0].shape[1]
                 
-                # Tranforming the diagonal to zero
-                g1 = g1 - np.diag(np.diag(g1))
+                    # Tranforming the diagonal to zero
+                    g1 = g1 - np.diag(np.diag(g1))
 
-                g2 = np.dot(gene2[0], gene2[0].T)/gene2[0].shape[1]
-                g2 = g2 - np.diag(np.diag(g2))
-                r, p, z = Mantel.mantel_test(g1, g2, perms=10, method='pearson', tail='two-tail')
-                r_scores.append(r)
-                p_values.append(p)
-                z_scores.append(z)
+                    g2 = np.dot(gene2[0], gene2[0].T)/gene2[0].shape[1]
+                    g2 = g2 - np.diag(np.diag(g2))
+                    r, p, z = Mantel.mantel_test(g1, g2, perms=10, method='pearson', tail='two-tail')
+                    count += 1
+                    r_scores.append(r)
+                    p_values.append(p)
+                    z_scores.append(z)
 
     LD_stats = pd.DataFrame(
     {'r_scores': r_scores,
