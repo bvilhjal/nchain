@@ -1166,9 +1166,6 @@ def gen_ld_plots(snps_hdf5_file='/project/NChain/faststorage/rhizobium/ld/called
             pylab.savefig(fig_dir + '/part_ld_%s_codons2.png' % (plot_type))
 
 
-
-
-
  
 def parse_pop_map(file_name='/project/NChain/faststorage/rhizobium/ld/Rhizobium_soiltypes_nod.txt'):
     from itertools import izip

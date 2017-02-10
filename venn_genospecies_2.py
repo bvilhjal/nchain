@@ -18,6 +18,7 @@ def findInstances(list1, list2):
     for i in list1:
         yield [pos for pos,j in enumerate(list2) if i==j]
 
+
 def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'):
     from itertools import izip
     
@@ -29,16 +30,16 @@ def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicod
     return pop_map
 
 def make_histograms(dicts, xlab = None, ylab = None, save_name = None, fig_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/figures'):
+  dicts = collections.OrderedDict(sorted(dicts.items(), key=lambda t: t[0]))
   X = np.arange(len(dicts))
-  pl.bar(X, sorted(dicts.keys()), align='center', width=0.5)
-  pl.xticks(X, sorted(dicts.keys()))
+  pl.bar(X, dicts.values(), align='center', width=0.5)
+  pl.xticks(X, dicts.keys())
   ymax = max(dicts.values())*1.05
   xmax = len(dicts)
-  pl.xlabel(xlab)
+  pl.xticklabels(xlab)
   pl.ylabel(ylab)
   pl.ylim(0, ymax)
   pl.xlim(-1,xmax)
-  pl.grid(True)
   pl.savefig('%s/figure_%s.pdf'%(fig_dir,save_name))
   pl.show()
 
@@ -61,7 +62,7 @@ for i in range(len(genes_strains)):
 
 # Open the data frame with the origin information
 sorted_strain_names = pd.read_csv('strains_id.txt', sep='\t')
-#print sorted_strain_names
+
 strain_names = list(sorted_strain_names['Seq ID'])
 Matrix_counts = np.zeros((200,len(gene_groups)))
 lands = list(sorted_strain_names['Genospecies'])
@@ -69,37 +70,36 @@ countries = {'gsA': 1, 'gsB':2, 'gsC':3, 'gsD':4, 'gsE': 5}
 
 # Filling up first the core genes
 key_sorted_by_length = sorted(gene_groups.values(), key=len)
+
 count = 0
+histogram = list()
 
 for strains in key_sorted_by_length:
   index_match = list(findInstances(strains, strain_names))
+  histogram.append(len(index_match))
   merged = list(itertools.chain(*index_match))
   for m in merged:      
     Matrix_counts[m,count] = countries[lands[m]]
   count += 1
 
+print 'Number of genes that are present in all strains', count
+
+print Counter(histogram)
+plt.hist(histogram, 50)
+plt.xlabel('Frequency of strains')
+plt.ylabel('Frequency of Genes')
+plt.legend()
+plt.title('Gene distribution')
+plt.savefig('Histogram_genes_shared')
+plt.show()
 
 print Matrix_counts
 print 'The shape of the matrix of counts is:', Matrix_counts.shape
 
 # Saving the matrix
-np.savetxt("test_presence_absence_matrix.csv", Matrix_counts, delimiter=",")
-
-#Matrix_counts = sorted(Matrix_counts, key=lambda col: sum(col))
-#separate core and accessory genes:
-plt.pcolor(Matrix_counts[0:100,0:100])
-plt.ylim([0,199])
-plt.title('Core and accessory genes of 200 strains')
-plt.xlim([0,len(gene_groups)])
-plt.xlabel('Genes')
-plt.ylabel('Strains')
-#plt.savefig('presence_absence_genospecies', format = 'pdf')
-plt.show()
-
+np.savetxt("presence_absence_matrix_zeros_ones.csv", Matrix_counts, delimiter=",")    
 
 pop = parse_pop_map()
-
-### Venn diagrams 
 
 def define_combinations(genospecies):
 	n = len(genospecies)
@@ -150,7 +150,6 @@ json.dump(venn_dictionary, open("text.txt",'w'))
 
 ### Creating histograms
 '''Total number of strains present in each genopecies'''
-strains_geno = collections.OrderedDict() 
 strains_geno = {'gsC': 116, 'gsB': 34, 'gsA': 33, 'gsE': 11, 'gsD': 5}
 
 '''Total number of genes present in each genospecies'''
