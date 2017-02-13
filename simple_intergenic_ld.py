@@ -24,7 +24,7 @@ def minor_allele_filter(gene_matrix, maf):
     mafs = sp.minimum(freqs, 1 - freqs)
 
     maf_filter = mafs > maf
-    matrix_mafs = gene_matrix[:,maf_filter]
+    matrix_mafs = gene_matrix[:, maf_filter]
 
     # Normalizing the columns:
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
@@ -210,8 +210,8 @@ def mantel_test(X, Y, perms=10000, method='pearson', tail='two-tail'):
   return r, p, z
 
 
-def simple_intergenic_ld_core(max_strain_num = 198,
-                            maf = 0.2,
+def simple_intergenic_ld_core(max_strain_num=198,
+                            maf=0.2,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
@@ -237,51 +237,50 @@ def simple_intergenic_ld_core(max_strain_num = 198,
     gene_names = []
 
     for i, gg1 in enumerate(gene_groups):
+        data_g1 = h5f[gg1]
+        total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
+        total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
+
+        ''' 3. Calculate the Kinship matrix for each gene '''
+
+        grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+        pl.matshow(grm_1)
+        pl.colorbar()
+        pl.show()
+        print np.average(np.diag(grm_1))
+
         for j, gg2 in enumerate(gene_groups):
             if i > j:
             
-                data_g1 = h5f[gg1]
-                data_g2 = h5f[gg2] # tuple
+                data_g2 = h5f[gg2]  # tuple
 
                 # Take the subset of shared snps of each gene
-                total_snps_1 = data_g1['snps'][...].T # strains in the rows, snps in the collumns 
                 total_snps_2 = data_g2['snps'][...].T
 
 
                 '''Filtering for Minor allele frequency'''
-                total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
                 total_snps_2 = minor_allele_filter(total_snps_2, 0.1)
 
-                ''' 3. Calculate the Kinship matrix for each gene '''
-
-                grm_1 = np.divide(np.dot(total_snps_1,  total_snps_1.T), total_snps_1.shape[1])
-                pl.matshow(grm_1)
-                pl.colorbar()
-                pl.show()
                 
-                print np.average(np.diag(grm_1))
+                grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
 
-                grm_2 =  np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
-                pl.matshow(grm_2)
-                pl.colorbar()
-                pl.show()
                 print np.average(np.diag(grm_2))
 
-                r, p, z = Mantel.mantel_test(grm_1, grm_2, perms = 1, method='spearman', tail='two-tail')
+                r, p, z = Mantel.mantel_test(grm_1, grm_2, perms=1, method='spearman', tail='two-tail')
 
-                print(r,p,z)
+                print(r, p, z)
                 r_scores.append(r)
                 p_values.append(p)
                 z_scores.append(z)
-                gene_names.append(gg1+gg2)
+                gene_names.append(gg1 + gg2)
 
-        LD_stats = pd.DataFrame(
-        {'r_scores': r_scores,
-        'p_values': p_values,
-        'z_scores': z_scores,
-        'gene_names': gene_names})
+    LD_stats = pd.DataFrame(
+    {'r_scores': r_scores,
+    'p_values': p_values,
+    'z_scores': z_scores,
+    'gene_names': gene_names})
 
-    LD_stats.to_csv('test.csv', header = True)
+    LD_stats.to_csv('test.csv', header=True)
 
 
     return LD_stats
@@ -290,9 +289,9 @@ simple_intergenic_ld_core()
 
 
 def simple_intergenic_ld_accessory(specific_genes,
-                            max_strain_num = 198,
+                            max_strain_num=198,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
-    #"""Gives a specific list of genes and calculate LD of these genes with all"""
+    # """Gives a specific list of genes and calculate LD of these genes with all"""
 
 
     nod_names = open(specific_genes)
@@ -326,7 +325,7 @@ def simple_intergenic_ld_accessory(specific_genes,
             if i > j:
             
                 data_g1 = h5f[gg1]
-                data_g2 = h5f[gg2] # tuple
+                data_g2 = h5f[gg2]  # tuple
 
                 strains_1 = data_g1['strains'][...]
                 strains_2 = data_g2['strains'][...]
@@ -347,7 +346,7 @@ def simple_intergenic_ld_accessory(specific_genes,
                 olist2 = [i for i, item in enumerate(strains_2) if item in set(strains_1)]
 
                 # Take the subset of shared snps of each gene
-                total_snps_1 = data_g1['norm_snps'][...].T # strains in the rows, snps in the collumns 
+                total_snps_1 = data_g1['norm_snps'][...].T  # strains in the rows, snps in the collumns 
                 common_snps_1 = total_snps_1[olist1, :]
 
                 total_snps_2 = data_g2['norm_snps'][...].T
@@ -355,16 +354,16 @@ def simple_intergenic_ld_accessory(specific_genes,
 
                 ''' 3. Calculate the Kinship matrix for each gene '''
 
-                pseudo_snps_1 = np.dot(common_snps_1, common_snps_1)/common_snps_1[1]
-                pseudo_snps_2 =  np.dot(common_snps_2, common_snps_2)/common_snps_2[1]
+                pseudo_snps_1 = np.dot(common_snps_1, common_snps_1) / common_snps_1[1]
+                pseudo_snps_2 = np.dot(common_snps_2, common_snps_2) / common_snps_2[1]
 
-                r, p, z = Mantel.mantel_test(grm_1, grm_2, perms = 1, method='spearman', tail='two-tail')
+                r, p, z = Mantel.mantel_test(grm_1, grm_2, perms=1, method='spearman', tail='two-tail')
 
-                print(r,p,z)
+                print(r, p, z)
                 r_scores.append(r)
                 p_values.append(p)
                 z_scores.append(z)
-                gene_names.append(gg1[0][0:5]+gg2)
+                gene_names.append(gg1[0][0:5] + gg2)
 
         LD_stats = pd.DataFrame(
         {'r_scores': r_scores,
@@ -372,7 +371,7 @@ def simple_intergenic_ld_accessory(specific_genes,
         'z_scores': z_scores,
         'gene_names': gene_names})
 
-        LD_stats.to_csv('test.csv', header = True)
+        LD_stats.to_csv('test.csv', header=True)
 
 
     return LD_stats
