@@ -242,14 +242,15 @@ def simple_intergenic_ld_core(max_strain_num=198,
         print grm.shape
         print np.average(np.diag(grm))
 
-        flat_grm1 = grm.flatten()
-        gene_grm_dict[gg1] = {'grm':grm , 'flat_grm':flat_grm1 - flat_grm1.mean()}
+        flat_grm = grm.flatten()
+        norm_flat_grm1 = flat_grm - flat_grm.mean() / sp.sqrt(sp.dot(flat_grm, flat_grm))
+        gene_grm_dict[gg1] = {'grm':grm , 'norm_flat_grm':norm_flat_grm1}
         
         for j, gg2 in enumerate(core_genes):
             if i > j:
                             
-                flat_grm2 = gene_grm_dict[gg2]['flat_grm']
-                r = sp.dot(flat_grm1, flat_grm2) / sp.sqrt(sp.dot(flat_grm1, flat_grm1), sp.dot(flat_grm2, flat_grm2))
+                norm_flat_grm2 = gene_grm_dict[gg2]['norm_flat_grm']
+                r = sp.dot(norm_flat_grm1, norm_flat_grm2) 
                 print r
                 r_scores.append(r)
                 gene_names.append(gg1 + gg2)
