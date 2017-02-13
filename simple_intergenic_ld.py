@@ -75,9 +75,9 @@ def mantel_test(X, Y, perms=10000, method='pearson', tail='two-tail'):
   X, Y = np.asarray(X, dtype=float), np.asarray(Y, dtype=float)
 
   # Check that X and Y are valid distance matrices.
-  #if spatial.distance.is_valid_dm(X) == False and spatial.distance.is_valid_y(X) == False:
+  # if spatial.distance.is_valid_dm(X) == False and spatial.distance.is_valid_y(X) == False:
   #  raise ValueError('X is not a valid condensed or redundant distance matrix')
-  #if spatial.distance.is_valid_dm(Y) == False and spatial.distance.is_valid_y(Y) == False:
+  # if spatial.distance.is_valid_dm(Y) == False and spatial.distance.is_valid_y(Y) == False:
   #  raise ValueError('Y is not a valid condensed or redundant distance matrix')
 
   # If X or Y is a redundant distance matrix, reduce it to a condensed distance matrix.
@@ -244,11 +244,12 @@ def simple_intergenic_ld_core(max_strain_num=198,
         total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
 
         ''' 3. Calculate the Kinship matrix for each gene '''
-        grm_1 = np.divide(np.dot(total_snps_1,  total_snps_1.T), total_snps_1.shape[1])
-        print grm_1.shape
-        print np.average(np.diag(grm_1))
+        grm = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+        print grm.shape
+        print np.average(np.diag(grm))
 
-        gene_grm_dict[gg1] = grm_1
+        flat_grm1 = grm.flatten()
+        gene_grm_dict[gg1] = {'grm':grm , 'flat_grm':flat_grm1 - flat_grm1.mean()}
         
         for j, gg2 in enumerate(core_genes):
             if i > j:
@@ -263,13 +264,10 @@ def simple_intergenic_ld_core(max_strain_num=198,
                 '''Filtering for Minor allele frequency'''
                 total_snps_2 = minor_allele_filter(total_snps_2, 0.1)
                 
-                grm_2 = gene_grm_dict[gg2]
-                r, p, z = mantel_test(grm_1, grm_2, perms = 10, method='spearman', tail='two-tail')
-
-                print(r, p, z)
+                flat_grm2 = gene_grm_dict[gg2]['flat_grm']
+                r = sp.dot(flat_grm1, flat_grm2) / sp.sqrt(sp.dot(flat_grm1, flat_grm1), sp.dot(flat_grm2, flat_grm2))
+                print r
                 r_scores.append(r)
-                p_values.append(p)
-                z_scores.append(z)
                 gene_names.append(gg1 + gg2)
 
     LD_stats = pd.DataFrame(
@@ -360,11 +358,7 @@ def simple_intergenic_ld_accessory(specific_genes,
 
                 r, p, z = Mantel.mantel_test(grm_1, grm_2, perms=1, method='spearman', tail='two-tail')
 
-<<<<<<< HEAD
-                print(r, p, z)
-=======
-                #print(r,p,z)
->>>>>>> 511ab9313111d7bb3eee073b4367e984a6fc7ce6
+                # print(r,p,z)
                 r_scores.append(r)
                 p_values.append(p)
                 z_scores.append(z)
