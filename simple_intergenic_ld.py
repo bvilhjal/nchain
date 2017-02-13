@@ -75,10 +75,10 @@ def mantel_test(X, Y, perms=10000, method='pearson', tail='two-tail'):
   X, Y = np.asarray(X, dtype=float), np.asarray(Y, dtype=float)
 
   # Check that X and Y are valid distance matrices.
-  if spatial.distance.is_valid_dm(X) == False and spatial.distance.is_valid_y(X) == False:
-    raise ValueError('X is not a valid condensed or redundant distance matrix')
-  if spatial.distance.is_valid_dm(Y) == False and spatial.distance.is_valid_y(Y) == False:
-    raise ValueError('Y is not a valid condensed or redundant distance matrix')
+  #if spatial.distance.is_valid_dm(X) == False and spatial.distance.is_valid_y(X) == False:
+  #  raise ValueError('X is not a valid condensed or redundant distance matrix')
+  #if spatial.distance.is_valid_dm(Y) == False and spatial.distance.is_valid_y(Y) == False:
+  #  raise ValueError('Y is not a valid condensed or redundant distance matrix')
 
   # If X or Y is a redundant distance matrix, reduce it to a condensed distance matrix.
   if len(X.shape) == 2:
@@ -219,13 +219,12 @@ def simple_intergenic_ld_core(max_strain_num = 198,
     gene_groups = h5f.keys()
     all_strains = set()
     
+    core_genes = []
     for gg in gene_groups:
         data_g = h5f[gg]
         strains = data_g['strains'][...]
         if len(set(strains)) == max_strain_num:
-            all_strains = set(strains).union(all_strains)
-    num_strains = len(all_strains)
-    print 'Found %d "distinct" strains' % num_strains
+            core_genes.append(gg)
     
     ordered_strains = sorted(list(all_strains))
     strain_index = pd.Index(ordered_strains)
@@ -236,8 +235,8 @@ def simple_intergenic_ld_core(max_strain_num = 198,
     z_scores = []
     gene_names = []
 
-    for i, gg1 in enumerate(gene_groups):
-        for j, gg2 in enumerate(gene_groups):
+    for i, gg1 in enumerate(core_genes):
+        for j, gg2 in enumerate(core_genes):
             if i > j:
             
                 data_g1 = h5f[gg1]
@@ -245,7 +244,9 @@ def simple_intergenic_ld_core(max_strain_num = 198,
 
                 # Take the subset of shared snps of each gene
                 total_snps_1 = data_g1['snps'][...].T # strains in the rows, snps in the collumns 
+                print total_snps_1.shape
                 total_snps_2 = data_g2['snps'][...].T
+                print total_snps_2.shape
 
 
                 '''Filtering for Minor allele frequency'''
@@ -255,24 +256,19 @@ def simple_intergenic_ld_core(max_strain_num = 198,
                 ''' 3. Calculate the Kinship matrix for each gene '''
 
                 grm_1 = np.divide(np.dot(total_snps_1,  total_snps_1.T), total_snps_1.shape[1])
-                pl.matshow(grm_1)
-                pl.colorbar()
-                pl.show()
-                
+                print grm_1.shape
                 print np.average(np.diag(grm_1))
 
                 grm_2 =  np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
-                pl.matshow(grm_2)
-                pl.colorbar()
-                pl.show()
+                print grm_2.shape
                 print np.average(np.diag(grm_2))
 
-                r, p, z = Mantel.mantel_test(grm_1, grm_2, perms = 1, method='spearman', tail='two-tail')
+                r, p, z = mantel_test(grm_1, grm_2, perms = 10, method='spearman', tail='two-tail')
 
                 print(r,p,z)
                 r_scores.append(r)
                 p_values.append(p)
-                z_scores.append(z)
+                z_scores.append(z)                
                 gene_names.append(gg1+gg2)
 
         LD_stats = pd.DataFrame(
@@ -321,6 +317,9 @@ def simple_intergenic_ld_accessory(specific_genes,
     z_scores = []
     gene_names = []
 
+    ag = h5f['alignments']
+    print ag['8048']
+
     for i, gg1 in enumerate(gene_groups):
         for j, gg1 in enumerate(gene_groups):
             if i > j:
@@ -360,7 +359,7 @@ def simple_intergenic_ld_accessory(specific_genes,
 
                 r, p, z = Mantel.mantel_test(grm_1, grm_2, perms = 1, method='spearman', tail='two-tail')
 
-                print(r,p,z)
+                #print(r,p,z)
                 r_scores.append(r)
                 p_values.append(p)
                 z_scores.append(z)
