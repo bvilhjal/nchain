@@ -217,7 +217,6 @@ def simple_intergenic_ld_core(max_strain_num=198,
 
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
-    all_strains = set()
     
     core_genes = []
     for gg in gene_groups:
@@ -226,13 +225,8 @@ def simple_intergenic_ld_core(max_strain_num=198,
         if len(set(strains)) == max_strain_num:
             core_genes.append(gg)
     
-    ordered_strains = sorted(list(all_strains))
-    strain_index = pd.Index(ordered_strains)
 
-    count = 0
     r_scores = []
-    p_values = []
-    z_scores = []
     gene_names = []
 
     gene_grm_dict = {}
@@ -262,8 +256,6 @@ def simple_intergenic_ld_core(max_strain_num=198,
 
     LD_stats = pd.DataFrame(
     {'r_scores': r_scores,
-    'p_values': p_values,
-    'z_scores': z_scores,
     'gene_names': gene_names})
 
     LD_stats.to_csv('test.csv', header=True)
