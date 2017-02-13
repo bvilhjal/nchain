@@ -253,17 +253,7 @@ def simple_intergenic_ld_core(max_strain_num=198,
         
         for j, gg2 in enumerate(core_genes):
             if i > j:
-            
-                data_g2 = h5f[gg2]  # tuple
-
-                # Take the subset of shared snps of each gene
-                total_snps_2 = data_g2['snps'][...].T
-                print total_snps_2.shape
-
-
-                '''Filtering for Minor allele frequency'''
-                total_snps_2 = minor_allele_filter(total_snps_2, 0.1)
-                
+                            
                 flat_grm2 = gene_grm_dict[gg2]['flat_grm']
                 r = sp.dot(flat_grm1, flat_grm2) / sp.sqrt(sp.dot(flat_grm1, flat_grm1), sp.dot(flat_grm2, flat_grm2))
                 print r
