@@ -9,14 +9,14 @@
 # Licensed under the terms of the MIT License
 
 import numpy as np
-from itertools import permutations
 from scipy import spatial, stats
 import scipy as sp
 import h5py
 import pandas as pd
-import pylab as pl
+import matplotlib.pyplot as plt
+from matplotlib import cm as cm
 from scipy.stats.stats import pearsonr 
-
+import time
 
 def minor_allele_filter(gene_matrix, maf):
     '''Filtering for minor allele frequency, it assumes that the matrix is binary and that is n x m, where columns are markers (m).'''
@@ -31,23 +31,21 @@ def minor_allele_filter(gene_matrix, maf):
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
     return(norm_matrix)
 
-def corr2_coeff(A,B):
-    # Rowwise mean of input arrays & subtract from input arrays themeselves
-    A_mA = A - A.mean(1)[:,None]
-    B_mB = B - B.mean(1)[:,None]
-
-    # Sum of squares across rows
-    ssA = (A_mA**2).sum(1);
-    ssB = (B_mB**2).sum(1);
-
-    # Finally get corr coeff
-    return np.dot(A_mA,B_mB.T)/np.sqrt(np.dot(ssA[:,None],ssB[None]))
+def correlation_plot(df, size):
+    corr = df.corr()
+    fig, ax = plt.subplots(figsize=(size, size))
+    ax.matshow(corr)
+    plt.xticks(range(len(corr.columns)), corr.columns, rotation='vertical');
+    plt.yticks(range(len(corr.columns)), corr.columns);
+    #plt.set_label('Correlation coefficient')  
+    plt.show()
 
 def simple_intergenic_ld_core(max_strain_num=198,
                             maf=0.2,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
+    t0 = time.time()
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
     
@@ -62,7 +60,11 @@ def simple_intergenic_ld_core(max_strain_num=198,
     gene_names = []
     gene_grm_dict = {}
 
-    for i, gg1 in enumerate(core_genes):
+    # Making the correlation matrix to be updated
+    cor_matrix = np.zeros((len(nod_list), len(core_genes[0:100])))
+    cor_matrix = pd.DataFrame(cor_matrix, index = nod_genes.values(), columns = core_genes[0:100])
+
+    for i, gg1 in enumerate(core_genes[0:1000]):
         data_g1 = h5f[gg1]
         total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
         #print total_snps_1.shape
@@ -77,7 +79,7 @@ def simple_intergenic_ld_core(max_strain_num=198,
         #print np.mean(norm_flat_grm1)
         gene_grm_dict[gg1] = {'grm':grm , 'norm_flat_grm':norm_flat_grm1}
         
-        for j, gg2 in enumerate(core_genes):
+        for j, gg2 in enumerate(core_genes[0:1000]):
             if i > j:
                             
                 norm_flat_grm2 = gene_grm_dict[gg2]['norm_flat_grm']
@@ -91,17 +93,20 @@ def simple_intergenic_ld_core(max_strain_num=198,
                 #print round(r, 5) == round(r_bel[0], 5)
 
                 r_scores.append(r)
-                gene_names.append(gg1 + gg2)
+                gene_names.append(gg1 +'_'+ gg2)
 
     LD_stats = pd.DataFrame(
     {'r_scores': r_scores,
     'gene_names': gene_names})
 
     LD_stats.to_csv('test.csv', header=True)
+    t1 = time.time()
 
+    total = t1-t0
+    print 'total amount of time consumed is %f' % total
     return LD_stats
 
-simple_intergenic_ld_core()
+#simple_intergenic_ld_core()
 
 
 def simple_intergenic_ld_nod_genes(max_strain_num=198,
@@ -109,154 +114,228 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
-    nod_genes = {'nodA': 8048, 'nodB': 9911, 'nodC': 10421, 'nodD':7218, 'nodE': 4140, 'nodF': 4139, 'nifA': 4128, 'nifB': 4129, 'nifH': 4123, 'nifK': 4121, 'fixA': 4124, 'fixB': 4125, 'fixC': 4126, 'fixN': 4130}
-    
+    nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
+    # Decoding the nod gene names
     nod_list = []
-    for i in nod_genes.values():
+    for i in nod_genes.keys():
       nod_list.append(str(i).decode("utf-8"))
-
     print nod_genes.values()
+
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
     
+    print h5f[nod_list[0]]
     core_genes = []
     for gg in gene_groups:
         data_g = h5f[gg]
         strains = data_g['strains'][...]
         if len(set(strains)) == max_strain_num:
             core_genes.append(gg)
+    core_genes = sorted(core_genes)
     
     r_scores = []
     gene_names = []
     gene_grm_dict = {}
 
+    # Making the correlation matrix to be updated
+    cor_matrix = np.zeros((len(nod_list), len(core_genes[0:100])))
+    cor_matrix = pd.DataFrame(cor_matrix, index = nod_genes.values(), columns = core_genes[0:100])
+
     for i, gg1 in enumerate(nod_list):
-        data_g1 = h5f[gg1]
-        total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
-        total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
-
-        #Calculate the Kinship matrix for each gene
-        grm = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
-
-        flat_grm = grm.flatten()
-        norm_flat_grm1 = flat_grm - flat_grm.mean() / sp.sqrt(sp.dot(flat_grm, flat_grm))
-        gene_grm_dict[gg1] = {'grm':grm , 'norm_flat_grm':norm_flat_grm1}
+        try:
+          strains_1 = h5f[gg1]['strains'][...]
+        except KeyError:
+          print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg1)]
+          continue
         
-        for j, gg2 in enumerate(core_genes):
-            if i > j:
-                            
-                norm_flat_grm2 = gene_grm_dict[gg2]['norm_flat_grm']
-                covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
-                var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
-                var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
-                r = covariance/sp.sqrt(var1 * var2)
-                
-                # Checking the values with a scipy built in function:
-                #r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
-                #print round(r, 5) == round(r_bel[0], 5)
+        for j, gg2 in enumerate(core_genes[0:100]):
 
-                r_scores.append(r)
-                gene_names.append(gg1 + gg2)
+          strains_2 = h5f[gg2]['strains'][...]
+        
+          set_1, set_2 = set(strains_1), set(strains_2)
+          intersec = list(set_1 & set_2)
 
-    LD_stats = pd.DataFrame(
-    {'r_scores': r_scores,
-    'gene_names': gene_names})
+          strain_mask_2 = []
+          strain_mask_1 = []
 
-    LD_stats.to_csv('test.csv', header=True)
+          for i in intersec:
+              strain_mask_2.append(np.unique(strains_2).tolist().index(i))
+              strain_mask_1.append(np.unique(strains_1).tolist().index(i))
+
+          strain_mask_2 = sorted(strain_mask_2)
+          strain_mask_1 = sorted(strain_mask_1)
+
+          if gg1 not in gene_grm_dict:
+            data_g1 = h5f[gg1]
+            total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
+
+            # Calculating GRM 
+            total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
+            grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+            gene_grm_dict[str(gg1)] = {'grm':grm_1}
+
+          if gg2 not in gene_grm_dict:
+            data_g2 = h5f[gg2]
+            total_snps_2 = data_g2['snps'][...].T  # strains in the rows, snps in the columns 
+          
+            # Calculating GRM 
+            total_snps_2 = minor_allele_filter(total_snps_2, 0.1)
+            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+            gene_grm_dict[str(gg2)] = {'grm':grm_2}
+
+          # Calculating correlation and covariance based on the common subset of strains
+          grm_1 = gene_grm_dict[str(gg1)]['grm']
+          sub_grm_1 = grm_1[strain_mask_1,strain_mask_1]
+          flat_grm_1 = sub_grm_1.flatten()
+          norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean() / sp.sqrt(sp.dot(flat_grm_1, flat_grm_1))
+          
+          grm_2 = gene_grm_dict[str(gg2)]['grm']
+          sub_grm_2 = grm_2[strain_mask_2,strain_mask_2]
+          flat_grm_2 = sub_grm_2.flatten()
+          norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean() / sp.sqrt(sp.dot(flat_grm_2, flat_grm_2))
+
+          # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
+          r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
+
+          # Indexing column (gg2) and row (gg1)
+          cor_matrix[gg2][nod_genes[int(gg1)]] += r_bel[0]
+          #covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
+          #var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
+          #var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
+          #r = covariance/sp.sqrt(var1 * var2)
+          
+          #print r    
+          r_scores.append(r_bel[0])
+          gene_names.append(nod_genes[int(gg1)] +'_'+ gg2)          
+
+    cor_matrix.to_csv('Mantel_test_nod_all.csv', header = True)     
+    #LD_stats = pd.DataFrame(
+    #{'r_scores': r_scores,
+    #'gene_names': gene_names})
+
+    #LD_stats.to_csv('Mantel_test_nod_versus_all.csv', header=True)
 
     return LD_stats
 
 #simple_intergenic_ld_nod_genes()
 
-
-def simple_intergenic_ld_accessory(specific_genes,
-                            max_strain_num=198,
+def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
+                            maf=0.2,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
-    # """Gives a specific list of genes and calculate LD of these genes with all"""
+    """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
+    nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
 
-    nod_names = open(specific_genes)
-
-    specific_genes = [line.rstrip('\n') for line in nod_names]
-    print specific_genes
+    # Decoding the nod gene names
+    nod_list = []
+    for i in nod_genes.keys():
+      nod_list.append(str(i).decode("utf-8"))
+    #print nod_genes.values()
 
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
-    all_strains = set()
     
-    for gg in gene_groups:
-        data_g = h5f[gg]
-        strains = data_g['strains'][...]
-        if len(set(strains)) == max_strain_num:
-            all_strains = set(strains).union(all_strains)
-    num_strains = len(all_strains)
-    print 'Found %d "distinct" strains' % num_strains
-    
-    ordered_strains = sorted(list(all_strains))
-    strain_index = pd.Index(ordered_strains)
-
-    count = 0
     r_scores = []
-    p_values = []
-    z_scores = []
     gene_names = []
+    gene_grm_dict = {}
 
-    ag = h5f['alignments']
-    print ag['8048']
+    # Making the correlation matrix to be updated
+    cor_matrix = np.zeros((len(nod_list), len(nod_list)))
+    cor_matrix = pd.DataFrame(cor_matrix, index = nod_genes.values(), columns = nod_genes.values())
 
-    for i, gg1 in enumerate(gene_groups):
-        for j, gg1 in enumerate(gene_groups):
-            if i > j:
-            
-                data_g1 = h5f[gg1]
-                data_g2 = h5f[gg2]  # tuple
-
-                strains_1 = data_g1['strains'][...]
-                strains_2 = data_g2['strains'][...]
-                            
-                # Indexes of the strains in the big GRM matrix
-                strain_mask_1 = strain_index.get_indexer(strains_1)
-                strain_mask_2 = strain_index.get_indexer(strains_2)
-                
-                set_1, set_2 = set(strain_mask_1), set(strain_mask_2)
-                intersec = list(set_1 & set_2)
-
-                # Indexes of the strains in their own matrix
-                    
-                # list1 determines the ordering
-                olist1 = [i for i, item in enumerate(strains_1) if item in set(strains_2)]
-
-                # list2 determines the ordering
-                olist2 = [i for i, item in enumerate(strains_2) if item in set(strains_1)]
-
-                # Take the subset of shared snps of each gene
-                total_snps_1 = data_g1['norm_snps'][...].T  # strains in the rows, snps in the collumns 
-                common_snps_1 = total_snps_1[olist1, :]
-
-                total_snps_2 = data_g2['norm_snps'][...].T
-                common_snps_2 = total_snps_2[olist2, :]
-
-                ''' 3. Calculate the Kinship matrix for each gene '''
-
-                pseudo_snps_1 = np.dot(common_snps_1, common_snps_1) / common_snps_1[1]
-                pseudo_snps_2 = np.dot(common_snps_2, common_snps_2) / common_snps_2[1]
-
-                r, p, z = Mantel.mantel_test(grm_1, grm_2, perms=1, method='spearman', tail='two-tail')
-
-                # print(r,p,z)
-                r_scores.append(r)
-                p_values.append(p)
-                z_scores.append(z)
-                gene_names.append(gg1[0][0:5] + gg2)
-
-        LD_stats = pd.DataFrame(
-        {'r_scores': r_scores,
-        'p_values': p_values,
-        'z_scores': z_scores,
-        'gene_names': gene_names})
-
-        LD_stats.to_csv('test.csv', header=True)
+    for i in nod_list:
+      try:
+          data = h5f[i]
+          total_snps_1 = data['snps'][...].T 
+          print 'The gene %s has %s snps' % (nod_genes[int(i)], total_snps_1.shape)
+          filt = minor_allele_filter(total_snps_1, 0.1)
+          print 'After filer MAF > 0.1 has: %s' %  (filt.shape[1])
+      except KeyError:
+          'The nod gene %s is not in our subset of the data' % nod_genes[int(i)]
 
 
-    return LD_stats
+    for i, gg1 in enumerate(nod_list):
+        try:
+          strains_1 = h5f[gg1]['strains'][...]
+        except KeyError:
+          #print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg1)]
+          continue
+        
+        for j, gg2 in enumerate(nod_list):
 
+          try:
+            strains_2 = h5f[gg2]['strains'][...]
+          except KeyError:
+           #print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg2)]
+            continue
+        
+          set_1, set_2 = set(strains_1), set(strains_2)
+          intersec = list(set_1 & set_2)
+
+          strain_mask_2 = []
+          strain_mask_1 = []
+
+          for i in intersec:
+              strain_mask_2.append(np.unique(strains_2).tolist().index(i))
+              strain_mask_1.append(np.unique(strains_1).tolist().index(i))
+
+          strain_mask_2 = sorted(strain_mask_2)
+          strain_mask_1 = sorted(strain_mask_1)
+
+          if gg1 not in gene_grm_dict:
+            data_g1 = h5f[gg1]
+            total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
+
+            # Calculating GRM 
+            total_snps_1 = minor_allele_filter(total_snps_1, 0.2)
+            grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+            gene_grm_dict[str(gg1)] = {'grm':grm_1}
+
+          if gg2 not in gene_grm_dict:
+            data_g2 = h5f[gg2]
+            total_snps_2 = data_g2['snps'][...].T  # strains in the rows, snps in the columns 
+          
+            # Calculating GRM 
+            total_snps_2 = minor_allele_filter(total_snps_2, 0.2)
+            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+            gene_grm_dict[str(gg2)] = {'grm':grm_2}
+
+          # Calculating correlation and covariance based on the common subset of strains
+          grm_1 = gene_grm_dict[str(gg1)]['grm']
+          sub_grm_1 = grm_1[strain_mask_1,strain_mask_1]
+          flat_grm_1 = sub_grm_1.flatten()
+          norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean() / sp.sqrt(sp.dot(flat_grm_1, flat_grm_1))
+          
+          grm_2 = gene_grm_dict[str(gg2)]['grm']
+          sub_grm_2 = grm_2[strain_mask_2,strain_mask_2]
+          flat_grm_2 = sub_grm_2.flatten()
+          norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean() / sp.sqrt(sp.dot(flat_grm_2, flat_grm_2))
+
+          # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
+          r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
+
+          cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] += r_bel[0]
+
+          #covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
+          #var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
+          #var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
+          #r = covariance/sp.sqrt(var1 * var2)
+          
+          #print r    
+          r_scores.append(r_bel[0])
+          #gene_names.append(nod_genes[int(gg1)] +'_'+ nod_genes[int(gg2)])   
+
+
+    cor_matrix.to_csv('Mantel_test_nod_all_maf_2.csv', header = True)
+    correlation_plot(cor_matrix, size = 10)
+    #LD_stats = pd.DataFrame(
+    #{'r_scores': r_scores,
+    #'gene_names': gene_names})
+
+    #LD_stats.to_csv('test_nod_genes.csv', header=True)
+
+    #return LD_stats
+
+simple_mantel_nod_genes_nod_genes()
+
+#document.save_file('test_marni_version.Rmd')
