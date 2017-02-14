@@ -14,8 +14,8 @@ import scipy as sp
 import h5py
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import cm as cm
 from scipy.stats.stats import pearsonr 
+import seaborn as sns
 import time
 
 def minor_allele_filter(gene_matrix, maf):
@@ -31,14 +31,29 @@ def minor_allele_filter(gene_matrix, maf):
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
     return(norm_matrix)
 
-def correlation_plot(df, size):
+def correlation_plot_1(df, size):
     corr = df.corr()
     fig, ax = plt.subplots(figsize=(size, size))
-    ax.matshow(corr)
+    im = ax.matshow(corr)
+    ax.set_ylabel('Correlation coefficient')
     plt.xticks(range(len(corr.columns)), corr.columns, rotation='vertical');
     plt.yticks(range(len(corr.columns)), corr.columns);
+    
+    # Make an axis for the colorbar on the right side
+    cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
+    fig.colorbar(im, cax=cax)
     #plt.set_label('Correlation coefficient')  
     plt.show()
+
+def correlation_plot_2(df):
+  corr = df.corr()
+  mask = np.zeros_like(corr)
+  mask[np.triu_indices_from(mask)] = True
+  with sns.axes_style("white"):
+    ax = sns.heatmap(corr, mask=mask, vmax=.3, square=True, annot=True, linewidths=.5, annot_kws={"size": 9})
+  plt.xticks(range(len(corr.columns)), corr.columns, rotation='vertical');
+  plt.yticks(range(len(corr.columns)), corr.columns, rotation = 'horizontal');
+  plt.show()
 
 def simple_intergenic_ld_core(max_strain_num=198,
                             maf=0.2,
@@ -327,7 +342,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
 
     cor_matrix.to_csv('Mantel_test_nod_all_maf_2.csv', header = True)
-    correlation_plot(cor_matrix, size = 10)
+    correlation_plot_2(cor_matrix)
     #LD_stats = pd.DataFrame(
     #{'r_scores': r_scores,
     #'gene_names': gene_names})
