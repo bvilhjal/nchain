@@ -67,7 +67,7 @@ def simple_intergenic_ld_core(max_strain_num=198,
 
     # Making the correlation matrix to be updated
     cor_matrix = np.zeros((len(core_genes[0:100]), len(core_genes[0:100])))
-    cor_matrix = pd.DataFrame(cor_matrix, index = nod_genes.values(), columns = core_genes[0:100])
+    cor_matrix = pd.DataFrame(cor_matrix, index = core_genes[0:100], columns = core_genes[0:100])
 
     for i, gg1 in enumerate(core_genes[0:100]):
         data_g1 = h5f[gg1]
@@ -104,7 +104,7 @@ def simple_intergenic_ld_core(max_strain_num=198,
     print 'total amount of time consumed is %f' % total
     return LD_stats
 
-#simple_intergenic_ld_core()
+simple_intergenic_ld_core()
 
 
 def simple_intergenic_ld_nod_genes(max_strain_num=198,
@@ -327,4 +327,4 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
     #return LD_stats
 
-simple_mantel_nod_genes_nod_genes()
+#simple_mantel_nod_genes_nod_genes()
