@@ -1,0 +1,15 @@
+Mantel test
+-----------
+
+Mantel test, correlation between entries of two square matrices containing 'distances' reltive to pairs of individuals, has been vastly used since its introduction in 1967. As stated in the paper 'Dismantling the Mantel tests - Gilles Guillot and Francois Rousset', one of the main problems of this test is its incapability of dealing with matrices that contain some structure and/or autocorrelation. The structure of the data leads to an accrection of type I error, and so far, nobody has shown any good solution for such problem in the genomic world.
+
+Mantel test no correction for population structure
+--------------------------------------------------
+
+In this present analysis, we have decided to apply the Mantel test without any correction for population structure. Three different data sets were analyzed: \* Pairwise correlation of all core genes GRM \* Pairwise correlation of symbiotic genes \* Pairwise correlation of symbiotic genes versus core genes
+
+### Pairwise correlation of symbiotic genes
+
+The results of the pairwise combination of symbiotic genes is shown in the figure below:
+
+<img src="nod_genes.pdf" alt="some text"  width="4200" height="4200">

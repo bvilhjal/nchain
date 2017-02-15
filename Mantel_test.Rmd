@@ -22,16 +22,7 @@ In this present analysis, we have decided to apply the Mantel test without any c
 * Pairwise correlation of symbiotic genes
 * Pairwise correlation of symbiotic genes versus core genes
 
-```{r cars}
-summary(cars)
-```
+### Pairwise correlation of symbiotic genes
+The results of the pairwise combination of symbiotic genes is shown in the figure below:
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+<img src="nod_genes.pdf" alt="some text"  width="4200" height="4200">
