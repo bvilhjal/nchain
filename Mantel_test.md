@@ -6,10 +6,10 @@ Mantel test, correlation between entries of two square matrices containing 'dist
 Mantel test no correction for population structure
 --------------------------------------------------
 
-In this present analysis, we have decided to apply the Mantel test without any correction for population structure. Three different data sets were analyzed: \* Pairwise correlation of all core genes GRM \* Pairwise correlation of symbiotic genes \* Pairwise correlation of symbiotic genes versus core genes
+In this present analysis, we have decided to apply the Mantel test without any correction for population structure. Three different data sets were analyzed: 1. Pairwise correlation of all core genes GRM 2. Pairwise correlation of symbiotic genes 3. Pairwise correlation of symbiotic genes versus core genes
 
 ### Pairwise correlation of symbiotic genes
 
-The results of the pairwise combination of symbiotic genes is shown in the figure below:
+The results of the pairwise combination of symbiotic genes is shown in the figure below: ![Nod genes Mantel test](nod_genes.pdf)
 
-<img src="nod_genes.pdf" alt="some text"  width="4200" height="4200">
+From this plot, we are missing the symbiotic genes: nodD, nodC, nodB, nodI, nodA and fixN. Bjarni has done some filters with our dataset and it seems that those genes did not pass the criteria he defined. I will try to include them again in our data set.
