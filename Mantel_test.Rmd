@@ -24,6 +24,8 @@ In this present analysis, we have decided to apply the Mantel test without any c
 
 ### Pairwise correlation of symbiotic genes
 The results of the pairwise combination of symbiotic genes is shown in the figure below:
-![Nod genes Mantel test](nod_genes.pdf)
+![](nod_genes.pdf)
+
+<img src="nod_genes.pdf">
 
 From this plot, we are missing the symbiotic genes: nodD, nodC, nodB, nodI, nodA and fixN. Bjarni has done some filters with our dataset and it seems that those genes did not pass the criteria he defined. I will try to include them again in our data set. 

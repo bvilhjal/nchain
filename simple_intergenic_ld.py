@@ -96,13 +96,11 @@ def simple_intergenic_ld_core(max_strain_num=198,
                 #r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
                 #print round(r, 5) == round(r_bel[0], 5)
 
-    print cor_matrix
-    LD_stats.to_csv('test.csv', header=True)
+    cor_matrix.to_csv('Mantel_test_all_all.csv', header = True)
     t1 = time.time()
 
     total = t1-t0
     print 'total amount of time consumed is %f' % total
-    return LD_stats
 
 simple_intergenic_ld_core()
 
