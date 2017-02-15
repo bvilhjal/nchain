@@ -30,29 +30,19 @@ def minor_allele_filter(gene_matrix, maf):
     # Normalizing the columns:
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
     return(norm_matrix)
-
-def correlation_plot_1(df, size):
-    corr = df.corr()
-    fig, ax = plt.subplots(figsize=(size, size))
-    im = ax.matshow(corr)
-    ax.set_ylabel('Correlation coefficient')
-    plt.xticks(range(len(corr.columns)), corr.columns, rotation='vertical');
-    plt.yticks(range(len(corr.columns)), corr.columns);
-    
-    # Make an axis for the colorbar on the right side
-    cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
-    fig.colorbar(im, cax=cax)
-    #plt.set_label('Correlation coefficient')  
-    plt.show()
-
-def correlation_plot_2(df):
+   
+def correlation_plot(df):
   corr = df.corr()
   mask = np.zeros_like(corr)
-  mask[np.triu_indices_from(mask)] = True
+  #mask[np.triu_indices_from(mask)] = True
+
+  # Set up the matplotlib figure
+  f, ax = plt.subplots(figsize=(12, 9))
+
+  # Clustering with seaborn
   with sns.axes_style("white"):
-    ax = sns.heatmap(corr, mask=mask, vmax=.3, square=True, annot=True, linewidths=.5, annot_kws={"size": 9})
-  plt.xticks(range(len(corr.columns)), corr.columns, rotation='vertical');
-  plt.yticks(range(len(corr.columns)), corr.columns, rotation = 'horizontal');
+    ax = sns.heatmap(corr, mask=mask, vmax=.3, square=True, annot=True, annot_kws={"size": 9})
+  f.tight_layout()
   plt.show()
 
 def simple_intergenic_ld_core(max_strain_num=198,
@@ -76,13 +66,12 @@ def simple_intergenic_ld_core(max_strain_num=198,
     gene_grm_dict = {}
 
     # Making the correlation matrix to be updated
-    cor_matrix = np.zeros((len(nod_list), len(core_genes[0:100])))
+    cor_matrix = np.zeros((len(core_genes[0:100]), len(core_genes[0:100])))
     cor_matrix = pd.DataFrame(cor_matrix, index = nod_genes.values(), columns = core_genes[0:100])
 
-    for i, gg1 in enumerate(core_genes[0:1000]):
+    for i, gg1 in enumerate(core_genes[0:100]):
         data_g1 = h5f[gg1]
         total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
-        #print total_snps_1.shape
         total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
 
         ''' 3. Calculate the Kinship matrix for each gene '''
@@ -90,8 +79,6 @@ def simple_intergenic_ld_core(max_strain_num=198,
 
         flat_grm = grm.flatten()
         norm_flat_grm1 = flat_grm - flat_grm.mean() / sp.sqrt(sp.dot(flat_grm, flat_grm))
-        #print np.var(norm_flat_grm1)
-        #print np.mean(norm_flat_grm1)
         gene_grm_dict[gg1] = {'grm':grm , 'norm_flat_grm':norm_flat_grm1}
         
         for j, gg2 in enumerate(core_genes[0:1000]):
@@ -102,18 +89,14 @@ def simple_intergenic_ld_core(max_strain_num=198,
                 var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
                 var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
                 r = covariance/sp.sqrt(var1 * var2)
+
+                cor_matrix[gg2][gg1] = r
                 
                 # Checking the values with a scipy built function:
                 #r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
                 #print round(r, 5) == round(r_bel[0], 5)
 
-                r_scores.append(r)
-                gene_names.append(gg1 +'_'+ gg2)
-
-    LD_stats = pd.DataFrame(
-    {'r_scores': r_scores,
-    'gene_names': gene_names})
-
+    print cor_matrix
     LD_stats.to_csv('test.csv', header=True)
     t1 = time.time()
 
@@ -218,19 +201,12 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
           #var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
           #var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
           #r = covariance/sp.sqrt(var1 * var2)
-          
-          #print r    
+ 
           r_scores.append(r_bel[0])
           gene_names.append(nod_genes[int(gg1)] +'_'+ gg2)          
 
     cor_matrix.to_csv('Mantel_test_nod_all.csv', header = True)     
-    #LD_stats = pd.DataFrame(
-    #{'r_scores': r_scores,
-    #'gene_names': gene_names})
-
-    #LD_stats.to_csv('Mantel_test_nod_versus_all.csv', header=True)
-
-    return LD_stats
+    return cor_matrix
 
 #simple_intergenic_ld_nod_genes()
 
@@ -239,8 +215,8 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
-    nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
-
+    #nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
+    nod_genes = {4140: 'nodE', 4139: 'nodF', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4127: 'fixX'}
     # Decoding the nod gene names
     nod_list = []
     for i in nod_genes.keys():
@@ -342,7 +318,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
 
     cor_matrix.to_csv('Mantel_test_nod_all_maf_2.csv', header = True)
-    correlation_plot_2(cor_matrix)
+    correlation_plot(cor_matrix)
     #LD_stats = pd.DataFrame(
     #{'r_scores': r_scores,
     #'gene_names': gene_names})
@@ -352,5 +328,3 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     #return LD_stats
 
 simple_mantel_nod_genes_nod_genes()
-
-#document.save_file('test_marni_version.Rmd')
