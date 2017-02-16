@@ -32,6 +32,7 @@ def minor_allele_filter(gene_matrix, maf):
     return(norm_matrix)
    
 def correlation_plot(df):
+  corr = df.corr()
   #mask[np.triu_indices_from(mask)] = True
 
   # Set up the matplotlib figure
@@ -70,7 +71,7 @@ def simple_intergenic_ld_core(max_strain_num=198,
     for i, gg1 in enumerate(core_genes[0:100]):
         data_g1 = h5f[gg1]
         total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
-        total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
+        total_snps_1 = minor_allele_filter(total_snps_1, maf)
 
         ''' 3. Calculate the Kinship matrix for each gene '''
         grm = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
@@ -104,7 +105,7 @@ def simple_intergenic_ld_core(max_strain_num=198,
 
 
 def simple_intergenic_ld_nod_genes(max_strain_num=198,
-                            maf=0.2,
+                            maf=0.1,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
@@ -164,7 +165,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
             total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
 
             # Calculating GRM 
-            total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
+            total_snps_1 = minor_allele_filter(total_snps_1, maf)
             grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
             gene_grm_dict[str(gg1)] = {'grm':grm_1}
 
@@ -173,7 +174,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
             total_snps_2 = data_g2['snps'][...].T  # strains in the rows, snps in the columns 
           
             # Calculating GRM 
-            total_snps_2 = minor_allele_filter(total_snps_2, 0.1)
+            total_snps_2 = minor_allele_filter(total_snps_2, maf)
             grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
             gene_grm_dict[str(gg2)] = {'grm':grm_2}
 
@@ -207,7 +208,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
 #simple_intergenic_ld_nod_genes()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
-                            maf=0.2,
+                            maf=0.05,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
@@ -235,8 +236,8 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
           data = h5f[i]
           total_snps_1 = data['snps'][...].T 
           print 'The gene %s has %s snps' % (nod_genes[int(i)], total_snps_1.shape)
-          filt = minor_allele_filter(total_snps_1, 0.1)
-          print 'After filer MAF > 0.1 has: %s' %  (filt.shape[1])
+          filt = minor_allele_filter(total_snps_1, maf)
+          print 'After filter MAF > %f has: %s' %  (maf, filt.shape[1])
       except KeyError:
           'The nod gene %s is not in our subset of the data' % nod_genes[int(i)]
 
@@ -274,7 +275,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
 
             # Calculating GRM 
-            total_snps_1 = minor_allele_filter(total_snps_1, 0.2)
+            total_snps_1 = minor_allele_filter(total_snps_1, maf)
             grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
             gene_grm_dict[str(gg1)] = {'grm':grm_1}
 
@@ -283,7 +284,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             total_snps_2 = data_g2['snps'][...].T  # strains in the rows, snps in the columns 
           
             # Calculating GRM 
-            total_snps_2 = minor_allele_filter(total_snps_2, 0.2)
+            total_snps_2 = minor_allele_filter(total_snps_2, maf)
             grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
             gene_grm_dict[str(gg2)] = {'grm':grm_2}
 
@@ -313,7 +314,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
           #gene_names.append(nod_genes[int(gg1)] +'_'+ nod_genes[int(gg2)])   
 
 
-    cor_matrix.to_csv('Mantel_test_nod_all_maf_2.csv', header = True)
+    cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header = True)
     correlation_plot(cor_matrix)
     #LD_stats = pd.DataFrame(
     #{'r_scores': r_scores,
