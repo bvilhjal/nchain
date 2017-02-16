@@ -9,13 +9,14 @@
 # Licensed under the terms of the MIT License
 
 import numpy as np
-from itertools import permutations
 from scipy import spatial, stats
 import scipy as sp
 import h5py
 import pandas as pd
-import pylab as pl
-
+import matplotlib.pyplot as plt
+from scipy.stats.stats import pearsonr 
+import seaborn as sns
+import time
 
 def minor_allele_filter(gene_matrix, maf):
     '''Filtering for minor allele frequency, it assumes that the matrix is binary and that is n x m, where columns are markers (m).'''
@@ -28,193 +29,27 @@ def minor_allele_filter(gene_matrix, maf):
 
     # Normalizing the columns:
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
-
-    # Mean adjuste by rows:
-    # ???
-
     return(norm_matrix)
+   
+def correlation_plot(df):
+  corr = df.corr()
+  # mask[np.triu_indices_from(mask)] = True
 
+  # Set up the matplotlib figure
+  f, ax = plt.subplots(figsize=(12, 9))
 
-
-def mantel_test(X, Y, perms=10000, method='pearson', tail='two-tail'):
-  """
-  Takes two distance matrices (either redundant matrices or condensed vectors)
-  and performs a Mantel test. The Mantel test is a significance test of the
-  correlation between two distance matrices.
-
-  Parameters
-  ----------
-  X : array_like
-      First distance matrix (condensed or redundant).
-  Y : array_like
-      Second distance matrix (condensed or redundant), where the order of
-      elements corresponds to the order of elements in the first matrix.
-  perms : int, optional
-      The number of permutations to perform (default: 10000). A larger number
-      gives more reliable results but takes longer to run. If the actual number
-      of possible permutations is smaller, the program will enumerate all
-      permutations. Enumeration can be forced by setting this argument to 0.
-  method : str, optional
-      Type of correlation coefficient to use; either 'pearson' or 'spearman'
-      (default: 'pearson').
-  tail : str, optional
-      Which tail to test in the calculation of the empirical p-value; either
-      'upper', 'lower', or 'two-tail' (default: 'two-tail').
-
-  Returns
-  -------
-  r : float
-      Veridical correlation
-  p : float
-      Empirical p-value
-  z : float
-      Standard score (z-score)
-  """
-
-  # Ensure that X and Y are formatted as Numpy arrays.
-  X, Y = np.asarray(X, dtype=float), np.asarray(Y, dtype=float)
-
-  # Check that X and Y are valid distance matrices.
-  # if spatial.distance.is_valid_dm(X) == False and spatial.distance.is_valid_y(X) == False:
-  #  raise ValueError('X is not a valid condensed or redundant distance matrix')
-  # if spatial.distance.is_valid_dm(Y) == False and spatial.distance.is_valid_y(Y) == False:
-  #  raise ValueError('Y is not a valid condensed or redundant distance matrix')
-
-  # If X or Y is a redundant distance matrix, reduce it to a condensed distance matrix.
-  if len(X.shape) == 2:
-    X = spatial.distance.squareform(X, force='tovector', checks=False)
-  if len(Y.shape) == 2:
-    Y = spatial.distance.squareform(Y, force='tovector', checks=False)
-
-  # Check for size equality.
-  if X.shape[0] != Y.shape[0]:
-    raise ValueError('X and Y are not of equal size')
-
-  # Check for minimum size.
-  if X.shape[0] < 3:
-    raise ValueError('X and Y should represent at least 3 objects')
-
-  # If Spearman correlation is requested, convert X and Y to ranks.
-  if method == 'spearman':
-    X, Y = stats.rankdata(X), stats.rankdata(Y)
-
-  # Check for valid method parameter.
-  elif method != 'pearson':
-    raise ValueError('The method should be set to "pearson" or "spearman"')
-
-  # Check for valid tail parameter.
-  if tail != 'upper' and tail != 'lower' and tail != 'two-tail':
-    raise ValueError('The tail should be set to "upper", "lower", or "two-tail"')
-
-  # Now we're ready to start the Mantel test using a number of optimizations:
-  #
-  # 1. We don't need to recalculate the pairwise distances between the objects
-  #    on every permutation. They've already been calculated, so we can use a
-  #    simple matrix shuffling technique to avoid recomputing them. This works
-  #    like memoization.
-  #
-  # 2. Rather than compute correlation coefficients, we'll just compute the
-  #    covariances. This works because the denominator in the equation for the
-  #    correlation coefficient will yield the same result however the objects
-  #    are permuted, making it redundant. Removing the denominator leaves us
-  #    with the covariance.
-  #
-  # 3. Rather than permute the Y distances and derive the residuals to calculate
-  #    the covariance with the X distances, we'll represent the Y residuals in
-  #    the matrix and shuffle those directly.
-  #
-  # 4. If the number of possible permutations is less than the number of
-  #    permutations that were requested, we'll run a deterministic test where
-  #    we try all possible permutations rather than sample the permutation
-  #    space. This gives a faster, deterministic result.
-
-  # Calculate the X and Y residuals, which will be used to compute the
-  # covariance under each permutation.
-  X_residuals, Y_residuals = X - X.mean(), Y - Y.mean()
-
-  # Expand the Y residuals to a redundant matrix.
-  Y_residuals_as_matrix = spatial.distance.squareform(Y_residuals, force='tomatrix', checks=False)
-
-  # Get the number of objects.
-  m = Y_residuals_as_matrix.shape[0]
-
-  # Calculate the number of possible matrix permutations.
-  n = np.math.factorial(m)
-
-  # Initialize an empty array to store temporary permutations of Y_residuals.
-  Y_residuals_permuted = np.zeros(Y_residuals.shape[0], dtype=float)
-
-  # If the number of requested permutations is greater than the number of
-  # possible permutations (m!) or the perms parameter is set to 0, then run a
-  # deterministic Mantel test ...
-  if perms >= n or perms == 0:
-
-    # Initialize an empty array to store the covariances.
-    covariances = np.zeros(n, dtype=float)
-
-    # Enumerate all permutations of row/column orders and iterate over them.
-    for i, order in enumerate(permutations(range(m))):
-
-      # Take a permutation of the matrix.
-      Y_residuals_as_matrix_permuted = Y_residuals_as_matrix[order, :][:, order]
-
-      # Condense the permuted version of the matrix. Rather than use
-      # distance.squareform(), we call directly into the C wrapper for speed.
-      spatial.distance._distance_wrap.to_vector_from_squareform_wrap(Y_residuals_as_matrix_permuted, Y_residuals_permuted)
-
-      # Compute and store the covariance.
-      covariances[i] = (X_residuals * Y_residuals_permuted).sum()
-
-  # ... otherwise run a stochastic Mantel test.
-  else:
-
-    # Initialize an empty array to store the covariances.
-    covariances = np.zeros(perms, dtype=float)
-
-    # Initialize an array to store the permutation order.
-    order = np.arange(m)
-
-    # Store the veridical covariance in 0th position...
-    covariances[0] = (X_residuals * Y_residuals).sum()
-
-    # ...and then run the random permutations.
-    for i in range(1, perms):
-
-      # Choose a random order in which to permute the rows and columns.
-      np.random.shuffle(order)
-
-      # Take a permutation of the matrix.
-      Y_residuals_as_matrix_permuted = Y_residuals_as_matrix[order, :][:, order]
-
-      # Condense the permuted version of the matrix. Rather than use
-      # distance.squareform(), we call directly into the C wrapper for speed.
-      spatial.distance._distance_wrap.to_vector_from_squareform_wrap(Y_residuals_as_matrix_permuted, Y_residuals_permuted)
-
-      # Compute and store the covariance.
-      covariances[i] = (X_residuals * Y_residuals_permuted).sum()
-      
-  # Calculate the veridical correlation coefficient from the veridical covariance.
-  r = covariances[0] / np.sqrt((X_residuals ** 2).sum() * (Y_residuals ** 2).sum())
-
-  # Calculate the empirical p-value for the upper or lower tail.
-  if tail == 'upper':
-    p = (covariances >= covariances[0]).sum() / float(covariances.shape[0])
-  elif tail == 'lower':
-    p = (covariances <= covariances[0]).sum() / float(covariances.shape[0])
-  elif tail == 'two-tail':
-    p = (abs(covariances) >= abs(covariances[0])).sum() / float(covariances.shape[0])
-
-  # Calculate the standard score.
-  z = (covariances[0] - covariances.mean()) / covariances.std()
-
-  return r, p, z
-
+  # Clustering with seaborn
+  with sns.axes_style("white"):
+    ax = sns.heatmap(df, square=True, annot=True, annot_kws={"size": 9}, cmap="RdYlGn", vmin=0, vmax=1)
+  f.tight_layout()
+  plt.show()
 
 def simple_intergenic_ld_core(max_strain_num=198,
                             maf=0.2,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
+    t0 = time.time()
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
     
@@ -225,23 +60,22 @@ def simple_intergenic_ld_core(max_strain_num=198,
         if len(set(strains)) == max_strain_num:
             core_genes.append(gg)
     
-
     r_scores = []
     gene_names = []
-
     gene_grm_dict = {}
 
-    for i, gg1 in enumerate(core_genes):
+    # Making the correlation matrix to be updated
+    cor_matrix = np.zeros((len(core_genes[0:100]), len(core_genes[0:100])))
+    cor_matrix = pd.DataFrame(cor_matrix, index=core_genes[0:100], columns=core_genes[0:100])
+
+    for i, gg1 in enumerate(core_genes[0:100]):
         data_g1 = h5f[gg1]
         total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
-        print total_snps_1.shape
-        total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
+        total_snps_1 = minor_allele_filter(total_snps_1, maf)
 
         ''' 3. Calculate the Kinship matrix for each gene '''
         # For population structure adj, we only need to modify this matrix appropriately..
         grm = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
-        print grm.shape
-        print np.average(np.diag(grm))
 
         flat_grm = grm.flatten()
         norm_flat_grm1 = flat_grm - flat_grm.mean() / sp.sqrt(sp.dot(flat_grm, flat_grm))
@@ -249,115 +83,246 @@ def simple_intergenic_ld_core(max_strain_num=198,
 
         gene_grm_dict[gg1] = {'grm':grm , 'norm_flat_grm':norm_flat_grm1}
         
-        for j, gg2 in enumerate(core_genes):
+        for j, gg2 in enumerate(core_genes[0:1000]):
             if i > j:
                             
                 norm_flat_grm2 = gene_grm_dict[gg2]['norm_flat_grm']
-                r = sp.dot(norm_flat_grm1, norm_flat_grm2) 
-                r_scores.append(r)
-                print r
-                gene_names.append(gg1 + gg2)
+                covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
+                var1 = np.sum(norm_flat_grm1 - norm_flat_grm1.mean() ** 2)
+                var2 = np.sum(norm_flat_grm2 - norm_flat_grm2.mean() ** 2)
+                r = covariance / sp.sqrt(var1 * var2)
 
-    LD_stats = pd.DataFrame(
-    {'r_scores': r_scores,
-    'gene_names': gene_names})
+                cor_matrix[gg2][gg1] = r
+                
+                # Checking the values with a scipy built function:
+                # r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
+                # print round(r, 5) == round(r_bel[0], 5)
 
-    LD_stats.to_csv('test.csv', header=True)
+    cor_matrix.to_csv('Mantel_test_all_all.csv', header=True)
+    t1 = time.time()
+
+    total = t1 - t0
+    print 'total amount of time consumed is %f' % total
+
+# simple_intergenic_ld_core()
 
 
-    return LD_stats
-
-simple_intergenic_ld_core()
-
-
-def simple_intergenic_ld_accessory(specific_genes,
-                            max_strain_num=198,
+def simple_intergenic_ld_nod_genes(max_strain_num=198,
+                            maf=0.1,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
-    # """Gives a specific list of genes and calculate LD of these genes with all"""
+    """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
-
-    nod_names = open(specific_genes)
-
-    specific_genes = [line.rstrip('\n') for line in nod_names]
-    print specific_genes
+    nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
+    # Decoding the nod gene names
+    nod_list = []
+    for i in nod_genes.keys():
+      nod_list.append(str(i).decode("utf-8"))
+    print nod_genes.values()
 
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
-    all_strains = set()
     
+    print h5f[nod_list[0]]
+    core_genes = []
     for gg in gene_groups:
         data_g = h5f[gg]
         strains = data_g['strains'][...]
         if len(set(strains)) == max_strain_num:
-            all_strains = set(strains).union(all_strains)
-    num_strains = len(all_strains)
-    print 'Found %d "distinct" strains' % num_strains
+            core_genes.append(gg)
+    core_genes = sorted(core_genes)
     
-    ordered_strains = sorted(list(all_strains))
-    strain_index = pd.Index(ordered_strains)
-
-    count = 0
     r_scores = []
-    p_values = []
-    z_scores = []
     gene_names = []
+    gene_grm_dict = {}
 
-    ag = h5f['alignments']
-    print ag['8048']
+    # Making the correlation matrix to be updated
+    cor_matrix = np.zeros((len(nod_list), len(core_genes[0:100])))
+    cor_matrix = pd.DataFrame(cor_matrix, index=nod_genes.values(), columns=core_genes[0:100])
 
-    for i, gg1 in enumerate(gene_groups):
-        for j, gg1 in enumerate(gene_groups):
-            if i > j:
-            
-                data_g1 = h5f[gg1]
-                data_g2 = h5f[gg2]  # tuple
+    for i, gg1 in enumerate(nod_list):
+        try:
+          strains_1 = h5f[gg1]['strains'][...]
+        except KeyError:
+          print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg1)]
+          continue
+        
+        for j, gg2 in enumerate(core_genes[0:100]):
 
-                strains_1 = data_g1['strains'][...]
-                strains_2 = data_g2['strains'][...]
-                            
-                # Indexes of the strains in the big GRM matrix
-                strain_mask_1 = strain_index.get_indexer(strains_1)
-                strain_mask_2 = strain_index.get_indexer(strains_2)
-                
-                set_1, set_2 = set(strain_mask_1), set(strain_mask_2)
-                intersec = list(set_1 & set_2)
+          strains_2 = h5f[gg2]['strains'][...]
+        
+          set_1, set_2 = set(strains_1), set(strains_2)
+          intersec = list(set_1 & set_2)
 
-                # Indexes of the strains in their own matrix
-                    
-                # list1 determines the ordering
-                olist1 = [i for i, item in enumerate(strains_1) if item in set(strains_2)]
+          strain_mask_2 = []
+          strain_mask_1 = []
 
-                # list2 determines the ordering
-                olist2 = [i for i, item in enumerate(strains_2) if item in set(strains_1)]
+          for i in intersec:
+              strain_mask_2.append(np.unique(strains_2).tolist().index(i))
+              strain_mask_1.append(np.unique(strains_1).tolist().index(i))
 
-                # Take the subset of shared snps of each gene
-                total_snps_1 = data_g1['norm_snps'][...].T  # strains in the rows, snps in the collumns 
-                common_snps_1 = total_snps_1[olist1, :]
+          strain_mask_2 = sorted(strain_mask_2)
+          strain_mask_1 = sorted(strain_mask_1)
 
-                total_snps_2 = data_g2['norm_snps'][...].T
-                common_snps_2 = total_snps_2[olist2, :]
+          if gg1 not in gene_grm_dict:
+            data_g1 = h5f[gg1]
+            total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
 
-                ''' 3. Calculate the Kinship matrix for each gene '''
+            # Calculating GRM 
+            total_snps_1 = minor_allele_filter(total_snps_1, maf)
+            grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+            gene_grm_dict[str(gg1)] = {'grm':grm_1}
 
-                pseudo_snps_1 = np.dot(common_snps_1, common_snps_1) / common_snps_1[1]
-                pseudo_snps_2 = np.dot(common_snps_2, common_snps_2) / common_snps_2[1]
+          if gg2 not in gene_grm_dict:
+            data_g2 = h5f[gg2]
+            total_snps_2 = data_g2['snps'][...].T  # strains in the rows, snps in the columns 
+          
+            # Calculating GRM 
+            total_snps_2 = minor_allele_filter(total_snps_2, maf)
+            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+            gene_grm_dict[str(gg2)] = {'grm':grm_2}
 
-                r, p, z = Mantel.mantel_test(grm_1, grm_2, perms=1, method='spearman', tail='two-tail')
+          # Calculating correlation and covariance based on the common subset of strains
+          grm_1 = gene_grm_dict[str(gg1)]['grm']
+          sub_grm_1 = grm_1[strain_mask_1, strain_mask_1]
+          flat_grm_1 = sub_grm_1.flatten()
+          norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean() / sp.sqrt(sp.dot(flat_grm_1, flat_grm_1))
+          
+          grm_2 = gene_grm_dict[str(gg2)]['grm']
+          sub_grm_2 = grm_2[strain_mask_2, strain_mask_2]
+          flat_grm_2 = sub_grm_2.flatten()
+          norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean() / sp.sqrt(sp.dot(flat_grm_2, flat_grm_2))
 
-                # print(r,p,z)
-                r_scores.append(r)
-                p_values.append(p)
-                z_scores.append(z)
-                gene_names.append(gg1[0][0:5] + gg2)
+          # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
+          r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
 
-        LD_stats = pd.DataFrame(
-        {'r_scores': r_scores,
-        'p_values': p_values,
-        'z_scores': z_scores,
-        'gene_names': gene_names})
+          # Indexing column (gg2) and row (gg1)
+          cor_matrix[gg2][nod_genes[int(gg1)]] += r_bel[0]
+          # covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
+          # var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
+          # var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
+          # r = covariance/sp.sqrt(var1 * var2)
+ 
+          r_scores.append(r_bel[0])
+          gene_names.append(nod_genes[int(gg1)] + '_' + gg2)          
 
-        LD_stats.to_csv('test.csv', header=True)
+    cor_matrix.to_csv('Mantel_test_nod_all.csv', header=True)     
+    return cor_matrix
+
+# simple_intergenic_ld_nod_genes()
+
+def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
+                            maf=0.05,
+                           snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
+    """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
+
+    # nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
+    nod_genes = {4140: 'nodE', 4139: 'nodF', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4127: 'fixX'}
+    # Decoding the nod gene names
+    nod_list = []
+    for i in nod_genes.keys():
+      nod_list.append(str(i).decode("utf-8"))
+    # print nod_genes.values()
+
+    h5f = h5py.File(snps_file)
+    gene_groups = h5f.keys()
+    
+    r_scores = []
+    gene_names = []
+    gene_grm_dict = {}
+
+    # Making the correlation matrix to be updated
+    cor_matrix = np.zeros((len(nod_list), len(nod_list)))
+    cor_matrix = pd.DataFrame(cor_matrix, index=nod_genes.values(), columns=nod_genes.values())
+
+    for i in nod_list:
+      try:
+          data = h5f[i]
+          total_snps_1 = data['snps'][...].T 
+          print 'The gene %s has %s snps' % (nod_genes[int(i)], total_snps_1.shape)
+          filt = minor_allele_filter(total_snps_1, maf)
+          print 'After filter MAF > %f has: %s' % (maf, filt.shape[1])
+      except KeyError:
+          'The nod gene %s is not in our subset of the data' % nod_genes[int(i)]
 
 
-    return LD_stats
+    for i, gg1 in enumerate(nod_list):
+        try:
+          strains_1 = h5f[gg1]['strains'][...]
+        except KeyError:
+          # print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg1)]
+          continue
+        
+        for j, gg2 in enumerate(nod_list):
 
+          try:
+            strains_2 = h5f[gg2]['strains'][...]
+          except KeyError:
+           # print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg2)]
+            continue
+        
+          set_1, set_2 = set(strains_1), set(strains_2)
+          intersec = list(set_1 & set_2)
+
+          strain_mask_2 = []
+          strain_mask_1 = []
+
+          for i in intersec:
+              strain_mask_2.append(np.unique(strains_2).tolist().index(i))
+              strain_mask_1.append(np.unique(strains_1).tolist().index(i))
+
+          strain_mask_2 = sorted(strain_mask_2)
+          strain_mask_1 = sorted(strain_mask_1)
+
+          if gg1 not in gene_grm_dict:
+            data_g1 = h5f[gg1]
+            total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
+
+            # Calculating GRM 
+            total_snps_1 = minor_allele_filter(total_snps_1, maf)
+            grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+            gene_grm_dict[str(gg1)] = {'grm':grm_1}
+
+          if gg2 not in gene_grm_dict:
+            data_g2 = h5f[gg2]
+            total_snps_2 = data_g2['snps'][...].T  # strains in the rows, snps in the columns 
+          
+            # Calculating GRM 
+            total_snps_2 = minor_allele_filter(total_snps_2, maf)
+            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+            gene_grm_dict[str(gg2)] = {'grm':grm_2}
+
+          # Calculating correlation and covariance based on the common subset of strains
+          grm_1 = gene_grm_dict[str(gg1)]['grm']
+          sub_grm_1 = grm_1[strain_mask_1, strain_mask_1]
+          flat_grm_1 = sub_grm_1.flatten()
+          norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean() 
+          norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
+          
+          grm_2 = gene_grm_dict[str(gg2)]['grm']
+          sub_grm_2 = grm_2[strain_mask_2, strain_mask_2]
+          flat_grm_2 = sub_grm_2.flatten()
+          norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean() 
+          norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
+
+          # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
+          # covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
+          # r = covariance/sp.sqrt(var1 * var2)
+          r = pearsonr(norm_flat_grm1, norm_flat_grm2)
+          # r = abs(r[0])
+          cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r
+
+          # r_scores.append(r)
+          # gene_names.append(nod_genes[int(gg1)] +'_'+ nod_genes[int(gg2)])   
+
+
+    cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
+    correlation_plot(cor_matrix)
+    # LD_stats = pd.DataFrame(
+    # {'r_scores': r_scores,
+    # 'gene_names': gene_names})
+
+    # LD_stats.to_csv('test_nod_genes.csv', header=True)
+
+    # return LD_stats
+
+simple_mantel_nod_genes_nod_genes()
