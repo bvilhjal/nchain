@@ -238,12 +238,15 @@ def simple_intergenic_ld_core(max_strain_num=198,
         total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
 
         ''' 3. Calculate the Kinship matrix for each gene '''
+        # For population structure adj, we only need to modify this matrix appropriately..
         grm = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
         print grm.shape
         print np.average(np.diag(grm))
 
         flat_grm = grm.flatten()
         norm_flat_grm1 = flat_grm - flat_grm.mean() / sp.sqrt(sp.dot(flat_grm, flat_grm))
+        
+
         gene_grm_dict[gg1] = {'grm':grm , 'norm_flat_grm':norm_flat_grm1}
         
         for j, gg2 in enumerate(core_genes):
@@ -251,8 +254,8 @@ def simple_intergenic_ld_core(max_strain_num=198,
                             
                 norm_flat_grm2 = gene_grm_dict[gg2]['norm_flat_grm']
                 r = sp.dot(norm_flat_grm1, norm_flat_grm2) 
-                print r
                 r_scores.append(r)
+                print r
                 gene_names.append(gg1 + gg2)
 
     LD_stats = pd.DataFrame(
