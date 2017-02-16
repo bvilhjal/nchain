@@ -245,6 +245,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
           strain_mask_2 = []
           strain_mask_1 = []
 
+          # Strains in common
           for i in intersec:
               strain_mask_2.append(np.unique(strains_2).tolist().index(i))
               strain_mask_1.append(np.unique(strains_1).tolist().index(i))
