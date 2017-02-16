@@ -2,14 +2,7 @@
 
 # In this script we calculate the kinship matrix for each core gene and do a simple mantel test (correlation of matrix) between pairs of genes
 
-# MantelTest v1.2.10
-# http://jwcarr.github.io/MantelTest/
-#
-# Copyright (c) 2014-2016 Jon W. Carr
-# Licensed under the terms of the MIT License
-
 import numpy as np
-from scipy import spatial, stats
 import scipy as sp
 import h5py
 import pandas as pd
@@ -32,9 +25,6 @@ def minor_allele_filter(gene_matrix, maf):
     return(norm_matrix)
    
 def correlation_plot(df):
-  corr = df.corr()
-  # mask[np.triu_indices_from(mask)] = True
-
   # Set up the matplotlib figure
   f, ax = plt.subplots(figsize=(12, 9))
 
@@ -45,7 +35,8 @@ def correlation_plot(df):
   plt.show()
 
 def simple_intergenic_ld_core(max_strain_num=198,
-                            maf=0.2,
+                            maf=0.1,
+                            n = 10,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
@@ -59,53 +50,54 @@ def simple_intergenic_ld_core(max_strain_num=198,
         strains = data_g['strains'][...]
         if len(set(strains)) == max_strain_num:
             core_genes.append(gg)
+    core_genes = sorted(core_genes) 
     
     r_scores = []
     gene_names = []
     gene_grm_dict = {}
 
-    # Making the correlation matrix to be updated
-    cor_matrix = np.zeros((len(core_genes[0:100]), len(core_genes[0:100])))
-    cor_matrix = pd.DataFrame(cor_matrix, index=core_genes[0:100], columns=core_genes[0:100])
+    # Subsetting core genes
+    core_genes = core_genes[0:n]
 
-    for i, gg1 in enumerate(core_genes[0:100]):
+    # Making the correlation matrix to be updated
+    cor_matrix = np.zeros((len(core_genes), len(core_genes)))
+    cor_matrix = pd.DataFrame(cor_matrix, index = core_genes, columns = core_genes)
+
+    for i, gg1 in enumerate(core_genes):
         data_g1 = h5f[gg1]
         total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns 
-        total_snps_1 = minor_allele_filter(total_snps_1, maf)
+        total_snps_1 = minor_allele_filter(total_snps_1, 0.1)
 
         ''' 3. Calculate the Kinship matrix for each gene '''
-        # For population structure adj, we only need to modify this matrix appropriately..
         grm = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
 
         flat_grm = grm.flatten()
         norm_flat_grm1 = flat_grm - flat_grm.mean() / sp.sqrt(sp.dot(flat_grm, flat_grm))
-        
-
         gene_grm_dict[gg1] = {'grm':grm , 'norm_flat_grm':norm_flat_grm1}
         
-        for j, gg2 in enumerate(core_genes[0:1000]):
+        for j, gg2 in enumerate(core_genes):
             if i > j:
                             
                 norm_flat_grm2 = gene_grm_dict[gg2]['norm_flat_grm']
                 covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
-                var1 = np.sum(norm_flat_grm1 - norm_flat_grm1.mean() ** 2)
-                var2 = np.sum(norm_flat_grm2 - norm_flat_grm2.mean() ** 2)
-                r = covariance / sp.sqrt(var1 * var2)
+                var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
+                var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
+                r = covariance/sp.sqrt(var1 * var2)
 
                 cor_matrix[gg2][gg1] = r
                 
                 # Checking the values with a scipy built function:
-                # r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
-                # print round(r, 5) == round(r_bel[0], 5)
+                #r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
+                #print round(r, 5) == round(r_bel[0], 5)
 
-    cor_matrix.to_csv('Mantel_test_all_all.csv', header=True)
+    cor_matrix.to_csv('Mantel_test_all_all.csv', header = True)
+    correlation_plot(cor_matrix)
     t1 = time.time()
 
-    total = t1 - t0
+    total = t1-t0
     print 'total amount of time consumed is %f' % total
 
-# simple_intergenic_ld_core()
-
+#simple_intergenic_ld_core()
 
 def simple_intergenic_ld_nod_genes(max_strain_num=198,
                             maf=0.1,
@@ -130,13 +122,10 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
         if len(set(strains)) == max_strain_num:
             core_genes.append(gg)
     core_genes = sorted(core_genes)
-    
-    r_scores = []
-    gene_names = []
     gene_grm_dict = {}
 
     # Making the correlation matrix to be updated
-    cor_matrix = np.zeros((len(nod_list), len(core_genes[0:100])))
+    cor_matrix = np.zeros((len(nod_list), len(core_genes[0:10])))
     cor_matrix = pd.DataFrame(cor_matrix, index=nod_genes.values(), columns=core_genes[0:100])
 
     for i, gg1 in enumerate(nod_list):
@@ -146,7 +135,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
           print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg1)]
           continue
         
-        for j, gg2 in enumerate(core_genes[0:100]):
+        for j, gg2 in enumerate(core_genes[0:10]):
 
           strains_2 = h5f[gg2]['strains'][...]
         
@@ -193,22 +182,14 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
           norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean() / sp.sqrt(sp.dot(flat_grm_2, flat_grm_2))
 
           # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
-          r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
+          r = pearsonr(norm_flat_grm1, norm_flat_grm2)
+          cor_matrix[gg2][nod_genes[int(gg1)]] += r[0]
 
-          # Indexing column (gg2) and row (gg1)
-          cor_matrix[gg2][nod_genes[int(gg1)]] += r_bel[0]
-          # covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
-          # var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
-          # var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
-          # r = covariance/sp.sqrt(var1 * var2)
- 
-          r_scores.append(r_bel[0])
-          gene_names.append(nod_genes[int(gg1)] + '_' + gg2)          
-
+    correlation_plot(cor_matrix)
     cor_matrix.to_csv('Mantel_test_nod_all.csv', header=True)     
     return cor_matrix
 
-# simple_intergenic_ld_nod_genes()
+#simple_intergenic_ld_nod_genes()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0.05,
@@ -226,8 +207,6 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
     
-    r_scores = []
-    gene_names = []
     gene_grm_dict = {}
 
     # Making the correlation matrix to be updated
@@ -305,24 +284,10 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
           norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
           # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
-          # covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
-          # r = covariance/sp.sqrt(var1 * var2)
           r = pearsonr(norm_flat_grm1, norm_flat_grm2)
-          # r = abs(r[0])
-          cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r
-
-          # r_scores.append(r)
-          # gene_names.append(nod_genes[int(gg1)] +'_'+ nod_genes[int(gg2)])   
-
+          cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r[0]
 
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     correlation_plot(cor_matrix)
-    # LD_stats = pd.DataFrame(
-    # {'r_scores': r_scores,
-    # 'gene_names': gene_names})
-
-    # LD_stats.to_csv('test_nod_genes.csv', header=True)
-
-    # return LD_stats
 
 simple_mantel_nod_genes_nod_genes()
