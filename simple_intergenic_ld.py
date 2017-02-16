@@ -32,8 +32,6 @@ def minor_allele_filter(gene_matrix, maf):
     return(norm_matrix)
    
 def correlation_plot(df):
-  corr = df.corr()
-  mask = np.zeros_like(corr)
   #mask[np.triu_indices_from(mask)] = True
 
   # Set up the matplotlib figure
@@ -41,7 +39,7 @@ def correlation_plot(df):
 
   # Clustering with seaborn
   with sns.axes_style("white"):
-    ax = sns.heatmap(corr, mask=mask, vmax=.3, square=True, annot=True, annot_kws={"size": 9})
+    ax = sns.heatmap(df, square=True, annot=True, annot_kws={"size": 9}, cmap="RdYlGn", vmin=0, vmax=1)
   f.tight_layout()
   plt.show()
 
@@ -102,7 +100,7 @@ def simple_intergenic_ld_core(max_strain_num=198,
     total = t1-t0
     print 'total amount of time consumed is %f' % total
 
-simple_intergenic_ld_core()
+#simple_intergenic_ld_core()
 
 
 def simple_intergenic_ld_nod_genes(max_strain_num=198,
@@ -301,17 +299,17 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
           norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean() / sp.sqrt(sp.dot(flat_grm_2, flat_grm_2))
 
           # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
-          r_bel = pearsonr(norm_flat_grm1, norm_flat_grm2)
+          r = pearsonr(norm_flat_grm1, norm_flat_grm2)
+          r = abs(r[0])
+          cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r
 
-          cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] += r_bel[0]
-
+          # The correct way to estimate it:
           #covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
           #var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
           #var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
           #r = covariance/sp.sqrt(var1 * var2)
           
-          #print r    
-          r_scores.append(r_bel[0])
+          #r_scores.append(r)
           #gene_names.append(nod_genes[int(gg1)] +'_'+ nod_genes[int(gg2)])   
 
 
@@ -325,4 +323,4 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
     #return LD_stats
 
-#simple_mantel_nod_genes_nod_genes()
+simple_mantel_nod_genes_nod_genes()
