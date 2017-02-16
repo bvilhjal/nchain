@@ -287,6 +287,17 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
           r = pearsonr(norm_flat_grm1, norm_flat_grm2)
           cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r[0]
 
+          # Manually calculating correlation:
+          covariance = sp.dot(norm_flat_grm1, norm_flat_grm2) 
+          var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean())**2)
+          var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean())**2)
+          r_manual = covariance/sp.sqrt(var1 * var2)
+
+          print 'using scipy pearson:'
+          print r
+          print 'using manual calculation:'
+          print r_manual
+
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     correlation_plot(cor_matrix)
 

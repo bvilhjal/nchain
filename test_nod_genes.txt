@@ -1,0 +1,1156 @@
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.91803252664143076, 1.8085752895977471e-79)
+using manual calculation:
+0.918032526641
+using scipy pearson:
+(0.13260895852967394, 0.067437548835452735)
+using manual calculation:
+0.13260895853
+using scipy pearson:
+(0.16013214389376823, 0.024961497850248461)
+using manual calculation:
+0.160132143894
+using scipy pearson:
+(0.91430812308591658, 4.4284167781234104e-78)
+using manual calculation:
+0.914308123086
+using scipy pearson:
+(0.040411500420408898, 0.57386258918736255)
+using manual calculation:
+0.0404115004204
+using scipy pearson:
+(0.031723417781734507, 0.6589247589126509)
+using manual calculation:
+0.0317234177817
+using scipy pearson:
+(-0.049350922455718656, 0.49213798877682746)
+using manual calculation:
+-0.0493509224557
+using scipy pearson:
+(-0.16923798252142339, 0.017725275838994258)
+using manual calculation:
+-0.169237982521
+using scipy pearson:
+(0.42222667418097815, 7.8418127709344427e-10)
+using manual calculation:
+0.422226674181
+using scipy pearson:
+(-0.14385646812832928, 0.044263844721467098)
+using manual calculation:
+-0.143856468128
+using scipy pearson:
+(0.22707713944595936, 0.0013711253737167851)
+using manual calculation:
+0.227077139446
+using scipy pearson:
+(0.83432843629929754, 4.5657509195973016e-52)
+using manual calculation:
+0.834328436299
+using scipy pearson:
+(0.95791440454695809, 4.1772486581135277e-107)
+using manual calculation:
+0.957914404547
+using scipy pearson:
+(0.87774515816242316, 6.6224253125059951e-64)
+using manual calculation:
+0.877745158162
+using scipy pearson:
+(0.91757963821481148, 1.1935747979779827e-79)
+using manual calculation:
+0.917579638215
+using scipy pearson:
+(0.95479053674759606, 3.7267137917585024e-104)
+using manual calculation:
+0.954790536748
+using scipy pearson:
+(0.91803252664143076, 1.8085752895977471e-79)
+using manual calculation:
+0.918032526641
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(-0.088169999340670838, 0.22640286789246458)
+using manual calculation:
+-0.0881699993407
+using scipy pearson:
+(-0.10503211677567864, 0.14393068071641099)
+using manual calculation:
+-0.105032116776
+using scipy pearson:
+(0.82443849559732529, 1.3421298394237971e-49)
+using manual calculation:
+0.824438495597
+using scipy pearson:
+(-0.27332576007129461, 0.00011057805637777701)
+using manual calculation:
+-0.273325760071
+using scipy pearson:
+(-0.27700232257513935, 8.8458189836955386e-05)
+using manual calculation:
+-0.277002322575
+using scipy pearson:
+(0.15269397505139753, 0.033084273531983163)
+using manual calculation:
+0.152693975051
+using scipy pearson:
+(-0.12168615694216633, 0.090145039709294245)
+using manual calculation:
+-0.121686156942
+using scipy pearson:
+(0.24334595740935916, 0.00060811190468613942)
+using manual calculation:
+0.243345957409
+using scipy pearson:
+(-0.18373287884922349, 0.010137006799356781)
+using manual calculation:
+-0.183732878849
+using scipy pearson:
+(0.20277417561172256, 0.0044694242605004663)
+using manual calculation:
+0.202774175612
+using scipy pearson:
+(0.83875874404888306, 7.6228479652000908e-53)
+using manual calculation:
+0.838758744049
+using scipy pearson:
+(0.98463643209036888, 3.0757545068067963e-148)
+using manual calculation:
+0.98463643209
+using scipy pearson:
+(0.95300824573632337, 4.8118364615296429e-102)
+using manual calculation:
+0.953008245736
+using scipy pearson:
+(0.97722763932287549, 6.7273538088082909e-132)
+using manual calculation:
+0.977227639323
+using scipy pearson:
+(0.97126371684644353, 2.8349583981625045e-122)
+using manual calculation:
+0.971263716846
+using scipy pearson:
+(0.13260895852967394, 0.067437548835452735)
+using manual calculation:
+0.13260895853
+using scipy pearson:
+(-0.088169999340670838, 0.22640286789246458)
+using manual calculation:
+-0.0881699993407
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.35484124927193839, 4.7367409909989332e-07)
+using manual calculation:
+0.354841249272
+using scipy pearson:
+(0.32170466890150895, 5.6767017744506225e-06)
+using manual calculation:
+0.321704668902
+using scipy pearson:
+(0.40069436022988542, 9.2547955880360056e-09)
+using manual calculation:
+0.40069436023
+using scipy pearson:
+(0.61892659807935624, 1.3969781074722258e-21)
+using manual calculation:
+0.618926598079
+using scipy pearson:
+(-0.2224601690256969, 0.0019805583919834647)
+using manual calculation:
+-0.222460169026
+using scipy pearson:
+(0.048544639144940165, 0.50484265346225776)
+using manual calculation:
+0.0485446391449
+using scipy pearson:
+(0.28363745235511589, 7.3204066453840422e-05)
+using manual calculation:
+0.283637452355
+using scipy pearson:
+(-0.031269663183225264, 0.66761499031699789)
+using manual calculation:
+-0.0312696631832
+using scipy pearson:
+(0.23211106267524895, 0.0012334777929915765)
+using manual calculation:
+0.232111062675
+using scipy pearson:
+(0.22227606865115238, 0.0019981544311974625)
+using manual calculation:
+0.222276068651
+using scipy pearson:
+(0.017186494781331801, 0.8134479185210044)
+using manual calculation:
+0.0171864947813
+using scipy pearson:
+(0.046200731594103629, 0.52565378410717578)
+using manual calculation:
+0.0462007315941
+using scipy pearson:
+(-0.072350185211601942, 0.31991138894689619)
+using manual calculation:
+-0.0723501852116
+using scipy pearson:
+(0.0401459358353565, 0.58135388962161416)
+using manual calculation:
+0.0401459358354
+using scipy pearson:
+(0.16013214389376823, 0.024961497850248461)
+using manual calculation:
+0.160132143894
+using scipy pearson:
+(-0.10503211677567864, 0.14393068071641099)
+using manual calculation:
+-0.105032116776
+using scipy pearson:
+(0.35484124927193839, 4.7367409909989332e-07)
+using manual calculation:
+0.354841249272
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.40214332636994043, 5.1411751273744818e-09)
+using manual calculation:
+0.40214332637
+using scipy pearson:
+(0.56629110269534477, 4.2235589249431978e-18)
+using manual calculation:
+0.566291102695
+using scipy pearson:
+(0.761265906400171, 2.3826988506447013e-38)
+using manual calculation:
+0.7612659064
+using scipy pearson:
+(-0.68849385543526043, 5.1315415831547714e-29)
+using manual calculation:
+-0.688493855435
+using scipy pearson:
+(-0.29402388449181688, 2.745234315646653e-05)
+using manual calculation:
+-0.294023884492
+using scipy pearson:
+(0.68016650270505263, 5.742820367786736e-28)
+using manual calculation:
+0.680166502705
+using scipy pearson:
+(0.39857967916676862, 6.595322886738896e-09)
+using manual calculation:
+0.398579679167
+using scipy pearson:
+(0.42057098514233948, 7.5939415919177777e-10)
+using manual calculation:
+0.420570985142
+using scipy pearson:
+(0.20457058560494307, 0.003931936867930497)
+using manual calculation:
+0.204570585605
+using scipy pearson:
+(-0.006381722303547499, 0.9290798189642121)
+using manual calculation:
+-0.00638172230355
+using scipy pearson:
+(-0.030744941928995712, 0.668009752906773)
+using manual calculation:
+-0.030744941929
+using scipy pearson:
+(-0.15957260858043784, 0.025102145169875387)
+using manual calculation:
+-0.15957260858
+using scipy pearson:
+(0.036606133124517284, 0.61048687140711133)
+using manual calculation:
+0.0366061331245
+using scipy pearson:
+(0.91430812308591658, 4.4284167781234104e-78)
+using manual calculation:
+0.914308123086
+using scipy pearson:
+(0.82443849559732529, 1.3421298394237971e-49)
+using manual calculation:
+0.824438495597
+using scipy pearson:
+(0.32170466890150895, 5.6767017744506225e-06)
+using manual calculation:
+0.321704668902
+using scipy pearson:
+(0.40214332636994043, 5.1411751273744818e-09)
+using manual calculation:
+0.40214332637
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.16766352471761023, 0.018827570742131646)
+using manual calculation:
+0.167663524718
+using scipy pearson:
+(0.22153611481788732, 0.0018052314488730509)
+using manual calculation:
+0.221536114818
+using scipy pearson:
+(-0.29753408643793289, 2.284018378583675e-05)
+using manual calculation:
+-0.297534086438
+using scipy pearson:
+(-0.28751969526283966, 4.3859929192235207e-05)
+using manual calculation:
+-0.287519695263
+using scipy pearson:
+(0.6509611066741261, 6.9341756005972819e-25)
+using manual calculation:
+0.650961106674
+using scipy pearson:
+(0.064812004741210918, 0.36678412156748641)
+using manual calculation:
+0.0648120047412
+using scipy pearson:
+(0.46331942047525709, 8.0199770055247779e-12)
+using manual calculation:
+0.463319420475
+using scipy pearson:
+(0.88431706792986442, 4.3382361969635755e-66)
+using manual calculation:
+0.88431706793
+using scipy pearson:
+(0.86914620850595226, 3.1285415752269157e-61)
+using manual calculation:
+0.869146208506
+using scipy pearson:
+(0.82179890926296773, 2.808680856407137e-49)
+using manual calculation:
+0.821798909263
+using scipy pearson:
+(0.76678785092995394, 3.3114317357783874e-39)
+using manual calculation:
+0.76678785093
+using scipy pearson:
+(0.879088299037594, 2.4271875503589406e-64)
+using manual calculation:
+0.879088299038
+using scipy pearson:
+(0.040411500420408898, 0.57386258918736255)
+using manual calculation:
+0.0404115004204
+using scipy pearson:
+(-0.27332576007129461, 0.00011057805637777701)
+using manual calculation:
+-0.273325760071
+using scipy pearson:
+(0.40069436022988542, 9.2547955880360056e-09)
+using manual calculation:
+0.40069436023
+using scipy pearson:
+(0.56629110269534477, 4.2235589249431978e-18)
+using manual calculation:
+0.566291102695
+using scipy pearson:
+(0.16766352471761023, 0.018827570742131646)
+using manual calculation:
+0.167663524718
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.57015508114937952, 2.7206478841552311e-18)
+using manual calculation:
+0.570155081149
+using scipy pearson:
+(-0.63232615120938318, 2.1551109363679117e-23)
+using manual calculation:
+-0.632326151209
+using scipy pearson:
+(-0.16641008441472371, 0.019432276615003189)
+using manual calculation:
+-0.166410084415
+using scipy pearson:
+(0.62864173867807049, 5.9259417361198621e-23)
+using manual calculation:
+0.628641738678
+using scipy pearson:
+(0.32593981113784548, 2.9547139513406031e-06)
+using manual calculation:
+0.325939811138
+using scipy pearson:
+(0.43727325128922628, 1.3207960957890367e-10)
+using manual calculation:
+0.437273251289
+using scipy pearson:
+(0.066808940134453015, 0.35093179516259421)
+using manual calculation:
+0.0668089401345
+using scipy pearson:
+(-0.19209412409852894, 0.0068460182400704797)
+using manual calculation:
+-0.192094124099
+using scipy pearson:
+(-0.24072518987034139, 0.0006556452513373607)
+using manual calculation:
+-0.24072518987
+using scipy pearson:
+(-0.29851950846809255, 2.0368220420871468e-05)
+using manual calculation:
+-0.298519508468
+using scipy pearson:
+(-0.20759932124555333, 0.0035039505920808332)
+using manual calculation:
+-0.207599321246
+using scipy pearson:
+(0.031723417781734507, 0.6589247589126509)
+using manual calculation:
+0.0317234177817
+using scipy pearson:
+(-0.27700232257513935, 8.8458189836955386e-05)
+using manual calculation:
+-0.277002322575
+using scipy pearson:
+(0.61892659807935624, 1.3969781074722258e-21)
+using manual calculation:
+0.618926598079
+using scipy pearson:
+(0.761265906400171, 2.3826988506447013e-38)
+using manual calculation:
+0.7612659064
+using scipy pearson:
+(0.22153611481788732, 0.0018052314488730509)
+using manual calculation:
+0.221536114818
+using scipy pearson:
+(0.57015508114937952, 2.7206478841552311e-18)
+using manual calculation:
+0.570155081149
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(-0.39469548367520851, 1.0373091993222119e-08)
+using manual calculation:
+-0.394695483675
+using scipy pearson:
+(0.1285044440894226, 0.072653001113209215)
+using manual calculation:
+0.128504444089
+using scipy pearson:
+(0.46322529619098152, 9.1720163879247769e-12)
+using manual calculation:
+0.463225296191
+using scipy pearson:
+(0.29370478607659156, 2.9397143654707267e-05)
+using manual calculation:
+0.293704786077
+using scipy pearson:
+(0.063901240413642396, 0.37357065647725729)
+using manual calculation:
+0.0639012404136
+using scipy pearson:
+(-0.061039994510163384, 0.3953880818694806)
+using manual calculation:
+-0.0610399945102
+using scipy pearson:
+(-0.14764492558637396, 0.038909823704702348)
+using manual calculation:
+-0.147644925586
+using scipy pearson:
+(-0.2321436951389341, 0.00106011369754318)
+using manual calculation:
+-0.232143695139
+using scipy pearson:
+(-0.25354855676414806, 0.0003361126905606588)
+using manual calculation:
+-0.253548556764
+using scipy pearson:
+(-0.088543368755988991, 0.21716429921923139)
+using manual calculation:
+-0.088543368756
+using scipy pearson:
+(-0.049350922455718656, 0.49213798877682746)
+using manual calculation:
+-0.0493509224557
+using scipy pearson:
+(0.15269397505139753, 0.033084273531983163)
+using manual calculation:
+0.152693975051
+using scipy pearson:
+(-0.2224601690256969, 0.0019805583919834647)
+using manual calculation:
+-0.222460169026
+using scipy pearson:
+(-0.68849385543526043, 5.1315415831547714e-29)
+using manual calculation:
+-0.688493855435
+using scipy pearson:
+(-0.29753408643793289, 2.284018378583675e-05)
+using manual calculation:
+-0.297534086438
+using scipy pearson:
+(-0.63232615120938318, 2.1551109363679117e-23)
+using manual calculation:
+-0.632326151209
+using scipy pearson:
+(-0.39469548367520851, 1.0373091993222119e-08)
+using manual calculation:
+-0.394695483675
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.76173914278720001, 1.3029379763236837e-38)
+using manual calculation:
+0.761739142787
+using scipy pearson:
+(-0.75552665348874792, 1.7520921666023438e-37)
+using manual calculation:
+-0.755526653489
+using scipy pearson:
+(-0.56301945899691996, 7.2076985220091782e-18)
+using manual calculation:
+-0.563019458997
+using scipy pearson:
+(-0.51921511030666556, 5.4115184168113835e-15)
+using manual calculation:
+-0.519215110307
+using scipy pearson:
+(-0.10279757983153927, 0.15058680923202786)
+using manual calculation:
+-0.102797579832
+using scipy pearson:
+(0.11555223419341963, 0.10588847776303584)
+using manual calculation:
+0.115552234193
+using scipy pearson:
+(0.16853720631390232, 0.017911672554305209)
+using manual calculation:
+0.168537206314
+using scipy pearson:
+(0.27374187079703755, 9.9294424007648411e-05)
+using manual calculation:
+0.273741870797
+using scipy pearson:
+(0.093231065954052075, 0.19369733597399308)
+using manual calculation:
+0.0932310659541
+using scipy pearson:
+(-0.16923798252142339, 0.017725275838994258)
+using manual calculation:
+-0.169237982521
+using scipy pearson:
+(-0.12168615694216633, 0.090145039709294245)
+using manual calculation:
+-0.121686156942
+using scipy pearson:
+(0.048544639144940165, 0.50484265346225776)
+using manual calculation:
+0.0485446391449
+using scipy pearson:
+(-0.29402388449181688, 2.745234315646653e-05)
+using manual calculation:
+-0.294023884492
+using scipy pearson:
+(-0.28751969526283966, 4.3859929192235207e-05)
+using manual calculation:
+-0.287519695263
+using scipy pearson:
+(-0.16641008441472371, 0.019432276615003189)
+using manual calculation:
+-0.166410084415
+using scipy pearson:
+(0.1285044440894226, 0.072653001113209215)
+using manual calculation:
+0.128504444089
+using scipy pearson:
+(0.76173914278720001, 1.3029379763236837e-38)
+using manual calculation:
+0.761739142787
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(-0.36469027106599738, 1.4792535992980882e-07)
+using manual calculation:
+-0.364690271066
+using scipy pearson:
+(-0.17524228694229932, 0.013774892773667112)
+using manual calculation:
+-0.175242286942
+using scipy pearson:
+(-0.25531165098820668, 0.00029362613918134788)
+using manual calculation:
+-0.255311650988
+using scipy pearson:
+(-0.17691755947314061, 0.01288240308830395)
+using manual calculation:
+-0.176917559473
+using scipy pearson:
+(-0.11726044037389778, 0.10079300960224767)
+using manual calculation:
+-0.117260440374
+using scipy pearson:
+(-0.091932493870284834, 0.19884636610256248)
+using manual calculation:
+-0.0919324938703
+using scipy pearson:
+(-0.019435460574944718, 0.78633002367845761)
+using manual calculation:
+-0.0194354605749
+using scipy pearson:
+(-0.13809696696014356, 0.053575915369448467)
+using manual calculation:
+-0.13809696696
+using scipy pearson:
+(0.42222667418097815, 7.8418127709344427e-10)
+using manual calculation:
+0.422226674181
+using scipy pearson:
+(0.24334595740935916, 0.00060811190468613942)
+using manual calculation:
+0.243345957409
+using scipy pearson:
+(0.28363745235511589, 7.3204066453840422e-05)
+using manual calculation:
+0.283637452355
+using scipy pearson:
+(0.68016650270505263, 5.742820367786736e-28)
+using manual calculation:
+0.680166502705
+using scipy pearson:
+(0.6509611066741261, 6.9341756005972819e-25)
+using manual calculation:
+0.650961106674
+using scipy pearson:
+(0.62864173867807049, 5.9259417361198621e-23)
+using manual calculation:
+0.628641738678
+using scipy pearson:
+(0.46322529619098152, 9.1720163879247769e-12)
+using manual calculation:
+0.463225296191
+using scipy pearson:
+(-0.75552665348874792, 1.7520921666023438e-37)
+using manual calculation:
+-0.755526653489
+using scipy pearson:
+(-0.36469027106599738, 1.4792535992980882e-07)
+using manual calculation:
+-0.364690271066
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.63894803015621637, 7.0136554836527465e-24)
+using manual calculation:
+0.638948030156
+using scipy pearson:
+(0.76409932302202288, 8.7142436577193598e-39)
+using manual calculation:
+0.764099323022
+using scipy pearson:
+(0.49667213142001587, 1.3234814686728762e-13)
+using manual calculation:
+0.49667213142
+using scipy pearson:
+(0.2718930332072097, 0.00011571413936171056)
+using manual calculation:
+0.271893033207
+using scipy pearson:
+(0.20863100702693937, 0.0033407157493535915)
+using manual calculation:
+0.208631007027
+using scipy pearson:
+(0.11627470158192815, 0.10460155545882467)
+using manual calculation:
+0.116274701582
+using scipy pearson:
+(0.26860851823633969, 0.00014656787982291134)
+using manual calculation:
+0.268608518236
+using scipy pearson:
+(-0.14385646812832928, 0.044263844721467098)
+using manual calculation:
+-0.143856468128
+using scipy pearson:
+(-0.18373287884922349, 0.010137006799356781)
+using manual calculation:
+-0.183732878849
+using scipy pearson:
+(-0.031269663183225264, 0.66761499031699789)
+using manual calculation:
+-0.0312696631832
+using scipy pearson:
+(0.39857967916676862, 6.595322886738896e-09)
+using manual calculation:
+0.398579679167
+using scipy pearson:
+(0.064812004741210918, 0.36678412156748641)
+using manual calculation:
+0.0648120047412
+using scipy pearson:
+(0.32593981113784548, 2.9547139513406031e-06)
+using manual calculation:
+0.325939811138
+using scipy pearson:
+(0.29370478607659156, 2.9397143654707267e-05)
+using manual calculation:
+0.293704786077
+using scipy pearson:
+(-0.56301945899691996, 7.2076985220091782e-18)
+using manual calculation:
+-0.563019458997
+using scipy pearson:
+(-0.17524228694229932, 0.013774892773667112)
+using manual calculation:
+-0.175242286942
+using scipy pearson:
+(0.63894803015621637, 7.0136554836527465e-24)
+using manual calculation:
+0.638948030156
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.50305003255419245, 4.9416033818164053e-14)
+using manual calculation:
+0.503050032554
+using scipy pearson:
+(-0.056224264264144591, 0.4326035552503521)
+using manual calculation:
+-0.0562242642641
+using scipy pearson:
+(-0.20578870956424666, 0.0037183442695914878)
+using manual calculation:
+-0.205788709564
+using scipy pearson:
+(-0.26731477293468314, 0.00014621982417578399)
+using manual calculation:
+-0.267314772935
+using scipy pearson:
+(-0.29800625461296942, 2.1079564585649448e-05)
+using manual calculation:
+-0.298006254613
+using scipy pearson:
+(-0.19684119542592735, 0.0056878038601546809)
+using manual calculation:
+-0.196841195426
+using scipy pearson:
+(0.22707713944595936, 0.0013711253737167851)
+using manual calculation:
+0.227077139446
+using scipy pearson:
+(0.20277417561172256, 0.0044694242605004663)
+using manual calculation:
+0.202774175612
+using scipy pearson:
+(0.23211106267524895, 0.0012334777929915765)
+using manual calculation:
+0.232111062675
+using scipy pearson:
+(0.42057098514233948, 7.5939415919177777e-10)
+using manual calculation:
+0.420570985142
+using scipy pearson:
+(0.46331942047525709, 8.0199770055247779e-12)
+using manual calculation:
+0.463319420475
+using scipy pearson:
+(0.43727325128922628, 1.3207960957890367e-10)
+using manual calculation:
+0.437273251289
+using scipy pearson:
+(0.063901240413642396, 0.37357065647725729)
+using manual calculation:
+0.0639012404136
+using scipy pearson:
+(-0.51921511030666556, 5.4115184168113835e-15)
+using manual calculation:
+-0.519215110307
+using scipy pearson:
+(-0.25531165098820668, 0.00029362613918134788)
+using manual calculation:
+-0.255311650988
+using scipy pearson:
+(0.76409932302202288, 8.7142436577193598e-39)
+using manual calculation:
+0.764099323022
+using scipy pearson:
+(0.50305003255419245, 4.9416033818164053e-14)
+using manual calculation:
+0.503050032554
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.60318246256992358, 6.6159192810039236e-21)
+using manual calculation:
+0.60318246257
+using scipy pearson:
+(0.18180314872992098, 0.010562962233700334)
+using manual calculation:
+0.18180314873
+using scipy pearson:
+(0.28758164226796423, 4.1743465639913648e-05)
+using manual calculation:
+0.287581642268
+using scipy pearson:
+(0.061854296469547786, 0.38787978615495955)
+using manual calculation:
+0.0618542964695
+using scipy pearson:
+(0.12559537230839943, 0.079423567749090082)
+using manual calculation:
+0.125595372308
+using scipy pearson:
+(0.83432843629929754, 4.5657509195973016e-52)
+using manual calculation:
+0.834328436299
+using scipy pearson:
+(0.83875874404888306, 7.6228479652000908e-53)
+using manual calculation:
+0.838758744049
+using scipy pearson:
+(0.22227606865115238, 0.0019981544311974625)
+using manual calculation:
+0.222276068651
+using scipy pearson:
+(0.20457058560494307, 0.003931936867930497)
+using manual calculation:
+0.204570585605
+using scipy pearson:
+(0.88431706792986442, 4.3382361969635755e-66)
+using manual calculation:
+0.88431706793
+using scipy pearson:
+(0.066808940134453015, 0.35093179516259421)
+using manual calculation:
+0.0668089401345
+using scipy pearson:
+(-0.061039994510163384, 0.3953880818694806)
+using manual calculation:
+-0.0610399945102
+using scipy pearson:
+(-0.10279757983153927, 0.15058680923202786)
+using manual calculation:
+-0.102797579832
+using scipy pearson:
+(-0.17691755947314061, 0.01288240308830395)
+using manual calculation:
+-0.176917559473
+using scipy pearson:
+(0.49667213142001587, 1.3234814686728762e-13)
+using manual calculation:
+0.49667213142
+using scipy pearson:
+(-0.056224264264144591, 0.4326035552503521)
+using manual calculation:
+-0.0562242642641
+using scipy pearson:
+(0.60318246256992358, 6.6159192810039236e-21)
+using manual calculation:
+0.60318246257
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.8571230236755063, 4.3986088452675087e-58)
+using manual calculation:
+0.857123023676
+using scipy pearson:
+(0.92369887285255814, 3.4720935585547178e-83)
+using manual calculation:
+0.923698872853
+using scipy pearson:
+(0.79006356870837413, 2.6038881895441227e-43)
+using manual calculation:
+0.790063568708
+using scipy pearson:
+(0.81821198584804689, 1.6101760062587692e-48)
+using manual calculation:
+0.818211985848
+using scipy pearson:
+(0.95791440454695809, 4.1772486581135277e-107)
+using manual calculation:
+0.957914404547
+using scipy pearson:
+(0.98463643209036888, 3.0757545068067963e-148)
+using manual calculation:
+0.98463643209
+using scipy pearson:
+(0.017186494781331801, 0.8134479185210044)
+using manual calculation:
+0.0171864947813
+using scipy pearson:
+(-0.006381722303547499, 0.9290798189642121)
+using manual calculation:
+-0.00638172230355
+using scipy pearson:
+(0.86914620850595226, 3.1285415752269157e-61)
+using manual calculation:
+0.869146208506
+using scipy pearson:
+(-0.19209412409852894, 0.0068460182400704797)
+using manual calculation:
+-0.192094124099
+using scipy pearson:
+(-0.14764492558637396, 0.038909823704702348)
+using manual calculation:
+-0.147644925586
+using scipy pearson:
+(0.11555223419341963, 0.10588847776303584)
+using manual calculation:
+0.115552234193
+using scipy pearson:
+(-0.11726044037389778, 0.10079300960224767)
+using manual calculation:
+-0.117260440374
+using scipy pearson:
+(0.2718930332072097, 0.00011571413936171056)
+using manual calculation:
+0.271893033207
+using scipy pearson:
+(-0.20578870956424666, 0.0037183442695914878)
+using manual calculation:
+-0.205788709564
+using scipy pearson:
+(0.18180314872992098, 0.010562962233700334)
+using manual calculation:
+0.18180314873
+using scipy pearson:
+(0.8571230236755063, 4.3986088452675087e-58)
+using manual calculation:
+0.857123023676
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.95869404993862806, 2.0066240394635461e-108)
+using manual calculation:
+0.958694049939
+using scipy pearson:
+(0.98269327693895459, 9.3806203468627596e-145)
+using manual calculation:
+0.982693276939
+using scipy pearson:
+(0.99221467946418174, 1.7793626516866499e-177)
+using manual calculation:
+0.992214679464
+using scipy pearson:
+(0.87774515816242316, 6.6224253125059951e-64)
+using manual calculation:
+0.877745158162
+using scipy pearson:
+(0.95300824573632337, 4.8118364615296429e-102)
+using manual calculation:
+0.953008245736
+using scipy pearson:
+(0.046200731594103629, 0.52565378410717578)
+using manual calculation:
+0.0462007315941
+using scipy pearson:
+(-0.030744941928995712, 0.668009752906773)
+using manual calculation:
+-0.030744941929
+using scipy pearson:
+(0.82179890926296773, 2.808680856407137e-49)
+using manual calculation:
+0.821798909263
+using scipy pearson:
+(-0.24072518987034139, 0.0006556452513373607)
+using manual calculation:
+-0.24072518987
+using scipy pearson:
+(-0.2321436951389341, 0.00106011369754318)
+using manual calculation:
+-0.232143695139
+using scipy pearson:
+(0.16853720631390232, 0.017911672554305209)
+using manual calculation:
+0.168537206314
+using scipy pearson:
+(-0.091932493870284834, 0.19884636610256248)
+using manual calculation:
+-0.0919324938703
+using scipy pearson:
+(0.20863100702693937, 0.0033407157493535915)
+using manual calculation:
+0.208631007027
+using scipy pearson:
+(-0.26731477293468314, 0.00014621982417578399)
+using manual calculation:
+-0.267314772935
+using scipy pearson:
+(0.28758164226796423, 4.1743465639913648e-05)
+using manual calculation:
+0.287581642268
+using scipy pearson:
+(0.92369887285255814, 3.4720935585547178e-83)
+using manual calculation:
+0.923698872853
+using scipy pearson:
+(0.95869404993862806, 2.0066240394635461e-108)
+using manual calculation:
+0.958694049939
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.94393280679881852, 8.446697151680242e-96)
+using manual calculation:
+0.943932806799
+using scipy pearson:
+(0.93348938075061405, 2.4133686875379275e-88)
+using manual calculation:
+0.933489380751
+using scipy pearson:
+(0.91757963821481148, 1.1935747979779827e-79)
+using manual calculation:
+0.917579638215
+using scipy pearson:
+(0.97722763932287549, 6.7273538088082909e-132)
+using manual calculation:
+0.977227639323
+using scipy pearson:
+(-0.072350185211601942, 0.31991138894689619)
+using manual calculation:
+-0.0723501852116
+using scipy pearson:
+(-0.15957260858043784, 0.025102145169875387)
+using manual calculation:
+-0.15957260858
+using scipy pearson:
+(0.76678785092995394, 3.3114317357783874e-39)
+using manual calculation:
+0.76678785093
+using scipy pearson:
+(-0.29851950846809255, 2.0368220420871468e-05)
+using manual calculation:
+-0.298519508468
+using scipy pearson:
+(-0.25354855676414806, 0.0003361126905606588)
+using manual calculation:
+-0.253548556764
+using scipy pearson:
+(0.27374187079703755, 9.9294424007648411e-05)
+using manual calculation:
+0.273741870797
+using scipy pearson:
+(-0.019435460574944718, 0.78633002367845761)
+using manual calculation:
+-0.0194354605749
+using scipy pearson:
+(0.11627470158192815, 0.10460155545882467)
+using manual calculation:
+0.116274701582
+using scipy pearson:
+(-0.29800625461296942, 2.1079564585649448e-05)
+using manual calculation:
+-0.298006254613
+using scipy pearson:
+(0.061854296469547786, 0.38787978615495955)
+using manual calculation:
+0.0618542964695
+using scipy pearson:
+(0.79006356870837413, 2.6038881895441227e-43)
+using manual calculation:
+0.790063568708
+using scipy pearson:
+(0.98269327693895459, 9.3806203468627596e-145)
+using manual calculation:
+0.982693276939
+using scipy pearson:
+(0.94393280679881852, 8.446697151680242e-96)
+using manual calculation:
+0.943932806799
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
+using scipy pearson:
+(0.96863406295414134, 2.8948795326634766e-119)
+using manual calculation:
+0.968634062954
+using scipy pearson:
+(0.95479053674759606, 3.7267137917585024e-104)
+using manual calculation:
+0.954790536748
+using scipy pearson:
+(0.97126371684644353, 2.8349583981625045e-122)
+using manual calculation:
+0.971263716846
+using scipy pearson:
+(0.0401459358353565, 0.58135388962161416)
+using manual calculation:
+0.0401459358354
+using scipy pearson:
+(0.036606133124517284, 0.61048687140711133)
+using manual calculation:
+0.0366061331245
+using scipy pearson:
+(0.879088299037594, 2.4271875503589406e-64)
+using manual calculation:
+0.879088299038
+using scipy pearson:
+(-0.20759932124555333, 0.0035039505920808332)
+using manual calculation:
+-0.207599321246
+using scipy pearson:
+(-0.088543368755988991, 0.21716429921923139)
+using manual calculation:
+-0.088543368756
+using scipy pearson:
+(0.093231065954052075, 0.19369733597399308)
+using manual calculation:
+0.0932310659541
+using scipy pearson:
+(-0.13809696696014356, 0.053575915369448467)
+using manual calculation:
+-0.13809696696
+using scipy pearson:
+(0.26860851823633969, 0.00014656787982291134)
+using manual calculation:
+0.268608518236
+using scipy pearson:
+(-0.19684119542592735, 0.0056878038601546809)
+using manual calculation:
+-0.196841195426
+using scipy pearson:
+(0.12559537230839943, 0.079423567749090082)
+using manual calculation:
+0.125595372308
+using scipy pearson:
+(0.81821198584804689, 1.6101760062587692e-48)
+using manual calculation:
+0.818211985848
+using scipy pearson:
+(0.99221467946418174, 1.7793626516866499e-177)
+using manual calculation:
+0.992214679464
+using scipy pearson:
+(0.93348938075061405, 2.4133686875379275e-88)
+using manual calculation:
+0.933489380751
+using scipy pearson:
+(0.96863406295414134, 2.8948795326634766e-119)
+using manual calculation:
+0.968634062954
+using scipy pearson:
+(1.0, 0.0)
+using manual calculation:
+1.0
