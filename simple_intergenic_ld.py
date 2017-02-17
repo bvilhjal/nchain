@@ -202,7 +202,6 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     nod_list = []
     for i in nod_genes.keys():
         nod_list.append(str(i).decode("utf-8"))
-    # print nod_genes.values()
 
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
@@ -241,11 +240,11 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                 continue
             assert len(np.unique(strains_2)) == len(strains_2), 'There are multiple instances of the same strain in the data?'
 
-            # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they?
+            # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
             strain_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
             fitered_strains_1 = strains_1[strain_mask_1]
             strain_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
-            fitered_strains_2 = strains_1[strain_mask_2]
+            fitered_strains_2 = strains_2[strain_mask_2]
 
 
             # Only use the following code if you have all strains (or a fixed common set of strains).
@@ -269,7 +268,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
             data_g1 = h5f[gg1]
             total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns
-            total_snps_1 = total_snps_1[:, strain_mask_1]  # Assuming it's number of SNPs x number of strains
+            total_snps_1 = total_snps_1[strain_mask_1,:]  # Assuming it's number of SNPs x number of strains (Maria: I transposed so it is in the other way around)
 
 
             # Calculating GRM
@@ -279,7 +278,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
             data_g2 = h5f[gg2]
             total_snps_2 = data_g2['snps'][...].T  # strains in the rows, snps in the columns
-            total_snps_2 = total_snps_2[:, strain_mask_2]
+            total_snps_2 = total_snps_2[strain_mask_2,:]
 
             # Calculating GRM
             total_snps_2 = minor_allele_filter(total_snps_2, maf)
@@ -288,14 +287,16 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
             # Calculating correlation and covariance based on the common subset of strains
             grm_1 = gene_grm_dict[str(gg1)]['grm']
-            sub_grm_1 = grm_1[strain_mask_1, strain_mask_1]
-            flat_grm_1 = sub_grm_1.flatten()
+            #sub_grm_1 = grm_1[strain_mask_1, strain_mask_1]
+            #flat_grm_1 = sub_grm_1.flatten()
+            flat_grm_1 = grm_1.flatten()
             norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
             norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 
             grm_2 = gene_grm_dict[str(gg2)]['grm']
-            sub_grm_2 = grm_2[strain_mask_2, strain_mask_2]
-            flat_grm_2 = sub_grm_2.flatten()
+            #sub_grm_2 = grm_2[strain_mask_2, strain_mask_2]
+            #flat_grm_2 = sub_grm_2.flatten()
+            flat_grm_2 = grm_2.flatten()
             norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
             norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
