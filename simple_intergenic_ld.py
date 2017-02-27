@@ -24,15 +24,66 @@ def minor_allele_filter(gene_matrix, maf):
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
     return(norm_matrix)
 
-def correlation_plot(df):
+def correlation_plot(df, wrt = False):
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(12, 9))
 
     # Clustering with seaborn
     with sns.axes_style("white"):
-        ax = sns.heatmap(df, square=True, annot=True, annot_kws={"size": 9}, cmap="RdYlGn", vmin=0, vmax=1)
+        ax = sns.heatmap(df, square=True, annot= wrt, annot_kws={"size": 9}, cmap="RdYlGn", vmin=0, vmax=1)
     f.tight_layout()
     plt.show()
+
+def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
+                 min_maf = 0.1,
+                 max_strain_num=200):
+    """
+    Calculates the kinship
+    """
+    h5f = h5py.File(snps_file)
+    gene_groups = h5f.keys()
+    all_strains = set()
+    for gg in gene_groups:
+        data_g = h5f[gg]
+        strains = data_g['strains'][...]
+        if len(strains)<max_strain_num:
+            all_strains = set(strains).union(all_strains)
+    num_strains = len(all_strains)
+    print 'Found %d "distinct" strains'%num_strains
+    
+    ordered_strains = sorted(list(all_strains))
+    
+    strain_index = pd.Index(ordered_strains)
+    K_snps = sp.zeros((num_strains,num_strains))
+    counts_mat_snps = sp.zeros((num_strains,num_strains))
+   
+    for i, gg in enumerate(gene_groups):
+        if i%100==0:
+            print 'Working on gene nr. %d'%i 
+        data_g = h5f[gg]
+        strains = data_g['strains'][...]
+        if len(strains)<max_strain_num:
+            strain_mask = strain_index.get_indexer(strains)
+            
+            snps = data_g['norm_snps'][...]
+            freqs = data_g['freqs'][...]
+            mafs = sp.minimum(freqs,1-freqs)
+            maf_mask = mafs>min_maf
+            snps = snps[maf_mask]
+            if len(snps)==0:
+                continue
+            K_snps_slice = K_snps[strain_mask]
+            K_snps_slice[:,strain_mask] += sp.dot(snps.T,snps)
+            K_snps[strain_mask] = K_snps_slice
+            counts_mat_snps_slice = counts_mat_snps[strain_mask]
+            counts_mat_snps_slice[:,strain_mask] += len(snps)
+            counts_mat_snps[strain_mask] = counts_mat_snps_slice
+              
+    K_snps  = K_snps/counts_mat_snps  #element-wise division
+    print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
+    #correlation_plot(K_snps)
+    return(K_snps)
+kinship_all_genes()
 
 def simple_intergenic_ld_core(max_strain_num=198,
                             maf=0.1,
@@ -304,18 +355,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             r = pearsonr(norm_flat_grm1, norm_flat_grm2)
             cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r[0]
 
-            # Manually calculating correlation:
-            covariance = sp.dot(norm_flat_grm1, norm_flat_grm2)
-            var1 = np.sum(abs(norm_flat_grm1 - norm_flat_grm1.mean()) ** 2)
-            var2 = np.sum(abs(norm_flat_grm2 - norm_flat_grm2.mean()) ** 2)
-            r_manual = covariance / sp.sqrt(var1 * var2)
-
-            print 'using scipy pearson:'
-            print r
-            print 'using manual calculation:'
-            print r_manual
-
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     correlation_plot(cor_matrix)
 
-simple_mantel_nod_genes_nod_genes()
+#simple_mantel_nod_genes_nod_genes()
