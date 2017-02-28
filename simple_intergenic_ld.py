@@ -10,9 +10,18 @@ import matplotlib.pyplot as plt
 from scipy.stats.stats import pearsonr
 import seaborn as sns
 import time
+from collections import OrderedDict
+
+def parse_nod():
+    nod_genes = OrderedDict()
+    # Full matrix:
+    #nod_genes = {4144: 'nodX', 4143: 'nodN', 4142: 'nodM', 4141: 'nodL',10151: 'nodR', 4140: 'nodE', 4139: 'nodF', 4138: 'nodD', 4137: 'nodA', 8237: 'nodB', 4136: 'nodC', 4135: 'nodI', 4134: 'nodJ', 4131: 'fixT', 4130:'fixN', 4129: 'nifB', 4128: 'nifA', 4127: 'fixX', 4126:'fixC', 4125: 'fixB', 4124: 'fixA', 4123: 'nifH', 4122: 'nifD', 4121: 'nifK', 4120: 'nifE', 4119: 'nifN', 2448: 'rpoB', 2140: 'recA'}
+    nod_genes = OrderedDict([(4144, 'nodX'), (4143, 'nodN'), (4142, 'nodM'), (4141, 'nodL'), (4140, 'nodE'), (4139, 'nodF'), (4138, 'nodD'), (4137, 'nodA'), (4136, 'nodC'), (4135, 'nodI'), (4134, 'nodJ'), (4129, 'nifB'), (4128, 'nifA'), (4127, 'fixX'), (4126,'fixC'), (4125, 'fixB'), (4124, 'fixA'), (4123, 'nifH'), (4122, 'nifD'), (4121, 'nifK'), (4120, 'nifE'), (2448, 'rpoB'), (2140, 'recA')])
+    print nod_genes
+    return(nod_genes)
 
 def minor_allele_filter(gene_matrix, maf):
-    '''Filtering for minor allele frequency, it assumes that the matrix is binary and that is n x m, where columns are markers (m).'''
+    """Filtering for minor allele frequency, it assumes that the matrix is binary and that is n x m, where columns are markers (m)."""
 
     freqs = sp.mean(gene_matrix, 0)
     mafs = sp.minimum(freqs, 1 - freqs)
@@ -24,7 +33,7 @@ def minor_allele_filter(gene_matrix, maf):
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
     return(norm_matrix)
 
-def correlation_plot(df, wrt = False):
+def correlation_plot(df, wrt = True):
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(12, 9))
 
@@ -83,7 +92,7 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
     print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
     #correlation_plot(K_snps)
     return(K_snps)
-kinship_all_genes()
+#kinship_all_genes()
 
 def simple_intergenic_ld_core(max_strain_num=198,
                             maf=0.1,
@@ -155,7 +164,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
-    nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
+    nod_genes = nod_genes_f()
     # Decoding the nod gene names
     nod_list = []
     for i in nod_genes.keys():
@@ -243,12 +252,11 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
 # simple_intergenic_ld_nod_genes()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
-                            maf=0.05,
+                            maf=0,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
-
-    # nod_genes = {8048:'nodA', 9911: 'nodB', 10421: 'nodC', 7218: 'nodD', 4140: 'nodE', 4139: 'nodF', 10588 : 'nodI', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4130:'fixN', 4127: 'fixX'}
-    nod_genes = {4140: 'nodE', 4139: 'nodF', 4134: 'nodJ', 4141: 'nodL', 4142: 'nodM', 4144: 'nodX', 4143: 'nodN', 4128: 'nifA', 4129: 'nifB', 4122: 'nifD', 4123: 'nifH', 4121: 'nifK', 4119: 'nifN', 4124: 'fixA', 4125: 'fixB', 4126:'fixC', 4127: 'fixX'}
+    nod_genes = parse_nod()
+    print nod_genes.keys()
     # Decoding the nod gene names
     nod_list = []
     for i in nod_genes.keys():
@@ -258,7 +266,6 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     gene_groups = h5f.keys()
 
     gene_grm_dict = {}
-
     # Making the correlation matrix to be updated
     cor_matrix = np.zeros((len(nod_list), len(nod_list)))
     cor_matrix = pd.DataFrame(cor_matrix, index=nod_genes.values(), columns=nod_genes.values())
@@ -273,12 +280,11 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
         except KeyError:
             'The nod gene %s is not in our subset of the data' % nod_genes[int(i)]
 
-
     for i, gg1 in enumerate(nod_list):
         try:
             strains_1 = h5f[gg1]['strains'][...]
         except KeyError:
-            # print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg1)]
+            print 'The nod gene %s is not in our subset of the data' % nod_genes[int(gg1)]
             continue
         assert len(np.unique(strains_1)) == len(strains_1), 'There are multiple instances of the same strain in the data?'
 
@@ -358,4 +364,4 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     correlation_plot(cor_matrix)
 
-#simple_mantel_nod_genes_nod_genes()
+simple_mantel_nod_genes_nod_genes()
