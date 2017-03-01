@@ -44,7 +44,7 @@ def correlation_plot(df, wrt = True):
     plt.show()
 
 def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
-                 min_maf = 0.1,
+                 min_maf = 0.05,
                  max_strain_num=200):
     """
     Calculates the kinship
@@ -90,15 +90,18 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
               
     K_snps  = K_snps/counts_mat_snps  #element-wise division
     print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
-    #correlation_plot(K_snps)
-    return(K_snps)
+    #K_snps = pd.DataFrame(K_snps)
+    #K_snps.to_csv('kinship_all_core.csv', header = ordered_strains) # The first collumn of the data contains the way strains are sorted
+   
+    tuple_index_kinship = (strain_index, K_snps)
+    return(tuple_index_kinship)
 #kinship_all_genes()
 
 def simple_intergenic_ld_core(max_strain_num=198,
                             maf=0.1,
                             n=10,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
-    """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
+    """Core versus core"""
 
     t0 = time.time()
     h5f = h5py.File(snps_file)
@@ -254,7 +257,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
-    """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
+    """Nod genes versus nod genes"""
     nod_genes = parse_nod()
     print nod_genes.keys()
     # Decoding the nod gene names
@@ -303,6 +306,12 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             strain_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
             fitered_strains_2 = strains_2[strain_mask_2]
 
+            # Finding the strains in common to the overall kinship (unpacking a tuple)
+            (kinship_index, kinship) = kinship_all_genes()
+            strain_mask_kinship = np.in1d(strains_1, kinship_index, assume_unique=True)
+            commmon_strains = strain_mask_kinship[strain_mask_kinship]
+            kinship_subset = kinship[commmon_strains,:]
+            print kinship_subset.shape
 
             # Only use the following code if you have all strains (or a fixed common set of strains).
 #             if gg1 not in gene_grm_dict:
@@ -327,7 +336,6 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns
             total_snps_1 = total_snps_1[strain_mask_1,:]  # Assuming it's number of SNPs x number of strains (Maria: I transposed so it is in the other way around)
 
-
             # Calculating GRM
             total_snps_1 = minor_allele_filter(total_snps_1, maf)
             grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
@@ -344,15 +352,11 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
             # Calculating correlation and covariance based on the common subset of strains
             grm_1 = gene_grm_dict[str(gg1)]['grm']
-            #sub_grm_1 = grm_1[strain_mask_1, strain_mask_1]
-            #flat_grm_1 = sub_grm_1.flatten()
             flat_grm_1 = grm_1.flatten()
             norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
             norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 
             grm_2 = gene_grm_dict[str(gg2)]['grm']
-            #sub_grm_2 = grm_2[strain_mask_2, strain_mask_2]
-            #flat_grm_2 = sub_grm_2.flatten()
             flat_grm_2 = grm_2.flatten()
             norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
             norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
@@ -360,6 +364,10 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
             r = pearsonr(norm_flat_grm1, norm_flat_grm2)
             cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r[0]
+
+            # Calculating against the overall kinship
+            print kinship_subset.flatten()
+            #print pearsonr(norm_flat_grm1, kinship_subset.flatten())
 
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     correlation_plot(cor_matrix)
