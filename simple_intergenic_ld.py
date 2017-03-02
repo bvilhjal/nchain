@@ -33,6 +33,11 @@ def minor_allele_filter(gene_matrix, maf):
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
     return(norm_matrix)
 
+def average_genotype_matrix(X):
+    'Computes the average genotype matrix, it assumes that the input matrix (Markers/M in rows and individuals/N in collumns)'
+    average_X = (X - np.mean(X, axis = 0))
+    return(average_X)
+
 def correlation_plot(df, wrt = True):
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(12, 9))
@@ -67,18 +72,23 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
     counts_mat_snps = sp.zeros((num_strains,num_strains))
    
     for i, gg in enumerate(gene_groups):
-        #if i%100==0:
-            #print 'Working on gene nr. %d'%i 
+        if i%100==0:
+            print 'Working on gene nr. %d'%i 
         data_g = h5f[gg]
         strains = data_g['strains'][...]
         if len(strains)<max_strain_num:
             strain_mask = strain_index.get_indexer(strains)
             
+            # Already normalized snps
             snps = data_g['norm_snps'][...]
             freqs = data_g['freqs'][...]
             mafs = sp.minimum(freqs,1-freqs)
             maf_mask = mafs>min_maf
             snps = snps[maf_mask]
+
+            # Calculating the average genotype matrix (snps rows, individuals collumns)
+            snps = average_genotype_matrix(snps)
+
             if len(snps)==0:
                 continue
             K_snps_slice = K_snps[strain_mask]
@@ -90,12 +100,13 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
               
     K_snps  = K_snps/counts_mat_snps  #element-wise division
     print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
+    correlation_plot(K_snps, wrt = False)
     #K_snps = pd.DataFrame(K_snps)
     #K_snps.to_csv('kinship_all_core.csv', header = ordered_strains) # The first collumn of the data contains the way strains are sorted
    
     tuple_index_kinship = (strain_index, K_snps)
     return(tuple_index_kinship)
-#kinship_all_genes()
+kinship_all_genes()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0.1,
@@ -159,6 +170,19 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             kinship_subset = kinship_subset[:,common_strains]
             print kinship_subset.shape
 
+            # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
+            #print("Finding inverse and sqrt of covariance matrix...")
+
+            #inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
+
+            #print inv_cov_sqrt
+
+            # 3. Calculate the pseudo-SNPs (x*A)
+            #print("Calculating pseudo SNPS...")
+            #pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
+            #del full_genotype_matrix
+
+
             # Only use the following code if you have all strains (or a fixed common set of strains).
 #             if gg1 not in gene_grm_dict:
 #                 data_g1 = h5f[gg1]
@@ -219,4 +243,4 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     #correlation_plot(cor_matrix)
 
-simple_mantel_nod_genes_nod_genes()
+#simple_mantel_nod_genes_nod_genes()
