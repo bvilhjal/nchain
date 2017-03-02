@@ -6,12 +6,15 @@ Mantel test, correlation between entries of two square matrices containing 'dist
 Mantel test without correction for population structure
 -------------------------------------------------------
 
-In this present analysis, we have decided to apply the Mantel test without any correction for population structure. Three different data sets were analyzed: 1. Pairwise correlation of all core genes GRM 2. Pairwise correlation of symbiotic genes 3. Pairwise correlation of symbiotic genes versus core genes
+In this present analysis, we have decided to apply the Mantel test without any correction for population structure. Three different data sets were analyzed: \* Pairwise correlation of all core genes GRM \* Pairwise correlation of symbiotic genes \* Pairwise correlation of symbiotic genes versus core genes
 
 ### Pairwise correlation of symbiotic genes
 
-The results of the pairwise combination of symbiotic genes is shown in the figure below: ![](https://github.com/bvilhjal/nchain/blob/master/nod_genes.pdf)
+The results of the pairwise combination of symbiotic genes is shown in the figure below: ![](https://github.com/bvilhjal/nchain/blob/master/mantel_recA_rpoB.pdf)
 
-<img src="nod_genes.pdf">
+From this plot, we are missing nodD, nodC, nodB, nodI, nodA and fixN symbiotic genes:. Bjarni has done some filters with SNP data and it seems that those genes did not pass the criteria he's defined. I will try to include them again into our data set.
 
-From this plot, we are missing the symbiotic genes: nodD, nodC, nodB, nodI, nodA and fixN. Bjarni has done some filters with SNP data and it seems that those genes did not pass the criteria he's defined. I will try to include them again into our data set.
+Mantel test correcting for population structure
+-----------------------------------------------
+
+Mantel test, used as a LD approach, relies on the existence of patterns produced exclusively due to genetic variation. However, population structure, local selection or other factors could be confounders in Mantel tests correlations, leading us to wrong conclusions. One way of dealing with this problem is to correct the data matrix for population structure.
