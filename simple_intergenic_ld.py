@@ -11,6 +11,7 @@ from scipy.stats.stats import pearsonr
 import seaborn as sns
 import time
 from collections import OrderedDict
+from numpy import linalg
 
 def parse_nod():
     nod_genes = OrderedDict()
@@ -34,8 +35,10 @@ def minor_allele_filter(gene_matrix, maf):
     return(norm_matrix)
 
 def average_genotype_matrix(X):
-    'Computes the average genotype matrix, it assumes that the input matrix (Markers/M in rows and individuals/N in collumns)'
-    average_X = (X - np.mean(X, axis = 0))
+    '''Computes the average genotype matrix, it assumes that the input matrix (Markers/M in cols and individuals/N in rows)'''
+
+    # Normalizing the rows:
+    average_X = (X - np.mean(X, axis = 1))
     return(average_X)
 
 def correlation_plot(df, wrt = True):
@@ -101,12 +104,46 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
     K_snps  = K_snps/counts_mat_snps  #element-wise division
     print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
     correlation_plot(K_snps, wrt = False)
-    #K_snps = pd.DataFrame(K_snps)
-    #K_snps.to_csv('kinship_all_core.csv', header = ordered_strains) # The first collumn of the data contains the way strains are sorted
    
     tuple_index_kinship = (strain_index, K_snps)
     return(tuple_index_kinship)
-kinship_all_genes()
+#kinship_all_genes()
+
+def pseudo_snps(snps):
+    ''' Snps must be N*M '''
+
+    # 1. Normalize snps and filter for MAF
+    total_snps = minor_allele_filter(snps, maf = 0.1)
+   
+    # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
+    # Normalizing the rows:
+    average_X = total_snps - total_snps.mean(axis=1, keepdims=True)
+    
+    resolved = False
+    while resolved == False:
+        try: 
+            # Subsetting the markers
+            #rand_cols = np.random.choice(average_X.shape[1], round(0.90*average_X.shape[1]), replace = False)
+            #sub_average_X = average_X[:, rand_cols]
+            #grm = np.divide(np.dot(sub_average_X, sub_average_X.T), sub_average_X.shape[1])
+
+            # Adding noise to the matrix
+            l, c = (total_snps.shape)
+            noise = np.random.randn(l, c)
+            noisy_average_X = total_snps + noise
+            grm = np.divide(np.dot(noisy_average_X, noisy_average_X.T), noisy_average_X.shape[1])
+
+            # 3. Calculate the pseudo-SNPs (x*A)
+            inv_cov_sqrt = linalg.cholesky(linalg.inv(grm))
+            resolved = True
+        except np.linalg.linalg.LinAlgError as err:
+            if 'Matrix is not positive definite' in err.message:
+                continue
+            else:
+                print err
+
+    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in total_snps.T)
+    return(pseudo_snps)
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0.1,
@@ -137,6 +174,9 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
         except KeyError:
             'The nod gene %s is not in our subset of the data' % nod_genes[int(i)]
 
+    # Opening the kinship matrix
+    #(kinship_index, kinship) = kinship_all_genes()
+
     for i, gg1 in enumerate(nod_list):
         try:
             strains_1 = h5f[gg1]['strains'][...]
@@ -160,29 +200,6 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             strain_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
             fitered_strains_2 = strains_2[strain_mask_2]
 
-            # Finding the strains in common to the overall kinship (unpacking a tuple)
-            (kinship_index, kinship) = kinship_all_genes()
-            print len(strains_1)
-            print len(kinship_index)
-            strain_mask_kinship = np.in1d(kinship_index, strains_1, assume_unique=True)
-            common_strains = strain_mask_kinship[strain_mask_kinship]
-            kinship_subset = kinship[common_strains,:]
-            kinship_subset = kinship_subset[:,common_strains]
-            print kinship_subset.shape
-
-            # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
-            #print("Finding inverse and sqrt of covariance matrix...")
-
-            #inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
-
-            #print inv_cov_sqrt
-
-            # 3. Calculate the pseudo-SNPs (x*A)
-            #print("Calculating pseudo SNPS...")
-            #pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
-            #del full_genotype_matrix
-
-
             # Only use the following code if you have all strains (or a fixed common set of strains).
 #             if gg1 not in gene_grm_dict:
 #                 data_g1 = h5f[gg1]
@@ -204,9 +221,11 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
             data_g1 = h5f[gg1]
             total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns
-            total_snps_1 = total_snps_1[strain_mask_1,:]  # Assuming it's number of SNPs x number of strains (Maria: I transposed so it is in the other way around)
+            total_snps_1 = total_snps_1[strain_mask_1,:]  
 
             # Calculating GRM
+            print pseudo_snps(total_snps_1)
+            
             total_snps_1 = minor_allele_filter(total_snps_1, maf)
             grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
             gene_grm_dict[str(gg1)] = {'grm':grm_1}
@@ -243,4 +262,4 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     #correlation_plot(cor_matrix)
 
-#simple_mantel_nod_genes_nod_genes()
+simple_mantel_nod_genes_nod_genes()
