@@ -159,10 +159,11 @@ def get_snp_cov_mat(snps):
     norm_snps = (snps - np.mean(snps, axis=0)) / np.std(snps, 0)
 
     not_solved = True
-    shuffle_indices = range(M)
+    snp_indices = range(M)
     while not_solved:
-        random.shuffle(shuffle_indices)
-        norm_snps = norm_snps[:, shuffle_indices]
+        snp_indices = random.sample(snp_indices, len(snp_indices) - 1)
+#         random.shuffle(snp_indices)
+        norm_snps = norm_snps[:, snp_indices]
 
         # 2. Normalize Individuals (COV)
         norm_ind_snps = (norm_snps - np.mean(norm_snps, axis=1, keepdims=True))
