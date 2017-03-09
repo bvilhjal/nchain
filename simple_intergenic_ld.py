@@ -109,41 +109,89 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
     return(tuple_index_kinship)
 #kinship_all_genes()
 
-def pseudo_snps(snps):
+def pseudo_snps_shaking(snps, maf = 0.1):
+    # 0. filtering for minor allele frequency
+    freqs = sp.mean(snps, 0)
+    mafs = sp.minimum(freqs, 1 - freqs)
+    maf_filter = mafs > maf
+    snp_mafs = snps[:, maf_filter]
+    total_M = snp_mafs.shape[1] 
+
+    # 1. Normalize SNPs (GRM)        
+    norm_snps_col = (snp_mafs -  np.mean(snp_mafs, axis = 0))/ np.std(snp_mafs, 0)
+
+    # 2. Normalize Individuals (COV)
+    norm_ind_row = (snp_mafs -  np.mean(snp_mafs, axis = 1, keepdims = True))/ np.std(snp_mafs, axis= 1, keepdims = True)
+
+    # 3. Calculate unscaled grm
+    unscaled_grm = np.dot(norm_snps_col, norm_snps_col.T)
+
+    # 4. Calculate unscaled cov
+    unscaled_cov = np.dot(norm_ind_row, norm_ind_row.T)
+
+    # 5. Calculate A, the cholesky decomp of the inverse of the GRM.
+    num_strains = snp_mafs.shape[0]
+
+    # Creating empty arrays to keep track of changes
+    counts_average_snps = sp.zeros((num_strains,num_strains))
+
+    grm = unscaled_grm / total_M
+    cov = unscaled_cov / total_M
+
+    # Decompose the covariance matrix and set negative values to 0
+    tweaked_grm = (unscaled_grm + unscaled_cov) / total_M
+    print linalg.pinv(tweaked_grm)
+    inv_cov_sqrt = linalg.cholesky(linalg.pinv(tweaked_grm))
+
+def pseudo_snps(snps, maf = 0.1):
     ''' Snps must be N*M '''
 
-    # 1. Normalize snps and filter for MAF
-    total_snps = minor_allele_filter(snps, maf = 0.1)
    
-    # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
-    # Normalizing the rows:
-    average_X = total_snps - total_snps.mean(axis=1, keepdims=True)
-    
+    # 0. filtering for minor allele frequency
+    freqs = sp.mean(snps, 0)
+    mafs = sp.minimum(freqs, 1 - freqs)
+    maf_filter = mafs > maf
+    snp_mafs = snps[:, maf_filter]
+    total_M = snp_mafs.shape[1] 
+
+    # 1. Normalize SNPs (GRM) by column        
+    norm_snps_col = (snp_mafs -  np.mean(snp_mafs, axis = 0))/ np.std(snp_mafs, 0)
+
+    # Initializing variables
+    num_strains = snps[0]
+    K_snps = sp.zeros((num_strains,num_strains))
+    counts_mat_snps = sp.zeros((num_strains,num_strains))
     resolved = False
     while resolved == False:
         try: 
             # Subsetting the markers
-            #rand_cols = np.random.choice(average_X.shape[1], round(0.90*average_X.shape[1]), replace = False)
-            #sub_average_X = average_X[:, rand_cols]
-            #grm = np.divide(np.dot(sub_average_X, sub_average_X.T), sub_average_X.shape[1])
+            rand_cols = np.random.choice(norm_snps_col.shape[1], round(0.95*norm_snps_col.shape[1]), replace = False)
 
-            # Adding noise to the matrix
-            l, c = (total_snps.shape)
-            noise = np.random.randn(l, c)
-            noisy_average_X = total_snps + noise
-            grm = np.divide(np.dot(noisy_average_X, noisy_average_X.T), noisy_average_X.shape[1])
+            # Normalizing the rows:
+            average_X = (norm_snps_col - norm_snps_col.mean(axis=1, keepdims=True))/ np.std(norm_snps_col, axis=1)
+            
+            K_snps_slice = average_X[rand_cols]
+            K_snps_slice[:,rand_cols] += sp.dot(average_X.T,average_X)
+            K_snps[rand_cols] = K_snps_slice
+            print K_snps.shape
+
+            counts_average_snps_slice = counts_average_snps[rand_cols]
+            counts_average_snps_slice[:,rand_cols] += len(rand_cols) 
+            counts_average_snps[rand_cols] = counts_average_snps_slice
 
             # 3. Calculate the pseudo-SNPs (x*A)
-            inv_cov_sqrt = linalg.cholesky(linalg.inv(grm))
+            inv_cov_sqrt = linalg.cholesky(linalg.pinv(K_snps))
+
             resolved = True
         except np.linalg.linalg.LinAlgError as err:
             if 'Matrix is not positive definite' in err.message:
+    #            print 'bla'
                 continue
             else:
                 print err
 
-    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in total_snps.T)
-    return(pseudo_snps)
+    #pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in average_X.T)
+    #return(pseudo_snps)
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0.1,
@@ -224,7 +272,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             total_snps_1 = total_snps_1[strain_mask_1,:]  
 
             # Calculating GRM
-            print pseudo_snps(total_snps_1)
+            print pseudo_snps_shaking(total_snps_1)
             
             total_snps_1 = minor_allele_filter(total_snps_1, maf)
             grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
@@ -255,8 +303,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r[0]
 
             # Calculating against the overall kinship
-            print gg1
-            print pearsonr(norm_flat_grm1, kinship_subset.flatten())
+            #print pearsonr(norm_flat_grm1, kinship_subset.flatten())
 
     correlation_plot(cor_matrix)
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
