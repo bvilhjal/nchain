@@ -8,7 +8,7 @@ import h5py
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats.stats import pearsonr
-import seaborn as sns
+# import seaborn as sns
 import time
 from collections import OrderedDict
 from numpy import linalg
@@ -161,8 +161,9 @@ def get_snp_cov_mat(snps):
     not_solved = True
     shuffle_indices = range(M)
     while not_solved:
-        shuffle_indices = random.shuffle(shuffle_indices)
+        random.shuffle(shuffle_indices)
         norm_snps = norm_snps[:, shuffle_indices]
+
         # 2. Normalize Individuals (COV)
         norm_ind_snps = (norm_snps - np.mean(norm_snps, axis=1, keepdims=True))
 
@@ -175,7 +176,6 @@ def get_snp_cov_mat(snps):
         except:
             continue
         not_solved = False
-
     return inv_cov_sqrt
 
 
@@ -344,4 +344,4 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     # correlation_plot(cor_matrix)
 
-simple_mantel_nod_genes_nod_genes()
+# simple_mantel_nod_genes_nod_genes()
