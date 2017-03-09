@@ -148,7 +148,6 @@ def pseudo_snps_shaking(snps, maf=0.1):
 
     inv_cov_sqrt = linalg.cholesky(linalg.pinv(cov))
 
-
 def get_snp_cov_mat(snps):
     """
     snps is an NxM matrix, where N is the number of individuals and M is the number of SNPs.
@@ -161,12 +160,12 @@ def get_snp_cov_mat(snps):
     not_solved = True
     snp_indices = range(M)
     while not_solved:
-        snp_indices = random.sample(snp_indices, len(snp_indices) - 1)
+        snp_indices_temp = random.sample(snp_indices, len(snp_indices) - 5)
 #         random.shuffle(snp_indices)
-        norm_snps = norm_snps[:, snp_indices]
+        norm_snps_temp = norm_snps[:, snp_indices_temp]
 
         # 2. Normalize Individuals (COV)
-        norm_ind_snps = (norm_snps - np.mean(norm_snps, axis=1, keepdims=True))
+        norm_ind_snps = (norm_snps_temp - np.mean(norm_snps_temp, axis=1, keepdims=True))
 
         # 3. Calculate unscaled cov
         cov = np.dot(norm_ind_snps, norm_ind_snps.T) / M
