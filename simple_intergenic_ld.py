@@ -5,13 +5,16 @@
 import numpy as np
 import scipy as sp
 import h5py
+import bottleneck as bn
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats.stats import pearsonr
-# import seaborn as sns
+import seaborn as sns
 import time
 from collections import OrderedDict
 from numpy import linalg
+import pylab as pl
+import glob 
 
 def parse_nod():
     nod_genes = OrderedDict()
@@ -33,6 +36,17 @@ def minor_allele_filter(gene_matrix, maf):
     # Normalizing the columns:
     norm_matrix = (matrix_mafs - np.mean(matrix_mafs, axis=0)) / np.std(matrix_mafs, axis=0)
     return(norm_matrix)
+
+def normalize(matrix, direction = 1):
+    """Normalizes a matrix default (columns) to mean 0 and std 1."""
+    mean = np.mean(matrix, axis= direction)
+    std = np.std(matrix, axis= direction)
+    if direction == 1:
+        mean = mean[:, None]
+        std = std[:, None]
+
+    matrix = (matrix - mean) / std
+    return np.nan_to_num(matrix)
 
 def average_genotype_matrix(X):
     '''Computes the average genotype matrix, it assumes that the input matrix (Markers/M in cols and individuals/N in rows)'''
@@ -89,9 +103,6 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
             maf_mask = mafs > min_maf
             snps = snps[maf_mask]
 
-            # Calculating the average genotype matrix (snps rows, individuals collumns)
-            snps = average_genotype_matrix(snps)
-
             if len(snps) == 0:
                 continue
             K_snps_slice = K_snps[strain_mask]
@@ -108,45 +119,6 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
     tuple_index_kinship = (strain_index, K_snps)
     return(tuple_index_kinship)
 # kinship_all_genes()
-
-def pseudo_snps_shaking(snps, maf=0.1):
-    """
-    snps is an NxM matrix, where N is the number of individuals and M is the number of SNPs.
-    """
-    # 0. filtering for minor allele frequency
-    freqs = sp.mean(snps, 0)
-    mafs = sp.minimum(freqs, 1 - freqs)
-    maf_filter = mafs > maf
-    snp_mafs = snps[:, maf_filter]
-    total_M = snp_mafs.shape[1]
-
-    # 1. Normalize SNPs (GRM)
-    norm_snps_col = (snp_mafs - np.mean(snp_mafs, axis=0)) / np.std(snp_mafs, 0)
-
-    # 2. Normalize Individuals (COV)
-    norm_ind_row = (snp_mafs - np.mean(snp_mafs, axis=1, keepdims=True))
-
-    # 3. Calculate unscaled grm
-    unscaled_grm = np.dot(norm_snps_col, norm_snps_col.T)
-
-    # 4. Calculate unscaled cov
-    unscaled_cov = np.dot(norm_ind_row, norm_ind_row.T)
-
-    # 5. Calculate A, the cholesky decomp of the inverse of the GRM.
-    num_strains = snp_mafs.shape[0]
-
-    # Creating empty arrays to keep track of changes
-    counts_average_snps = sp.zeros((num_strains, num_strains))
-
-    grm = unscaled_grm / total_M
-    cov = unscaled_cov / total_M
-
-    # Decompose the covariance matrix and set negative values to 0
-#     tweaked_grm = (unscaled_grm + unscaled_cov) / total_M
-#     print linalg.pinv(tweaked_grm)
-#     inv_cov_sqrt = linalg.cholesky(linalg.pinv(tweaked_grm))
-
-    inv_cov_sqrt = linalg.cholesky(linalg.pinv(cov))
 
 def get_snp_cov_mat(snps):
     """
@@ -179,54 +151,128 @@ def get_snp_cov_mat(snps):
     return inv_cov_sqrt
 
 
-def pseudo_snps(snps, maf=0.1):
-    ''' Snps must be N*M '''
+def replace_column_nans_by_mean(matrix):
+    # Set the value of gaps/dashes in each column to be the average of the other values in the column.
+    nan_indices = np.where(np.isnan(matrix))
+    # Note: bn.nanmean() instead of np.nanmean() because it is a lot(!) faster.
+    column_nanmeans = bn.nanmean(matrix, axis=0)
 
-    # 0. filtering for minor allele frequency
-    freqs = sp.mean(snps, 0)
-    mafs = sp.minimum(freqs, 1 - freqs)
-    maf_filter = mafs > maf
-    snp_mafs = snps[:, maf_filter]
-    total_M = snp_mafs.shape[1]
+    # For each column, assign the NaNs in that column the column's mean.
+    # See http://stackoverflow.com/a/18689440 for an explanation of the following line.
+    matrix[nan_indices] = np.take(column_nanmeans, nan_indices[1])
 
-    # 1. Normalize SNPs (GRM) by column
-    norm_snps_col = (snp_mafs - np.mean(snp_mafs, axis=0)) / np.std(snp_mafs, 0)
+def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
+                 out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD',
+                 plot_figures=False,
+                 figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
+                 fig_id='all',
+                 min_maf=0.1,
+                 max_strain_num=200):
+    
+    """
+    Take the genes concatenate their snps, calculate GRM, decomposition, calculate pseudo snps.
+    """
+    
+    snp_matrices = []
+    matrix_lengths = []
+    matrix_file_paths = []
+    strain_list_masks = []
+    snps_to_remove = []
 
-    # Initializing variables
-    num_strains = snps[0]
+    h5f = h5py.File(snps_file)
+    gene_groups = h5f.keys()
+    all_strains = set()
+    for gg in gene_groups:
+        data_g = h5f[gg]
+        strains = data_g['strains'][...]
+        if len(strains) < max_strain_num:
+            all_strains = set(strains).union(all_strains)
+    num_strains = len(all_strains)
+    print 'Found %d "distinct" strains' % num_strains
+    
+    ordered_strains = sorted(list(all_strains))
+    strain_index = pd.Index(ordered_strains)
     K_snps = sp.zeros((num_strains, num_strains))
-    counts_mat_snps = sp.zeros((num_strains, num_strains))
-    resolved = False
-    while resolved == False:
-        try:
-            # Subsetting the markers
-            rand_cols = np.random.choice(norm_snps_col.shape[1], round(0.95 * norm_snps_col.shape[1]), replace=False)
 
-            # Normalizing the rows:
-            average_X = (norm_snps_col - norm_snps_col.mean(axis=1, keepdims=True)) / np.std(norm_snps_col, axis=1)
+    snp_matrices = []
+    for i, gg in enumerate(gene_groups):
+        if i % 100 == 0:
+            print 'Working on gene nr. %d' % i 
+        data_g = h5f[gg]
+        strains = data_g['strains'][...]
+        #print strains
+        if len(strains) < max_strain_num:
+            strain_mask = strain_index.get_indexer(strains)
+            snps = data_g['norm_snps'][...]
 
-            K_snps_slice = average_X[rand_cols]
-            K_snps_slice[:, rand_cols] += sp.dot(average_X.T, average_X)
-            K_snps[rand_cols] = K_snps_slice
-            print K_snps.shape
+            # Strains in rows and snps in collumns
+            snps = snps.T
 
-            counts_average_snps_slice = counts_average_snps[rand_cols]
-            counts_average_snps_slice[:, rand_cols] += len(rand_cols)
-            counts_average_snps[rand_cols] = counts_average_snps_slice
+            # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
+            # correct rows filled in by the data from the SNP file.
+            full_matrix = np.empty((198, snps.shape[1]))
+            full_matrix[:] = np.NAN
+            full_matrix[strain_mask, :] = snps[:,]
+            snp_matrices.append(full_matrix)
+    
+            strain_list_masks.append(strain_mask)
+            matrix_lengths.append(full_matrix.shape[1])
+            matrix_file_paths.append(gg) # The name of the gene
 
-            # 3. Calculate the pseudo-SNPs (x*A)
-            inv_cov_sqrt = linalg.cholesky(linalg.pinv(K_snps))
+    snp_boundaries = np.cumsum(matrix_lengths).tolist()
+    print("Normalizing genotype matrix...")
 
-            resolved = True
-        except np.linalg.linalg.LinAlgError as err:
-            if 'Matrix is not positive definite' in err.message:
-    #            print 'bla'
-                continue
-            else:
-                print err
+    # Take a sequence of arrays and stack them horizontally to make a single array. 
+    full_genotype_matrix = np.hstack(snp_matrices)
+    del snp_matrices
 
-    # pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in average_X.T)
-    # return(pseudo_snps)
+    replace_column_nans_by_mean(full_genotype_matrix)
+
+    # 0. Normalizing the rows (individuals). Subtracting the rows by their mean
+    full_genotype_matrix = normalize(full_genotype_matrix, direction=1)
+
+    # 1. Calculate genome-wide GRM (X*X'/M).
+    print("Calculating genotype matrix covariance...")
+    #cov = np.cov(full_genotype_matrix) # this is not working
+
+    # Or      
+    cov = np.dot(full_genotype_matrix, full_genotype_matrix.T)/(full_genotype_matrix.shape[1])
+
+    pl.matshow(cov)
+    pl.title('Kinship - 198 strains - all good genes')
+    pl.savefig('heat_map_allgenes.png')
+    pl.show()
+    
+    # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
+    print("Finding inverse and sqrt of covariance matrix...")
+    # Genetically identical individuals results in singular (i.e. non-invertible). This can happen for a subset of the
+    # data but should not happen for the entire dataset. Use the pseudo inverse instead. When a matrix is invertible,
+    # its pseudo inverse is its inverse anyway. Similarly, pseudo inverses might not be positive definite, meaning that
+    # we can't use Cholesky decomposition. If that happens, we can use SciPy's linalg.sqrtm() method (I don't actually
+    # know if that is equivalent). Anyway, use linalg.sqrtm(linalg.pinv(cov)) when dealing with small sample sizes.
+    inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
+
+    print inv_cov_sqrt
+
+    # 3. Calculate the pseudo-SNPs (x*A)
+    print("Calculating pseudo SNPS...")
+    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
+    print np.diag(pseudo_snps)
+    del full_genotype_matrix
+
+    print("Creating files corrected for Population Structure...")
+
+    # Extract the original genes from the large pseudo SNP matrix.
+    for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
+        strains_list_mask = strain_list_masks[i]
+        snps = pseudo_snps[strains_list_mask, start:end]
+        strains = strains_list_mask
+
+        file_name = 'group'+matrix_file_paths[i] # the name of the gene
+        
+        np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
+
+#pseudo_snps()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0.1,
@@ -306,9 +352,6 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             total_snps_1 = data_g1['snps'][...].T  # strains in the rows, snps in the columns
             total_snps_1 = total_snps_1[strain_mask_1, :]
 
-            # Calculating GRM
-            print pseudo_snps_shaking(total_snps_1)
-
             total_snps_1 = minor_allele_filter(total_snps_1, maf)
             grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
             gene_grm_dict[str(gg1)] = {'grm':grm_1}
@@ -344,4 +387,52 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
     cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
     # correlation_plot(cor_matrix)
 
-# simple_mantel_nod_genes_nod_genes()
+simple_mantel_nod_genes_nod_genes()
+
+def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/'):
+    """Take the structured corrected files and calculate mantel test for the nod genes"""
+
+    nod_genes = ['group1000.npz', 'group2000.npz', 'group10.npz', 'group4144.npz', 'group4143.npz', 'group4142.npz', 'group4141.npz', 'group4140.npz', 'group4139.npz', 'group4138.npz', 'group4137.npz', 'group4136.npz', 'group4135.npz', 'group4134.npz', 'group4129.npz', 'group4128.npz', 'group4127.npz', 'group4126.npz', 'group4125.npz', 'group4124.npz', 'group4123.npz', 'group4122.npz', 'group4121.npz', 'group4120.npz', 'group2448.npz', 'group2140.npz']
+    #This is the gene SNPs matrix
+    genes = []
+    for f in nod_genes:
+        with np.load(in_glob + f) as data:
+            # Creating a tuple
+            genes.append((f, data["matrix"], data["strains"])) 
+
+    for gg1 in genes:
+        for gg2 in genes:
+
+            gene1, total_snps_1, strains_1 = (gg1)
+            gene2, total_snps_2, strains_2 = (gg2)
+
+            # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
+            strain_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
+            fitered_strains_1 = strains_1[strain_mask_1]
+            strain_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
+            fitered_strains_2 = strains_2[strain_mask_2]
+
+            total_snps_1 = total_snps_1[strain_mask_1, :]
+            print total_snps_1.shape
+            grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+
+            total_snps_2 = total_snps_2[strain_mask_2, :]
+            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+
+            # Calculating correlation and covariance based on the common subset of strains
+            flat_grm_1 = grm_1.flatten()
+            norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
+            norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
+
+            flat_grm_2 = grm_2.flatten()
+            norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
+            norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
+
+            # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
+            print gene1 +'_'+ gene2
+            r = pearsonr(norm_flat_grm1, norm_flat_grm2)
+            print r
+            #cor_matrix[nod_genes[int(gg1)]][nod_genes[int(gg2)]] = r[0]
+
+#mantel_corrected_nod_genes()
+
