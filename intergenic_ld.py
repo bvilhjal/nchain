@@ -45,7 +45,7 @@ def replace_column_nans_by_mean(matrix):
     matrix[nan_indices] = np.take(column_nanmeans, nan_indices[1])
 
 def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
-                 out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD',
+                 out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                  plot_figures=False,
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
@@ -107,9 +107,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     print("Normalizing genotype matrix...")
     full_genotype_matrix = np.hstack(snp_matrices)
 
-    print full_genotype_matrix
-
     replace_column_nans_by_mean(full_genotype_matrix)
+    full_genotype_matrix = normalize(full_genotype_matrix, direction=0)
     full_genotype_matrix = normalize(full_genotype_matrix, direction=1)
     
     # 1. Calculate genome-wide GRM (X*X'/M).
@@ -143,6 +142,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     pl.show()
     pl.matshow(np.cov(pseudo_snps))
     pl.title('After structure correction')
+    pl.show()
     pl.savefig('heat_map_structured_genes.png')
 
     print("Creating files corrected for Population Structure...")
@@ -157,6 +157,9 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         
         np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
     
+pseudo_snps()
+
+
 def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/*.npz'):
     distance_to_ld = {}
 
@@ -200,5 +203,5 @@ def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Int
     return LD_stats
 
 #print pseudo_snps()
-print intergenic_ld()
+#print intergenic_ld()
 
