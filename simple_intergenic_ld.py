@@ -150,17 +150,6 @@ def get_snp_cov_mat(snps):
         not_solved = False
     return inv_cov_sqrt
 
-
-def replace_column_nans_by_mean(matrix):
-    # Set the value of gaps/dashes in each column to be the average of the other values in the column.
-    nan_indices = np.where(np.isnan(matrix))
-    # Note: bn.nanmean() instead of np.nanmean() because it is a lot(!) faster.
-    column_nanmeans = bn.nanmean(matrix, axis=0)
-
-    # For each column, assign the NaNs in that column the column's mean.
-    # See http://stackoverflow.com/a/18689440 for an explanation of the following line.
-    matrix[nan_indices] = np.take(column_nanmeans, nan_indices[1])
-
 def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
                  out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD',
                  plot_figures=False,
@@ -205,13 +194,13 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             strain_mask = strain_index.get_indexer(strains)
             snps = data_g['norm_snps'][...]
 
-            # Strains in rows and snps in collumns
+            # Strains in rows and snps in columns
             snps = snps.T
 
             # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
             # correct rows filled in by the data from the SNP file.
             full_matrix = np.empty((198, snps.shape[1]))
-            full_matrix[:] = np.NAN
+            full_matrix[:] = 0
             full_matrix[strain_mask, :] = snps[:,]
             snp_matrices.append(full_matrix)
     
@@ -226,17 +215,18 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     full_genotype_matrix = np.hstack(snp_matrices)
     del snp_matrices
 
-    replace_column_nans_by_mean(full_genotype_matrix)
+    # Variance of columns equal to 1:
+    full_genotype_matrix = full_genotype_matrix / full_genotype_matrix.std(axis=0)
 
     # 0. Normalizing the rows (individuals). Subtracting the rows by their mean
-    full_genotype_matrix = normalize(full_genotype_matrix, direction=1)
+    full_genotype_matrix_rows = normalize(full_genotype_matrix, direction=1)
 
     # 1. Calculate genome-wide GRM (X*X'/M).
     print("Calculating genotype matrix covariance...")
     #cov = np.cov(full_genotype_matrix) # this is not working
 
     # Or      
-    cov = np.dot(full_genotype_matrix, full_genotype_matrix.T)/(full_genotype_matrix.shape[1])
+    cov = np.dot(full_genotype_matrix_rows, full_genotype_matrix_rows.T)/(full_genotype_matrix_rows.shape[1])
 
     pl.matshow(cov)
     pl.title('Kinship - 198 strains - all good genes')
@@ -256,6 +246,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     # 3. Calculate the pseudo-SNPs (x*A)
     print("Calculating pseudo SNPS...")
+
+    # Show instead of full_genotype_matrix it must be the one where we have normalized BY and just by SNPS 
     pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
     print np.diag(pseudo_snps)
     del full_genotype_matrix
@@ -272,7 +264,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         
         np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
 
-#pseudo_snps()
+pseudo_snps()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0.1,
@@ -529,5 +521,5 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
     cor_matrix.to_csv('Mantel_test_nod_all_core.csv', header=True)
     return cor_matrix
 
-simple_intergenic_ld_nod_genes()
+#simple_intergenic_ld_nod_genes()
 
