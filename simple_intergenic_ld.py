@@ -110,7 +110,7 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
 # kinship_all_genes()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
-                            maf=0.1,
+                            maf=0,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Nod genes versus nod genes"""
     nod_genes = parse_nod()
@@ -218,8 +218,9 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
             # Calculating against the overall kinship
             # print pearsonr(norm_flat_grm1, kinship_subset.flatten())
 
-    correlation_plot(cor_matrix)
-    cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
+    #correlation_plot(cor_matrix)
+    #cor_matrix.to_csv('Mantel_test_nod_all_maf_1.csv', header=True)
+    return(cor_matrix)
     # correlation_plot(cor_matrix)
 
 #simple_mantel_nod_genes_nod_genes()
@@ -271,17 +272,32 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
             norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
             # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
-            print parse_nod_genes[int(gene1[5:9])] +'_'+ parse_nod_genes[int(gene2[5:9])]
+            #print parse_nod_genes[int(gene1[5:9])] +'_'+ parse_nod_genes[int(gene2[5:9])]
             r = pearsonr(norm_flat_grm1, norm_flat_grm2)
-            r2 = pearsonr(flat_grm_1, flat_grm_2)
-            print r[0]
-            print r2[0]
+            #r2 = pearsonr(flat_grm_1, flat_grm_2)
+            print parse_nod_genes[int(gene1[5:9])] 
+            print total_snps_1.shape
+
             cor_matrix[parse_nod_genes[int(gene1[5:9])]][parse_nod_genes[int(gene2[5:9])]] = r[0]
-    correlation_plot(cor_matrix)
+    return(cor_matrix)
+    #correlation_plot(cor_matrix)
 
-mantel_corrected_nod_genes()
+#mantel_corrected_nod_genes()
 
-def simple_intergenic_ld_nod_genes(max_strain_num=198,
+def figure_comparison(corrected = 0, incorrect = 0):
+    incorrected = simple_mantel_nod_genes_nod_genes()
+
+    corrected = mantel_corrected_nod_genes()
+    u = np.triu(corrected)
+    l = np.tril(incorrected,k = -1)
+
+    mix = u + l
+    mix = pd.DataFrame(data = mix, columns = list(corrected), index = list(corrected))
+
+    correlation_plot(mix)
+figure_comparison()
+
+def simple_intergenic_ld_nod_genes(max_strain_num=100,
                             maf=0.1,
                             amount = 10,
                             snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
@@ -302,7 +318,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
     for gg in gene_groups:
         data_g = h5f[gg]
         strains = data_g['strains'][...]
-        if len(set(strains)) == max_strain_num:
+        if len(set(strains)) > max_strain_num:
             core_genes.append(gg)
     core_genes = sorted(core_genes)
     gene_grm_dict = {}
@@ -359,10 +375,9 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
             # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
             r = pearsonr(norm_flat_grm1, norm_flat_grm2)
             cor_matrix[gg2][nod_genes[int(gg1)]] += r[0]
-            #print r
     
     #correlation_plot(cor_matrix, wrt = false)
     cor_matrix.to_csv('Mantel_test_nod_all_core.csv', header=True)
-    return cor_matrix
+    return(cor_matrix)
 
 #simple_intergenic_ld_nod_genes()
