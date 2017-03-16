@@ -49,7 +49,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  plot_figures=False,
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
-                 min_maf=0.1,
+                 min_maf=0.10,
                  max_strain_num=200):
     
     """
@@ -87,6 +87,11 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         if len(strains) < max_strain_num:
             strain_mask = strain_index.get_indexer(strains)
             snps = data_g['norm_snps'][...]
+
+            #freqs = data_g['freqs'][...]
+            #mafs = sp.minimum(freqs, 1 - freqs)
+            #maf_mask = mafs >= min_maf
+            #snps = snps[maf_mask]
 
             # Strains in rows and snps in collumns
             snps = snps.T
@@ -201,6 +206,5 @@ def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Int
     LD_stats.to_csv('intergenic_LD_stats.csv', header = True)
     return LD_stats
 
-#print pseudo_snps()
 #print intergenic_ld()
 
