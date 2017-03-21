@@ -46,16 +46,15 @@ def replace_column_nans_by_mean(matrix):
 
 def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
                  out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
-                 plot_figures=False,
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
-                 min_maf=0.10,
+                 min_maf=0,
                  max_strain_num=200):
     
     """
     Take the genes concatenate their snps, calculate GRM, decomposition, calculate pseudo snps.
     """
-    
+    maf_list_mask = []
     snp_matrices = []
     matrix_lengths = []
     matrix_file_paths = []
@@ -77,7 +76,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     strain_index = pd.Index(ordered_strains)
     K_snps = sp.zeros((num_strains, num_strains))
 
-    snp_matrices = []
+    trues = 0
     for i, gg in enumerate(gene_groups):
         if i % 100 == 0:
             print 'Working on gene nr. %d' % i 
@@ -88,13 +87,18 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             strain_mask = strain_index.get_indexer(strains)
             snps = data_g['norm_snps'][...]
 
-            #freqs = data_g['freqs'][...]
-            #mafs = sp.minimum(freqs, 1 - freqs)
-            #maf_mask = mafs >= min_maf
-            #snps = snps[maf_mask]
+            freqs = data_g['freqs'][...]
+            mafs = sp.minimum(freqs, 1 - freqs)
+            maf_mask = mafs >= min_maf
+            maf_list_mask.append(maf_mask)
+            snps = snps[maf_mask]
+            trues += np.sum(maf_mask)
 
             # Strains in rows and snps in collumns
             snps = snps.T
+
+            # Changing the precision of the array:
+            snps = np.float64(snps)
 
             # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
             # correct rows filled in by the data from the SNP file.
@@ -108,11 +112,17 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             matrix_lengths.append(full_matrix.shape[1])
             matrix_file_paths.append(gg) # The name of the gene
 
+    print '%d SNPs out of 717457 after filtering for MAF > %f' % (trues, min_maf)
+
     snp_boundaries = np.cumsum(matrix_lengths).tolist()
     print("Normalizing genotype matrix...")
     full_genotype_matrix = np.hstack(snp_matrices)
 
+    print('Input the matrix...')
     replace_column_nans_by_mean(full_genotype_matrix)
+    #full_genotype_matrix = normalize(full_genotype_matrix, direction=0)
+
+    print('Normalizing matrix by individuals...')
     full_genotype_matrix = normalize(full_genotype_matrix, direction=1)
     
     # 1. Calculate genome-wide GRM (X*X'/M).
@@ -130,6 +140,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     # its pseudo inverse is its inverse anyway. Similarly, pseudo inverses might not be positive definite, meaning that
     # we can't use Cholesky decomposition. If that happens, we can use SciPy's linalg.sqrtm() method (I don't actually
     # know if that is equivalent). Anyway, use linalg.sqrtm(linalg.pinv(cov)) when dealing with small sample sizes.
+    
     inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
 
     print inv_cov_sqrt
@@ -152,14 +163,15 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     print("Creating files corrected for Population Structure...")
 
     # Extract the original genes from the large pseudo SNP matrix.
-    #for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
-    #    strains_list_mask = strain_list_masks[i]
-    #    snps = pseudo_snps[strains_list_mask, start:end]
-    #    strains = strains_list_mask
+    for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
+        strains_list_mask = strain_list_masks[i]
+        snps = pseudo_snps[strains_list_mask, start:end]
+        strains = strains_list_mask
+        maf = maf_list_mask[i]
 
-    #    file_name = 'group'+matrix_file_paths[i] # the name of the gene
+        file_name = 'group'+matrix_file_paths[i] # the name of the gene
         
-    #    np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
+        np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
     
 pseudo_snps()
 
