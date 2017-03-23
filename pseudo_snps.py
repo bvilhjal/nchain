@@ -18,10 +18,28 @@ import Mantel
 import scipy as sp
 from scipy import linalg
 import h5py
+import random
 import pandas as pd
 import pylab as pl
-#import ecopy as ep
+import time
 #conda install -c https://conda.anaconda.org/biocore scikit-bio
+
+def calc_ld_table(snps, threshold = 0.2, verbose = True, normalize = True):
+    """Calculated LD between all SNPs using r^2, this function retains snps with values above a given threshold
+        Inputed genetic matrix is already normalized by columns/snps"""
+    # Transposing the snp matrix just to look like Bjarni's function
+    snps = snps.T 
+    num_snps, num_ind = snps.shape
+
+    # Initializing the matrix
+    ld_table = np.zeros((num_snps, num_snps))
+
+    # Looping through each comparison, upper triangle of the table
+    for i in range(len(ld_table) - 1):
+        for j in range(i + 1, len(ld_table)):
+            print i
+
+
 
 def normalize(matrix, direction = 1):
     """Normalizes a matrix default (columns) to mean 0 and std 1."""
@@ -48,7 +66,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
-                 min_maf=0.1,
+                 min_maf=0,
                  max_strain_num=200):
     
     """
@@ -121,10 +139,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     print('Input the matrix...')
     replace_column_nans_by_mean(full_genotype_matrix)
     #full_genotype_matrix = normalize(full_genotype_matrix, direction=0)
-
-    print('Normalizing matrix by individuals...')
-    full_genotype_matrix = normalize(full_genotype_matrix, direction=1)
-    
     
     # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
     print("Finding inverse and sqrt of covariance matrix...")
@@ -137,35 +151,49 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     
     N, M = full_genotype_matrix.shape
     not_solved = True
+    
     shuffle_indices = range(M)
+    snp_indices = range(M)
+
+    t0 = time.time()
     while not_solved:
         
         # Random shuffling of the column (SNP) matrix
-        random.shuffle(shuffle_indices)
-        full_genotype_matrix = full_genotype_matrix[:, shuffle_indices]
-        
-        # Deleting randomly one  SNP column (-1)
-        #snp_indices = random.sample(snp_indices, len(snp_indices) -1)
-        #full_genotype_matrix = full_genotype_matrix[:, snp_indices]
+        #random.shuffle(shuffle_indices)
+        #full_genotype_matrix = full_genotype_matrix[:, shuffle_indices]
+
+        # Deleting randomly 10 SNP columns (-10)
+        snp_indices_temp = random.sample(snp_indices, len(snp_indices) - 10)
+
+        # Making a temporary version of the full matrix
+        full_genotype_matrix_temp = full_genotype_matrix[:, snp_indices_temp]
+
+        # Normalize the individual lines after removing some columns
+        print('Normalizing matrix by individuals...')
+        full_genotype_matrix_temp = normalize(full_genotype_matrix_temp, direction=1)    
 
         # Calculate genome-wide GRM/cov (X*X'/M).
         print("Calculating genotype matrix covariance...")
         #cov = np.cov(full_genotype_matrix)
 
-        cov = np.dot(full_genotype_matrix, full_genotype_matrix.T)/full_genotype_matrix.shape[1]
+        cov = np.dot(full_genotype_matrix_temp, full_genotype_matrix_temp.T)/full_genotype_matrix_temp.shape[1]
 
         try:
-            inv_cov_sqrt = linalg.cholesky(linalg.pinv(cov))
+            inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
         except:
             continue
-            print 'Trying to solve GRM'
         not_solved = False
 
+    t1 = time.time()
+    t = (t1 - t0)
+
+    print 'It took %d minutes and %0.2f seconds to solve the inverse of the covariance  matrix' % (t/60, t % 60)
     print inv_cov_sqrt
 
     # 3. Calculate the pseudo-SNPs (x*A)
     print("Calculating pseudo SNPS...")
-    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
+    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix_temp.T)
+    del full_genotype_matrix_temp
     del full_genotype_matrix
 
     pl.matshow(cov)
