@@ -34,10 +34,12 @@ def calc_ld_table(snps, threshold = 0.2, verbose = True, normalize = True):
     # Initializing the matrix
     ld_table = np.zeros((num_snps, num_snps))
 
+    ld_vec = sp.dot(snps, snps.T) / float(num_ind)
+    ld_vec = np.array(ld_vec).flatten()
     # Looping through each comparison, upper triangle of the table
-    for i in range(len(ld_table) - 1):
-        for j in range(i + 1, len(ld_table)):
-            print i
+    #for i in range(len(ld_table) - 1):
+    #    for j in range(i + 1, len(ld_table)):
+    #        print i
 
 
 
@@ -66,7 +68,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
-                 min_maf=0,
+                 min_maf=0.15,
                  max_strain_num=200):
     
     """
@@ -199,12 +201,14 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     pl.matshow(cov)
     pl.title('Kinship - 198 strains - all good genes')
     pl.savefig('heat_map_allgenes.png')
-
     pl.show()
-    pl.matshow(np.cov(pseudo_snps))
+
+    identity = np.cov(pseudo_snps)
+    pl.matshow(identity)
     pl.title('After structure correction')
     pl.show()
-    pl.savefig('heat_map_structured_genes.png')
+    pl.savefig('covariance_pseudo_snps.png')
+    np.savetxt('identity.csv', identity, delimiter = ',')
 
     print("Creating files corrected for Population Structure...")
 
