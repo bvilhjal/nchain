@@ -48,7 +48,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
-                 min_maf=0,
+                 min_maf=0.1,
                  max_strain_num=200):
     
     """
@@ -125,12 +125,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     print('Normalizing matrix by individuals...')
     full_genotype_matrix = normalize(full_genotype_matrix, direction=1)
     
-    # 1. Calculate genome-wide GRM (X*X'/M).
-    print("Calculating genotype matrix covariance...")
-    #cov = np.cov(full_genotype_matrix)
-
-    # Or 
-    cov = np.dot(full_genotype_matrix, full_genotype_matrix.T)/full_genotype_matrix.shape[1]
     
     # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
     print("Finding inverse and sqrt of covariance matrix...")
@@ -141,7 +135,31 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     # we can't use Cholesky decomposition. If that happens, we can use SciPy's linalg.sqrtm() method (I don't actually
     # know if that is equivalent). Anyway, use linalg.sqrtm(linalg.pinv(cov)) when dealing with small sample sizes.
     
-    inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
+    N, M = full_genotype_matrix.shape
+    not_solved = True
+    shuffle_indices = range(M)
+    while not_solved:
+        
+        # Random shuffling of the column (SNP) matrix
+        random.shuffle(shuffle_indices)
+        full_genotype_matrix = full_genotype_matrix[:, shuffle_indices]
+        
+        # Deleting randomly one  SNP column (-1)
+        #snp_indices = random.sample(snp_indices, len(snp_indices) -1)
+        #full_genotype_matrix = full_genotype_matrix[:, snp_indices]
+
+        # Calculate genome-wide GRM/cov (X*X'/M).
+        print("Calculating genotype matrix covariance...")
+        #cov = np.cov(full_genotype_matrix)
+
+        cov = np.dot(full_genotype_matrix, full_genotype_matrix.T)/full_genotype_matrix.shape[1]
+
+        try:
+            inv_cov_sqrt = linalg.cholesky(linalg.pinv(cov))
+        except:
+            continue
+            print 'Trying to solve GRM'
+        not_solved = False
 
     print inv_cov_sqrt
 
@@ -173,7 +191,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         
         np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
     
-pseudo_snps()
+print pseudo_snps()
 
 
 def intergenic_ld(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/*.npz'):
