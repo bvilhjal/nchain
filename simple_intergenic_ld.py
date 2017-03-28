@@ -44,7 +44,7 @@ def average_genotype_matrix(X):
     average_X = (X - np.mean(X, axis=1))
     return(average_X)
 
-def correlation_plot(df, wrt=True):
+def correlation_plot(df, wrt=True, fig_name = 'mantel_test.png', show = False):
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(12, 9))
 
@@ -52,65 +52,12 @@ def correlation_plot(df, wrt=True):
     with sns.axes_style("white"):
         ax = sns.heatmap(df, square=True, annot=wrt, annot_kws={"size": 9}, cmap="RdYlGn", vmin=0, vmax=1)
     f.tight_layout()
-    plt.show()
-
-def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
-                 min_maf=0.05,
-                 max_strain_num=200):
-    """
-    Calculates the kinship
-    """
-    h5f = h5py.File(snps_file)
-    gene_groups = h5f.keys()
-    all_strains = set()
-    for gg in gene_groups:
-        data_g = h5f[gg]
-        strains = data_g['strains'][...]
-        if len(strains) < max_strain_num:
-            all_strains = set(strains).union(all_strains)
-    num_strains = len(all_strains)
-    print 'Found %d "distinct" strains' % num_strains
-
-    ordered_strains = sorted(list(all_strains))
-
-    strain_index = pd.Index(ordered_strains)
-    K_snps = sp.zeros((num_strains, num_strains))
-    counts_mat_snps = sp.zeros((num_strains, num_strains))
-
-    for i, gg in enumerate(gene_groups):
-        if i % 100 == 0:
-            print 'Working on gene nr. %d' % i
-        data_g = h5f[gg]
-        strains = data_g['strains'][...]
-        if len(strains) < max_strain_num:
-            strain_mask = strain_index.get_indexer(strains)
-
-            # Already normalized snps
-            snps = data_g['norm_snps'][...]
-            freqs = data_g['freqs'][...]
-            mafs = sp.minimum(freqs, 1 - freqs)
-            maf_mask = mafs > min_maf
-            snps = snps[maf_mask]
-
-            if len(snps) == 0:
-                continue
-            K_snps_slice = K_snps[strain_mask]
-            K_snps_slice[:, strain_mask] += sp.dot(snps.T, snps)
-            K_snps[strain_mask] = K_snps_slice
-            counts_mat_snps_slice = counts_mat_snps[strain_mask]
-            counts_mat_snps_slice[:, strain_mask] += len(snps)
-            counts_mat_snps[strain_mask] = counts_mat_snps_slice
-
-    K_snps = K_snps / counts_mat_snps  # element-wise division
-    print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
-    correlation_plot(K_snps, wrt=False)
-
-    tuple_index_kinship = (strain_index, K_snps)
-    return(tuple_index_kinship)
-# kinship_all_genes()
+    plt.savefig(fig_name)
+    if show == True:
+        plt.show()
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
-                            maf=0,
+                            maf=0.1,
                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Nod genes versus nod genes"""
     nod_genes = parse_nod()
@@ -225,12 +172,12 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
 #simple_mantel_nod_genes_nod_genes()
 
-def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/'):
+def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
+                                min_maf = 0.1,
+                                snps_file = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
     """Take the structured corrected files and calculate mantel test for the nod genes"""
     parse_nod_genes = parse_nod() 
 
-
-    #'group1000.npz', 'group2000.npz', 'group10.npz'
     nod_genes = ['group4144.npz', 'group4143.npz', 'group4142.npz', 'group4141.npz', 'group4140.npz', 'group4139.npz', 'group4138.npz', 'group4137.npz', 'group4136.npz', 'group4135.npz', 'group4134.npz', 'group4129.npz', 'group4128.npz', 'group4127.npz', 'group4126.npz', 'group4125.npz', 'group4124.npz', 'group4123.npz', 'group4122.npz', 'group4121.npz', 'group4120.npz', 'group2448.npz', 'group2140.npz']
     
     # Making the correlation matrix to be updated
@@ -241,26 +188,27 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
     genes = []
     for f in nod_genes:
         with np.load(in_glob + f) as data:
-            # Creating a tuple
-            genes.append((f, data["matrix"], data["strains"])) 
+            # Creating a tuple of gene name, followed by snp matrix, strains mask, maf mask
+            genes.append((f, data["matrix"], data["strains"], data["maf"])) 
 
     for gg1 in genes:
         for gg2 in genes:
 
-            gene1, total_snps_1, strains_1 = (gg1)
-            gene2, total_snps_2, strains_2 = (gg2)
+            gene1, total_snps_1, strains_1, maf_mask_1 = (gg1)
+            gene2, total_snps_2, strains_2, maf_mask_2 = (gg2)
 
             # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
             strain_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
             fitered_strains_1 = strains_1[strain_mask_1]
             strain_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
-            fitered_strains_2 = strains_2[strain_mask_2]
+            #fitered_strains_2 = strains_2[strain_mask_2]
 
             total_snps_1 = total_snps_1[strain_mask_1, :]
             grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
 
             total_snps_2 = total_snps_2[strain_mask_2, :]
             grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+
 
             # Calculating correlation and covariance based on the common subset of strains
             flat_grm_1 = grm_1.flatten()
@@ -275,14 +223,14 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
             #print parse_nod_genes[int(gene1[5:9])] +'_'+ parse_nod_genes[int(gene2[5:9])]
             r = pearsonr(norm_flat_grm1, norm_flat_grm2)
             #r2 = pearsonr(flat_grm_1, flat_grm_2)
-            print parse_nod_genes[int(gene1[5:9])] 
-            print total_snps_1.shape
+            #print parse_nod_genes[int(gene1[5:9])] 
+            #print total_snps_1.shape
 
             cor_matrix[parse_nod_genes[int(gene1[5:9])]][parse_nod_genes[int(gene2[5:9])]] = r[0]
+    correlation_plot(cor_matrix, show = True)
     return(cor_matrix)
-    #correlation_plot(cor_matrix)
 
-#mantel_corrected_nod_genes()
+mantel_corrected_nod_genes()
 
 def figure_comparison(corrected = 0, incorrect = 0):
     incorrected = simple_mantel_nod_genes_nod_genes()
@@ -295,7 +243,17 @@ def figure_comparison(corrected = 0, incorrect = 0):
     mix = pd.DataFrame(data = mix, columns = list(corrected), index = list(corrected))
 
     correlation_plot(mix)
-figure_comparison()
+#figure_comparison()
+
+def robusteness_maf_simple():
+    mafs = np.arange(0,0.5,0.1)
+    for maf in mafs:
+
+        cor_matrix = simple_mantel_nod_genes_nod_genes(maf = maf)
+        name = 'mantel_test_wo_correction' +  str(maf) + '.pdf'
+        correlation_plot(cor_matrix, fig_name = name)
+
+#robusteness_maf_simple()
 
 def simple_intergenic_ld_nod_genes(max_strain_num=100,
                             maf=0.1,
