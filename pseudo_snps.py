@@ -71,7 +71,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  min_maf=0.15,
                  n_snps_delete=10,
                  max_strain_num=200,
-                 fig_name='test.png'):
+                 fig_name='test.png',
+                 debug_filter=0.05):
 
     """
     Take the genes concatenate their snps, calculate GRM, decomposition, calculate pseudo snps.
@@ -102,38 +103,39 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     for i, gg in enumerate(gene_groups):
         if i % 100 == 0:
             print 'Working on gene nr. %d' % i
-        data_g = h5f[gg]
-        strains = data_g['strains'][...]
-        # print strains
-        if len(strains) < max_strain_num:
-            strain_mask = strain_index.get_indexer(strains)
-            snps = data_g['norm_snps'][...]
+        if debug_filter >= random.random():
+            data_g = h5f[gg]
+            strains = data_g['strains'][...]
+            # print strains
+            if len(strains) < max_strain_num:
+                strain_mask = strain_index.get_indexer(strains)
+                snps = data_g['norm_snps'][...]
 
-            freqs = data_g['freqs'][...]
-            mafs = sp.minimum(freqs, 1 - freqs)
+                freqs = data_g['freqs'][...]
+                mafs = sp.minimum(freqs, 1 - freqs)
 
-            # Minor allele frequence filtering
-            maf_mask = mafs >= min_maf
-            maf_list_mask.append(maf_mask)
-            snps_maf = snps[maf_mask, :]
-            trues += np.sum(maf_mask)
+                # Minor allele frequence filtering
+                maf_mask = mafs >= min_maf
+                maf_list_mask.append(maf_mask)
+                snps_maf = snps[maf_mask, :]
+                trues += np.sum(maf_mask)
 
-            # Strains in rows and snps in columns:
-            snps_maf = snps_maf.T
+                # Strains in rows and snps in columns:
+                snps_maf = snps_maf.T
 
-            # Changing the precision of the array:
-            snps_maf = np.float64(snps_maf)
+                # Changing the precision of the array:
+                snps_maf = np.float64(snps_maf)
 
-            # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
-            # correct rows filled in by the data from the SNP file.
-            full_matrix = np.empty((198, snps_maf.shape[1]))
-            full_matrix[:] = np.NAN
-            full_matrix[strain_mask, :] = snps_maf[:]
+                # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
+                # correct rows filled in by the data from the SNP file.
+                full_matrix = np.empty((198, snps_maf.shape[1]))
+                full_matrix[:] = np.NAN
+                full_matrix[strain_mask, :] = snps_maf[:]
 
-            snp_matrices.append(full_matrix)  # the matrix completed with NaNs
-            strain_list_masks.append(strain_mask)  # The strains caring that gene
-            matrix_lengths.append(full_matrix.shape[1])  # The length of the gene
-            matrix_file_paths.append(gg)  # The name of the gene
+                snp_matrices.append(full_matrix)  # the matrix completed with NaNs
+                strain_list_masks.append(strain_mask)  # The strains caring that gene
+                matrix_lengths.append(full_matrix.shape[1])  # The length of the gene
+                matrix_file_paths.append(gg)  # The name of the gene
 
     print '%d SNPs out of 717457 after filtering for MAF > %f' % (trues, min_maf)
 
