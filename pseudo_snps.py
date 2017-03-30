@@ -68,8 +68,10 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  out_dir = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
                  fig_id='all',
-                 min_maf= 0.01,
-                 max_strain_num=200):
+                 min_maf= 0.15,
+                 n_snps_delete = 10,
+                 max_strain_num=200,
+                 fig_name = 'test.png'):
     
     """
     Take the genes concatenate their snps, calculate GRM, decomposition, calculate pseudo snps.
@@ -114,10 +116,9 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             maf_mask = mafs >= min_maf
             maf_list_mask.append(maf_mask)
             snps_maf = snps[maf_mask,:]
-
             trues += np.sum(maf_mask)
 
-            # Strains in rows and snps in collumns
+            # Strains in rows and snps in columns:
             snps_maf = snps_maf.T
 
             # Changing the precision of the array:
@@ -127,12 +128,11 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             # correct rows filled in by the data from the SNP file.
             full_matrix = np.empty((198, snps_maf.shape[1]))
             full_matrix[:] = np.NAN
-            full_matrix[strain_mask, :] = snps_maf[:,]
+            full_matrix[strain_mask, :] = snps_maf[:]
 
-            snp_matrices.append(full_matrix)
-    
-            strain_list_masks.append(strain_mask)
-            matrix_lengths.append(full_matrix.shape[1])
+            snp_matrices.append(full_matrix) # the matrix completed with NaNs  
+            strain_list_masks.append(strain_mask) # The strains caring that gene
+            matrix_lengths.append(full_matrix.shape[1]) # The length of the gene
             matrix_file_paths.append(gg) # The name of the gene
 
     print '%d SNPs out of 717457 after filtering for MAF > %f' % (trues, min_maf)
@@ -164,10 +164,11 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     t0 = time.time()
     while not_solved:
         
-        # Deleting randomly 10 SNP columns (-10)
-        snp_indices_temp = random.sample(snp_indices, len(snp_indices) - 100)
+        # Deleting randomly 10 SNP columns (-10) and shuffling the order
+        snp_indices_temp = random.sample(snp_indices, len(snp_indices) - 10)
 
         # Making a temporary version of the full matrix
+        print len(snp_indices_temp)
         full_genotype_matrix_temp = full_genotype_matrix[:, snp_indices_temp]
 
         # Normalize the individual lines after removing some columns
@@ -200,15 +201,16 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     pl.matshow(cov)
     pl.title('Kinship - 198 strains - all good genes')
-    pl.savefig('heat_map_allgenes.png')
+    pl.savefig(fig_name + 'heat_map_allgenes.png')
     pl.show()
 
     identity = np.cov(pseudo_snps)
     pl.matshow(identity)
     pl.title('After structure correction')
+    pl.colorbar()
     pl.show()
-    pl.savefig('covariance_pseudo_snps.png')
-    np.savetxt('identity.csv', identity, delimiter = ',')
+    pl.savefig(fig_name + 'covariance_pseudo_snps.png')
+    np.savetxt(fig_name + 'identity.csv', identity, delimiter = ',')
 
     print("Creating files corrected for Population Structure...")
 
@@ -223,4 +225,4 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         
     #    np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
     
-pseudo_snps()
+pseudo_snps(min_maf = 0.1, fig_name = 'maf_0.1')

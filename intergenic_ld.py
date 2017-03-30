@@ -8,8 +8,6 @@ First idea: Correlate gene-specific GRM with each other, accounting for overall 
 
 6. Identify interesting genes.
 7. Write a Nature paper. 
-
-
 """
 import glob
 import bottleneck as bn
@@ -148,14 +146,14 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     print("Creating files corrected for Population Structure...")
 
     # Extract the original genes from the large pseudo SNP matrix.
-    for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
-        strains_list_mask = strain_list_masks[i]
-        snps = pseudo_snps[strains_list_mask, start:end]
-        strains = strains_list_mask
+    #for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
+    #    strains_list_mask = strain_list_masks[i]
+    #    snps = pseudo_snps[strains_list_mask, start:end]
+    #    strains = strains_list_mask
 
-        file_name = 'group'+matrix_file_paths[i] # the name of the gene
+    #    file_name = 'group'+matrix_file_paths[i] # the name of the gene
         
-        np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
+    #    np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
     
 pseudo_snps()
 
