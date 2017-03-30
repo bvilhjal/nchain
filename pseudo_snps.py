@@ -145,7 +145,10 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     print('Input the matrix...')
     replace_column_nans_by_mean(full_genotype_matrix)
-    # full_genotype_matrix = normalize(full_genotype_matrix, direction=0)
+    full_genotype_matrix = normalize(full_genotype_matrix, direction=0)
+
+    # Minor Allele frequency
+    # variances = np.var(full_genotype_matrix, axis = 0)
 
     # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
     print("Finding inverse and sqrt of covariance matrix...")
@@ -165,7 +168,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     while not_solved:
 
         # Deleting randomly 10 SNP columns (-10) and shuffling the order
-        # snp_indices_temp = random.sample(snp_indices, len(snp_indices) - 10)
         snp_indices_temp = random.sample(snp_indices, len(snp_indices))
 
         # Making a temporary version of the full matrix
@@ -198,7 +200,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     del full_genotype_matrix_temp
     del full_genotype_matrix
 
-    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix_temp_norm.T)
+    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
+    # pseudo_snps  = np.dot(inv_cov_sqrt.T, full_genotype_matrix.T)
 
     pl.matshow(cov)
     pl.title('Kinship - 198 strains - all good genes')
