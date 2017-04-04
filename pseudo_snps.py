@@ -118,13 +118,12 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                 strain_mask = strain_index.get_indexer(strains)
                 snps = data_g['norm_snps'][...]
 
+                # Minor allele frequence filtering
                 freqs = data_g['freqs'][...]
                 mafs = sp.minimum(freqs, 1 - freqs)
-
-                # Minor allele frequence filtering
-                maf_mask = mafs >= min_maf
-                maf_list_mask.append(maf_mask)
-                snps_maf = snps[maf_mask, :]
+                mafs = sp.minimum(freqs, 1 - freqs)
+                maf_mask = mafs > min_maf
+                snps_maf = snps[maf_mask]
                 trues += np.sum(maf_mask)
 
                 # Strains in rows and snps in columns:
@@ -136,7 +135,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                 # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
                 # correct rows filled in by the data from the SNP file.
                 full_matrix = np.zeros((198, snps_maf.shape[1]))
-                full_matrix[strain_mask, :] = snps_maf[:]
+                full_matrix[strain_mask, :] = snps_maf
 
                 snp_matrices.append(full_matrix)  # the matrix completed with NaNs
                 strain_list_masks.append(strain_mask)  # The strains caring that gene
@@ -151,11 +150,9 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     print 'The full genotype matrix has shape %f' % full_genotype_matrix.shape[1]
 
-    print('Because the SNPs are already normalized we can just nput the matrix...')
+    print('Input the matrix...')
     full_genotype_matrix = replace_column_nans_by_mean(full_genotype_matrix)
-    #full_genotype_matrix = np.nan_to_num(full_genotype_matrix)
 
-    #full_genotype_matrix = normalize(full_genotype_matrix, direction = 0)
     print("The variance by column is:...")
     print np.var(full_genotype_matrix, axis = 0)
 
@@ -185,11 +182,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         # Making a temporary version of the full matrix
         full_genotype_matrix_temp = full_genotype_matrix[:, snp_indices_temp]
 
-        norm = np.var(full_genotype_matrix_temp, axis = 0)
-        print norm
-        print len(norm)
-
-        # Normalize the individual lines after removing some columns
+        # Mean adjust the individual lines after shuffling the columns
         print('Normalizing matrix by individuals...')
         full_genotype_matrix_temp = mean_adj(full_genotype_matrix_temp)    
 
@@ -198,7 +191,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         cov = np.cov(full_genotype_matrix_temp)
 
         try:
-            inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
+            inv_cov_sqrt = linalg.cholesky(linalg.pinv(cov))
         except:
             continue
         not_solved = False
@@ -242,4 +235,4 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     #    np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
 
-pseudo_snps(min_maf=0, fig_name='maf_0.1', debug_filter=0.8)
+pseudo_snps(min_maf=0.15, fig_name='maf_0.1', debug_filter=1)
