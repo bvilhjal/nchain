@@ -1,14 +1,12 @@
 """
 Calculate intergenic LD.
 Goal: Identify genes that are more correlated with each other than we expect.
-First idea: Correlate gene-specific GRM with each other, accounting for overall GRM (population structure).
+First idea: Correlate gene-specific GRM with each other, accounting for overall covariance (population structure).
 6. Identify interesting genes.
 7. Write a Nature paper. 
 """
 import glob
-import bottleneck as bn
 import numpy as np
-import Mantel
 import scipy as sp
 from scipy import linalg
 import h5py
@@ -16,8 +14,6 @@ import random
 import pandas as pd
 import pylab as pl
 import time
-import numpy.ma as ma
-# conda install -c https://conda.anaconda.org/biocore scikit-bio
 
 def calc_ld_table(snps, threshold=0.2, verbose=True, normalize=True):
     """Calculated LD between all SNPs using r^2, this function retains snps with values above a given threshold
@@ -80,7 +76,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  n_snps_delete=10,
                  max_strain_num=200,
                  fig_name='test.png',
-                 debug_filter=0.15):
+                 debug_filter=0.15,
+                 write_files = False):
 
     """
     Take the genes concatenate their snps, calculate GRM, mean adjust the individuals, decomposition, calculate pseudo snps.
@@ -121,8 +118,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                 # Minor allele frequence filtering
                 freqs = data_g['freqs'][...]
                 mafs = sp.minimum(freqs, 1 - freqs)
-                mafs = sp.minimum(freqs, 1 - freqs)
                 maf_mask = mafs > min_maf
+                maf_list_mask.append(maf_mask)
                 snps_maf = snps[maf_mask]
                 trues += np.sum(maf_mask)
 
@@ -150,7 +147,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     print 'The full genotype matrix has shape %f' % full_genotype_matrix.shape[1]
 
-    print('Input the matrix...')
+    print('Input the matrix if still there is a nan...')
     full_genotype_matrix = replace_column_nans_by_mean(full_genotype_matrix)
 
     print("The variance by column is:...")
@@ -161,12 +158,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     # 2. Calculate A, the cholesky decomp of the inverse of the GRM.
     print("Finding inverse and sqrt of covariance matrix...")
-
-    # Genetically identical individuals results in singular (i.e. non-invertible). This can happen for a subset of the
-    # data but should not happen for the entire dataset. Use the pseudo inverse instead. When a matrix is invertible,
-    # its pseudo inverse is its inverse anyway. Similarly, pseudo inverses might not be positive definite, meaning that
-    # we can't use Cholesky decomposition. If that happens, we can use SciPy's linalg.sqrtm() method (I don't actually
-    # know if that is equivalent). Anyway, use linalg.sqrtm(linalg.pinv(cov)) when dealing with small sample sizes.
 
     N, M = full_genotype_matrix.shape
     not_solved = True
@@ -191,7 +182,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         cov = np.cov(full_genotype_matrix_temp)
 
         try:
-            inv_cov_sqrt = linalg.cholesky(linalg.pinv(cov))
+            inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
         except:
             continue
         not_solved = False
@@ -209,30 +200,31 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     del full_genotype_matrix
 
     pl.matshow(cov)
-    pl.title('Kinship - 198 strains - all good genes')
+    pl.title('Kinship matrix')
     pl.colorbar()
-    pl.savefig(fig_name + 'heat_map_allgenes.png')
+    pl.savefig(fig_name + 'kinship.pdf')
     pl.show()
 
     identity = np.cov(pseudo_snps)
     pl.matshow(identity)
     pl.title('After structure correction')
     pl.colorbar()
-    pl.savefig(fig_name + 'covariance_pseudo_snps.png')
+    pl.savefig(fig_name + 'covariance_pseudo_snps.pdf')
     pl.show()
     np.savetxt(fig_name + 'identity.csv', identity, delimiter=',')
 
     print("Creating files corrected for Population Structure...")
 
+    if write_files == True:
     # Extract the original genes from the large pseudo SNP matrix.
-    # for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
-    #    strains_list_mask = strain_list_masks[i]
-    #    snps = pseudo_snps[strains_list_mask, start:end]
-    #    strains = strains_list_mask
-    #    maf = maf_list_mask[i]
+        for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
+            strains_list_mask = strain_list_masks[i]
+            snps = pseudo_snps[strains_list_mask, start:end]
+            strains = strains_list_mask
+            maf = maf_list_mask[i]
 
-    #    file_name = 'group'+matrix_file_paths[i] # the name of the gene
+            file_name = 'group'+matrix_file_paths[i] # the name of the gene
 
-    #    np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
+            np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
 
-pseudo_snps(min_maf=0.15, fig_name='maf_0.1', debug_filter=1)
+pseudo_snps(min_maf=0.1, fig_name='maf_0_01', debug_filter=1, write_files = True)
