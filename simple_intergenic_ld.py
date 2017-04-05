@@ -220,11 +220,7 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
             norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
             # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
-            #print parse_nod_genes[int(gene1[5:9])] +'_'+ parse_nod_genes[int(gene2[5:9])]
             r = pearsonr(norm_flat_grm1, norm_flat_grm2)
-            #r2 = pearsonr(flat_grm_1, flat_grm_2)
-            #print parse_nod_genes[int(gene1[5:9])] 
-            #print total_snps_1.shape
 
             cor_matrix[parse_nod_genes[int(gene1[5:9])]][parse_nod_genes[int(gene2[5:9])]] = r[0]
     correlation_plot(cor_matrix, show = True)
