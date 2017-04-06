@@ -174,7 +174,8 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
 def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                                 min_maf = 0.1,
-                                snps_file = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
+                                snps_file = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5', 
+                                fig_name = 'default.pdf'):
     """Take the structured corrected files and calculate mantel test for the nod genes"""
     parse_nod_genes = parse_nod() 
 
@@ -223,10 +224,10 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
             r = pearsonr(norm_flat_grm1, norm_flat_grm2)
 
             cor_matrix[parse_nod_genes[int(gene1[5:9])]][parse_nod_genes[int(gene2[5:9])]] = r[0]
-    correlation_plot(cor_matrix, show = True)
+    correlation_plot(cor_matrix, show = False, fig_name = fig_name)
     return(cor_matrix)
 
-mantel_corrected_nod_genes()
+#mantel_corrected_nod_genes()
 
 def figure_comparison(corrected = 0, incorrect = 0):
     incorrected = simple_mantel_nod_genes_nod_genes()

@@ -14,6 +14,8 @@ import random
 import pandas as pd
 import pylab as pl
 import time
+import simple_intergenic_ld as mantel_test
+
 
 def calc_ld_table(snps, threshold=0.2, verbose=True, normalize=True):
     """Calculated LD between all SNPs using r^2, this function retains snps with values above a given threshold
@@ -32,6 +34,7 @@ def calc_ld_table(snps, threshold=0.2, verbose=True, normalize=True):
     for i in range(len(ld_table) - 1):
         for j in range(i + 1, len(ld_table)):
             print i
+    # To be continued
 
 
 def normalize(matrix, direction = 0):
@@ -167,7 +170,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     t0 = time.time()
     while not_solved:
 
-        # Deleting randomly 10 SNP columns (-10) and shuffling the order
+        # Randomly shuffling the SNP columns
         snp_indices_temp = random.sample(snp_indices, len(snp_indices))
 
         # Making a temporary version of the full matrix
@@ -177,7 +180,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         print('Normalizing matrix by individuals...')
         full_genotype_matrix_temp = mean_adj(full_genotype_matrix_temp)    
 
-        # Calculate genome-wide GRM/cov (X*X'/M).
+        # 2. Calculate genome-wide covariance matrix (Kinship)
         print("Calculating genotype matrix covariance...")
         cov = np.cov(full_genotype_matrix_temp)
 
@@ -198,20 +201,19 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
     del full_genotype_matrix_temp
     del full_genotype_matrix
-
+    
     pl.matshow(cov)
-    pl.title('Kinship matrix')
+    pl.title('Kinship - 198 strains - all good genes')
     pl.colorbar()
-    pl.savefig(fig_name + 'kinship.pdf')
+    pl.savefig(fig_name + 'heat_map_allgenes.png')
     pl.show()
-
+  
     identity = np.cov(pseudo_snps)
     pl.matshow(identity)
     pl.title('After structure correction')
     pl.colorbar()
-    pl.savefig(fig_name + 'covariance_pseudo_snps.pdf')
+    pl.savefig(fig_name + 'covariance_pseudo_snps.png')
     pl.show()
-    np.savetxt(fig_name + 'identity.csv', identity, delimiter=',')
 
     print("Creating files corrected for Population Structure...")
 
@@ -227,4 +229,11 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
             np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
 
-pseudo_snps(min_maf=0.1, fig_name='maf_0_01', debug_filter=1, write_files = True)
+#pseudo_snps(min_maf=0, fig_name='no_maf', debug_filter=1, write_files = True)
+#mantel_test.mantel_corrected_nod_genes(fig_name = 'no_maf.pdf')
+
+#pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
+#mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
+
+pseudo_snps(min_maf=0.15, fig_name='0.15_maf', debug_filter=1, write_files = True)
+mantel_test.mantel_corrected_nod_genes(fig_name = '0.15_maf.pdf')
