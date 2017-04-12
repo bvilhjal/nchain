@@ -190,13 +190,13 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
     for f in nod_genes:
         with np.load(in_glob + f) as data:
             # Creating a tuple of gene name, followed by snp matrix, strains mask, maf mask
-            genes.append((f, data["matrix"], data["strains"], data["maf"])) 
+            genes.append((f, data["matrix"], data["strains"])) 
 
     for gg1 in genes:
         for gg2 in genes:
 
-            gene1, total_snps_1, strains_1, maf_mask_1 = (gg1)
-            gene2, total_snps_2, strains_2, maf_mask_2 = (gg2)
+            gene1, total_snps_1, strains_1 = (gg1)
+            gene2, total_snps_2, strains_2 = (gg2)
 
             # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
             strain_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
@@ -209,7 +209,6 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
 
             total_snps_2 = total_snps_2[strain_mask_2, :]
             grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
-
 
             # Calculating correlation and covariance based on the common subset of strains
             flat_grm_1 = grm_1.flatten()
