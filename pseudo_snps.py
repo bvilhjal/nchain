@@ -85,7 +85,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     """
     Take the genes concatenate their snps, calculate GRM, mean adjust the individuals, decomposition, calculate pseudo snps.
     """
-    maf_list_mask = []
+    #maf_list_mask = []
     snp_matrices = []
     matrix_lengths = []
     matrix_file_paths = []
@@ -122,7 +122,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                 freqs = data_g['freqs'][...]
                 mafs = sp.minimum(freqs, 1 - freqs)
                 maf_mask = mafs > min_maf
-                maf_list_mask.append(maf_mask)
+                #maf_list_mask.append(maf_mask)
                 snps_maf = snps[maf_mask]
                 trues += np.sum(maf_mask)
 
@@ -151,7 +151,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     print 'The full genotype matrix has shape %f' % full_genotype_matrix.shape[1]
 
     print('Input the matrix if still there is a nan...')
-    full_genotype_matrix = replace_column_nans_by_mean(full_genotype_matrix)
+    #full_genotype_matrix = normalize(full_genotype_matrix, direction = 0) 
 
     print("The variance by column is:...")
     print np.var(full_genotype_matrix, axis = 0)
@@ -180,10 +180,14 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         print('Normalizing matrix by individuals...')
         full_genotype_matrix_temp = mean_adj(full_genotype_matrix_temp)    
 
+        print('After mean adjust the individuals:')
+        #print np.mean(full_genotype_matrix_temp, axis = 1)
+
         # 2. Calculate genome-wide covariance matrix (Kinship)
         print("Calculating genotype matrix covariance...")
+        #cov = np.dot(full_genotype_matrix_temp, full_genotype_matrix_temp.T) / full_genotype_matrix_temp.shape[1]
         cov = np.cov(full_genotype_matrix_temp)
-
+        
         try:
             inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
         except:
@@ -223,11 +227,11 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             strains_list_mask = strain_list_masks[i]
             snps = pseudo_snps[strains_list_mask, start:end]
             strains = strains_list_mask
-            maf = maf_list_mask[i]
+            #maf = maf_list_mask[i]
 
             file_name = 'group'+matrix_file_paths[i] # the name of the gene
 
-            np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains, maf = maf) # structure of the file
+            np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
 
 #pseudo_snps(min_maf=0, fig_name='no_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = 'no_maf.pdf')
@@ -235,5 +239,5 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 #pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
 
-pseudo_snps(min_maf=0.15, fig_name='0.15_maf', debug_filter=1, write_files = True)
-mantel_test.mantel_corrected_nod_genes(fig_name = '0.15_maf.pdf')
+#pseudo_snps(min_maf=0.1, fig_name='test_maf', debug_filter=1, write_files = True)
+mantel_test.mantel_corrected_nod_genes(fig_name = 'test.pdf')
