@@ -155,3 +155,46 @@ def simple_intergenic_ld_nod_genes(max_strain_num=198,
     return cor_matrix
 
 # simple_intergenic_ld_nod_genes()
+
+
+def kinship_versus_genes_wo_correction(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
+                                        max_strain_num = 198):
+    
+    # Upload overall kinship matrix
+    kinship, k_strains = (kinship_pseudo_genes())
+    
+    h5f = h5py.File(snps_file)
+    gene_groups = h5f.keys()
+    all_strains = set()
+    for gg in gene_groups:
+        data_g = h5f[gg]
+        strains = data_g['strains'][...]
+        if len(strains) == max_strain_num:
+            all_strains = set(strains).union(all_strains)
+    
+    num_strains = len(all_strains)
+    print 'Found %d "distinct" strains' % num_strains
+
+    ordered_strains = sorted(list(all_strains))
+
+    strain_index = pd.Index(ordered_strains)
+    K_snps = sp.zeros((num_strains, num_strains))
+    counts_mat_snps = sp.zeros((num_strains, num_strains))
+
+    for i, gg in enumerate(gene_groups):
+        if i % 100 == 0:
+            print 'Working on gene nr. %d' % i
+        data_g = h5f[gg]
+        strains = data_g['strains'][...]
+        if len(strains) < max_strain_num:
+            strain_mask = strain_index.get_indexer(strains)
+
+            # Already normalized snps
+            snps = data_g['norm_snps'][...]
+            freqs = data_g['freqs'][...]
+            mafs = sp.minimum(freqs, 1 - freqs)
+            maf_mask = mafs > min_maf
+            snps = snps[maf_mask]
+
+#kinship_versus_genes_wo_correction()
+
