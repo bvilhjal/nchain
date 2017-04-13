@@ -139,38 +139,40 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
         with np.load(directory + f) as data:
 	    	genes.append((f, data["matrix"], data["strains"]))
 
-	r_scores = []
-	gene_name = []
-	#print len(genes)
-	for gene in genes:
+    r_scores = []
+    gene_name = []
+    print len(genes)
+    for gene in genes:
 
-		name, snps, strains_1 = (gene)
+        name, snps, strains_1 = (gene)
+        strains_mask_1 = np.in1d(strains_1, k_strains, assume_unique = True)
+        filtered_strains_1 = strains_1[strains_mask_1]
 
-		strains_mask_1 = np.in1d(strains_1, k_strains, assume_unique = True)
-		filtered_strains_1 = strains_1[strains_mask_1]
-
-		strain_mask_2 = np.in1d(k_strains, filtered_strains_1, assume_unique=True)
-		filtered_strains_2 = k_strains[strain_mask_2]
+        strain_mask_2 = np.in1d(k_strains, filtered_strains_1, assume_unique=True)
+        filtered_strains_2 = k_strains[strain_mask_2]
 
 		# Construct GRM for a singular gene
-		total_snps_1 = snps[strains_mask_1, :]
-		grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[1])
+        total_snps_1 = snps[strains_mask_1, :]
+        grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[1])
 
-		flat_grm_1 = grm_1.flatten()
-		norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
-		norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
+        flat_grm_1 = grm_1.flatten()
+        norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
+        norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 		
 		# Overall kinship
-		grm_2 = kinship[strain_mask_2, :]
-		grm_2 = grm_2[:, strain_mask_2]
+        grm_2 = kinship[strain_mask_2, :]
+        grm_2 = grm_2[:, strain_mask_2]
 
-		flat_grm_2 = grm_2.flatten()
-		norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
-		norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
+        flat_grm_2 = grm_2.flatten()
+        norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
+        norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
         gene_name.append(gene[0][:-4])
         r_scores.append(pearsonr(norm_flat_grm1, norm_flat_grm2)[0])
 
+    # Include number of markers for each gene
+    # Include the plasmid origin
+    # Include the gene functionality
     LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name})
     LD_stats.to_csv('introgressed_gene_stats.csv', header = True)
 
