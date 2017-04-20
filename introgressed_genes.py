@@ -119,7 +119,7 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
     pl.title('Kinship pseudo genes')
     pl.colorbar()
     pl.savefig('kinshi_pseudo_genes.png')
-    #pl.show()
+    pl.show()
 
     tuple_index_kinship = (K_snps, final_strain_mask)
 
@@ -167,12 +167,18 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
         norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
         norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
-        gene_name.append(gene[0][:-4])
-        r_scores.append(pearsonr(norm_flat_grm1, norm_flat_grm2)[0])
+        
+        corr = pearsonr(norm_flat_grm1, norm_flat_grm2)[0]
+        
+        if corr > 0:
+            r_scores.append(corr)
+            gene_name.append(gene[0][:-4])
 
     # Include number of markers for each gene
     # Include the plasmid origin
     # Include the gene functionality
+    # Include the number of members in total
+    # Include the counts by genospecies
     LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name})
     LD_stats.to_csv('introgressed_gene_stats.csv', header = True)
 
