@@ -177,8 +177,9 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     # Include number of markers for each gene
     # Include the plasmid origin
     # Include the gene functionality
-    # Include the number of members in total
+    # Include the number of members containing that gene in total
     # Include the counts by genospecies
+    # Include non-synonymous/ synonymous ratio (signals of selection, any other parameter?)
     LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name})
     LD_stats.to_csv('introgressed_gene_stats.csv', header = True)
 
