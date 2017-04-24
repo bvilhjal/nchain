@@ -248,5 +248,5 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 #pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
 
-pseudo_snps(min_maf=0.1, fig_name='test_maf', debug_filter=1, write_files = True)
-mantel_test.mantel_corrected_nod_genes(fig_name = 'test.pdf')
+pseudo_snps(min_maf=0.10, fig_name='test_maf', debug_filter=1, write_files = True)
+#mantel_test.mantel_corrected_nod_genes(fig_name = 'bla.pdf')

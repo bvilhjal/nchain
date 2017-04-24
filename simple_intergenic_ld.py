@@ -317,6 +317,7 @@ def simple_intergenic_ld_nod_genes(max_strain_num=100,
 
             # Calculating correlation and covariance based on the common subset of strains
             grm_1 = gene_grm_dict[str(gg1)]['grm']
+
             flat_grm_1 = grm_1.flatten()
             norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
             norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))

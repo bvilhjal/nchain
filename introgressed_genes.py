@@ -135,11 +135,13 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
 
     for gene in genes:
         name, snps, strain_mask = (gene)
+
+        # Here snps are N x M dimensions
         K_snps_slice = K_snps[strain_mask]
-        K_snps_slice[:, strain_mask] += sp.dot(snps, snps.T)
+        K_snps_slice[:, strain_mask] += np.dot(snps, snps.T)
         K_snps[strain_mask] = K_snps_slice
         counts_mat_snps_slice = counts_mat_snps[strain_mask]
-        counts_mat_snps_slice[:, strain_mask] += len(snps)
+        counts_mat_snps_slice[:, strain_mask] += snps.shape[1] # Markers present in each gene
         counts_mat_snps[strain_mask] = counts_mat_snps_slice
 
         if len(strain_mask) == 198:
@@ -194,6 +196,8 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
 		# Construct GRM for a singular gene
         total_snps_1 = snps[strains_mask_1, :]
         grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[1])
+        #pl.matshow(grm_1)
+        #pl.show()
 
         flat_grm_1 = grm_1.flatten()
         norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
@@ -230,7 +234,7 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
 
             # Finding the gene location
             if gene[0][:-4] in locations.keys():
-                print locations[gene[0][:-4]]
+                #print locations[gene[0][:-4]]
                 origin.append(locations[gene[0][:-4]])
             else:
                 origin.append(0)
@@ -239,7 +243,7 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     # suming up the square of the values off the diagonal (to be close to the identity matrix) 
 
     # 2 statistic: PCA analysis
-    # possible 
+    # Try doing an eigen decomp, where the statistic of interest would be the sum of say ~5 top eigenvalues.
 
     # Include the plasmid origin
     # Include the gene functionality
