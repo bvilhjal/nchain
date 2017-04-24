@@ -10,6 +10,7 @@ import os
 import glob 
 from scipy.stats.stats import pearsonr
 import pylab as pl
+from collections import OrderedDict
 
 def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'):
     from itertools import izip
@@ -87,6 +88,38 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
 #kinship_all_genes()
 
 
+def gene_locations( ):
+
+    # Make a dictionary that contains a gene and it respective location, based on the gene scaffold analysis
+    # 1. Open the csv files containing the genes and their scaffolds origins 
+    # 2. Make a dictionary where each gene will have a specific origin
+    # 3. Combine this origin with the mantel results: nod genes versus all ( Mantel_test_nod_all_core)
+    df1 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_0_1000.csv', sep=',', header = 0, index_col = 0)
+    df2 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_1001_2000.csv', sep=',', header = 0, index_col = 0)
+    df3 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_2001_3000.csv', sep=',', header = 0, index_col = 0)
+    df4 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_3001_4000.csv', sep=',', header = 0, index_col = 0)
+    df5 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_4001_4307.csv', sep=',', header = 0, index_col = 0)
+
+    frames = [df1, df2, df3, df4, df5]
+
+    df = pd.concat(frames, axis = 1)
+
+    # Making the location dictionary: keys are genes and values are plasmid origin: 
+    locations = {}
+
+    for column in df:
+        # Taking the mode of each gene location:
+        all_locations = df[column].tolist()
+        origin = max(set(all_locations), key=all_locations.count)
+        #print origin
+
+        if column not in locations:
+            locations[column] = origin
+        else:
+            locations[column].append(origin)
+    return locations
+
+
 def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                         num_strains = 198):
     # Changing directory
@@ -128,6 +161,8 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
 #print kinship_pseudo_genes()
 
 def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/'):
+
+    nod_genes = OrderedDict([(4144, 'nodX'), (4143, 'nodN'), (4142, 'nodM'), (4141, 'nodL'), (4140, 'nodE'), (4139, 'nodF'), (4138, 'nodD'), (4137, 'nodA'), (4136, 'nodC'), (4135, 'nodI'), (4134, 'nodJ'), (4129, 'nifB'), (4128, 'nifA'), (4127, 'fixX'), (4126, 'fixC'), (4125, 'fixB'), (4124, 'fixA'), (4123, 'nifH'), (4122, 'nifD'), (4121, 'nifK'), (4120, 'nifE'), (2448, 'rpoB'), (2140, 'recA')])
     os.chdir(directory)
 
 	# Upload overall kinship matrix
@@ -141,6 +176,11 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
 
     r_scores = []
     gene_name = []
+    original_name = []
+    n_snps = []
+    n_members = []
+    origin = [] 
+    locations = gene_locations()
     print len(genes)
     for gene in genes:
 
@@ -172,15 +212,43 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
         
         if corr > 0:
             r_scores.append(corr)
-            gene_name.append(gene[0][:-4])
+            name = gene[0][:-4]
+            name = name[5:]
 
-    # Include number of markers for each gene
+            original_name.append(name)
+            if int(name) in nod_genes.keys():
+                print nod_genes[int(name)]
+                gene_name.append(nod_genes[int(name)])
+            else:    
+                gene_name.append(gene[0][:-4])
+
+            # Number of snps    
+            n_snps.append(snps.shape[1])
+
+            # Number of members 
+            n_members.append(snps.shape[0])
+
+            # Finding the gene location
+            if gene[0][:-4] in locations.keys():
+                print locations[gene[0][:-4]]
+                origin.append(locations[gene[0][:-4]])
+            else:
+                origin.append(0)
+
+    # 1 statistic:
+    # suming up the square of the values off the diagonal (to be close to the identity matrix) 
+
+    # 2 statistic: PCA analysis
+    # possible 
+
     # Include the plasmid origin
     # Include the gene functionality
-    # Include the number of members containing that gene in total
     # Include the counts by genospecies
     # Include non-synonymous/ synonymous ratio (signals of selection, any other parameter?)
-    LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name})
+    # Count the number of snps in each gene and make a distribution
+    # Colour by number of snps and by locations
+    np.save('gene_groups_mantel.npy', original_name)
+    LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name, 'snps': n_snps, 'members': n_members, 'origin': origin})
     LD_stats.to_csv('introgressed_gene_stats.csv', header = True)
 
 kinship_versus_corrected_genes()
