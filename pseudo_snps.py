@@ -41,11 +41,9 @@ def normalize(matrix, direction = 0):
     """Normalizes a matrix default (columns) to mean 0 and var 1."""
     mean = np.mean(matrix, axis= direction)
     std = np.std(matrix, axis= direction)
-    if direction == 1:
-        mean = mean[:, None]
-        std = std[:, None]
 
     matrix = (matrix - mean) / std
+    #matrix = matrix / std
     return matrix
 
 
@@ -85,7 +83,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     """
     Take the genes concatenate their snps, calculate GRM, mean adjust the individuals, decomposition, calculate pseudo snps.
     """
-    #maf_list_mask = []
     snp_matrices = []
     matrix_lengths = []
     matrix_file_paths = []
@@ -116,13 +113,14 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             strains = data_g['strains'][...]
             if len(strains) < max_strain_num:
                 strain_mask = strain_index.get_indexer(strains)
+
+                # Snps M x N
                 snps = data_g['norm_snps'][...]
 
                 # Minor allele frequence filtering
                 freqs = data_g['freqs'][...]
                 mafs = sp.minimum(freqs, 1 - freqs)
                 maf_mask = mafs > min_maf
-                #maf_list_mask.append(maf_mask)
                 snps_maf = snps[maf_mask]
                 trues += np.sum(maf_mask)
 
@@ -151,7 +149,7 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     print 'The full genotype matrix has shape %f' % full_genotype_matrix.shape[1]
 
     print('Input the matrix if still there is a nan...')
-    #full_genotype_matrix = normalize(full_genotype_matrix, direction = 0) 
+    full_genotype_matrix = normalize(full_genotype_matrix, direction = 0) 
 
     print("The variance by column is:...")
     print np.var(full_genotype_matrix, axis = 0)
@@ -181,15 +179,17 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         full_genotype_matrix_temp = mean_adj(full_genotype_matrix_temp)    
 
         print('After mean adjust the individuals:')
-        #print np.mean(full_genotype_matrix_temp, axis = 1)
+        print np.mean(full_genotype_matrix_temp, axis = 1)
 
         # 2. Calculate genome-wide covariance matrix (Kinship)
         print("Calculating genotype matrix covariance...")
-        #cov = np.dot(full_genotype_matrix_temp, full_genotype_matrix_temp.T) / full_genotype_matrix_temp.shape[1]
-        cov = np.cov(full_genotype_matrix_temp)
+        cov = np.dot(full_genotype_matrix_temp, full_genotype_matrix_temp.T) / full_genotype_matrix_temp.shape[1]
+        evals, evecs = (linalg.eigh(cov))
+        print sorted(evals)
         
         try:
-            inv_cov_sqrt = linalg.cholesky(linalg.inv(cov))
+            sqrt = linalg.cholesky(cov)
+            inv_cov_sqrt = linalg.inv(sqrt.T)
         except:
             continue
         not_solved = False
@@ -202,7 +202,17 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 
     # 3. Calculate the pseudo-SNPs (x*A)
     print("Calculating pseudo SNPS...")
-    pseudo_snps = np.column_stack(np.dot(inv_cov_sqrt, col) for col in full_genotype_matrix.T)
+    pseudo_snps = np.dot(inv_cov_sqrt, full_genotype_matrix)
+
+    print("The variance by column is:...")
+    print np.var(full_genotype_matrix, axis = 0)
+
+    print("The mean by columns is:...")
+    print np.mean(full_genotype_matrix, axis = 0)
+
+    print("Dimension")
+    print full_genotype_matrix.shape
+
     del full_genotype_matrix_temp
     del full_genotype_matrix
     
@@ -227,7 +237,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
             strains_list_mask = strain_list_masks[i]
             snps = pseudo_snps[strains_list_mask, start:end]
             strains = strains_list_mask
-            #maf = maf_list_mask[i]
 
             file_name = 'group'+matrix_file_paths[i] # the name of the gene
 
@@ -239,5 +248,5 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 #pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
 
-#pseudo_snps(min_maf=0.1, fig_name='test_maf', debug_filter=1, write_files = True)
+pseudo_snps(min_maf=0.1, fig_name='test_maf', debug_filter=1, write_files = True)
 mantel_test.mantel_corrected_nod_genes(fig_name = 'test.pdf')
