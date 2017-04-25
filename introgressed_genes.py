@@ -217,9 +217,9 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
         if corr > 0:
             r_scores.append(corr)
             name = gene[0][:-4]
+            original_name.append(name)
             name = name[5:]
 
-            original_name.append(name)
             if int(name) in nod_genes.keys():
                 print nod_genes[int(name)]
                 gene_name.append(nod_genes[int(name)])
@@ -251,6 +251,8 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     # Include non-synonymous/ synonymous ratio (signals of selection, any other parameter?)
     # Count the number of snps in each gene and make a distribution
     # Colour by number of snps and by locations
+
+    os.chdir('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain')
     np.save('gene_groups_mantel.npy', original_name)
     LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name, 'snps': n_snps, 'members': n_members, 'origin': origin})
     LD_stats.to_csv('introgressed_gene_stats.csv', header = True)
