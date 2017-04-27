@@ -43,7 +43,6 @@ def normalize(matrix, direction = 0):
     std = np.std(matrix, axis= direction)
 
     matrix = (matrix - mean) / std
-    #matrix = matrix / std
     return matrix
 
 
@@ -57,18 +56,6 @@ def mean_adj(matrix, direction = 1):
     return matrix
 
 
-def replace_column_nans_by_mean(matrix):
-    # Set the value of gaps/dashes in each column to be the average of the other values in the column.
-    nan_indices = np.where(np.isnan(matrix))
-    # Note: bn.nanmean() instead of np.nanmean() because it is a lot(!) faster.
-    column_nanmeans = np.nanmean(matrix, axis=0)
-
-    # For each column, assign the NaNs in that column the column's mean.
-    # See http://stackoverflow.com/a/18689440 for an explanation of the following line.
-    matrix[nan_indices] = np.take(column_nanmeans, nan_indices[1])
-
-    return matrix
-
 def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
                  out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                  figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
@@ -78,7 +65,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  max_strain_num=200,
                  fig_name='test.png',
                  debug_filter=0.15,
-                 write_files = False):
+                 write_files = False,
+                 min_snps = 5):
 
     """
     Take the genes concatenate their snps, calculate GRM, mean adjust the individuals, decomposition, calculate pseudo snps.
@@ -127,18 +115,20 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                 # Strains in rows and snps in columns:
                 snps_maf = snps_maf.T
 
-                # Changing the precision of the array:
-                snps_maf = np.float64(snps_maf)
+                if snps_maf.shape[1] >= min_snps:
 
-                # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
-                # correct rows filled in by the data from the SNP file.
-                full_matrix = np.zeros((198, snps_maf.shape[1]))
-                full_matrix[strain_mask, :] = snps_maf
+                    # Changing the precision of the array:
+                    snps_maf = np.float64(snps_maf)
 
-                snp_matrices.append(full_matrix)  # the matrix completed with NaNs
-                strain_list_masks.append(strain_mask)  # The strains caring that gene
-                matrix_lengths.append(full_matrix.shape[1])  # The length of the gene
-                matrix_file_paths.append(gg)  # The name of the gene
+                    # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
+                    # correct rows filled in by the data from the SNP file.
+                    full_matrix = np.zeros((198, snps_maf.shape[1]))
+                    full_matrix[strain_mask, :] = snps_maf
+
+                    snp_matrices.append(full_matrix)  # the matrix completed with NaNs
+                    strain_list_masks.append(strain_mask)  # The strains caring that gene
+                    matrix_lengths.append(full_matrix.shape[1])  # The length of the gene
+                    matrix_file_paths.append(gg)  # The name of the gene
 
     print '%d SNPs out of 717457 after filtering for MAF > %f' % (trues, min_maf)
 
@@ -248,5 +238,5 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 #pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
 
-pseudo_snps(min_maf=0.10, fig_name='test_maf', debug_filter=1, write_files = True)
-#mantel_test.mantel_corrected_nod_genes(fig_name = 'bla.pdf')
+pseudo_snps(min_maf=0.05, fig_name='test_maf', debug_filter=1, write_files = True)
+mantel_test.mantel_corrected_nod_genes(fig_name = 'maf__snps_filtering_05.pdf')
