@@ -153,7 +153,7 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
     pl.matshow(K_snps)
     pl.title('Kinship pseudo genes')
     pl.colorbar()
-    pl.savefig('kinshi_pseudo_genes.png')
+    pl.savefig('kinship_pseudo_genes.pdf')
     pl.show()
 
     tuple_index_kinship = (K_snps, final_strain_mask)
@@ -161,6 +161,16 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
     return(tuple_index_kinship)
 
 #print kinship_pseudo_genes()
+
+def simple_tracy_widow(matrix, PCS = 5):
+    '''Decompose the covariance matrix of each gene and extract the sum over the first eigenvalues (PCs)'''
+    evals, evecs = (linalg.eigh(matrix))
+
+    # This give us an estimator of the variance explained by the gene
+    variance_explained = evals[PCS]
+
+    return(sum(variance_explained))
+
 
 def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/'):
 
@@ -200,7 +210,8 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
         #pl.show()
 
         flat_grm_1 = grm_1.flatten()
-        norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
+        #norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
+        norm_flat_grm1 = flat_grm_1
         norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 		
 		# Overall kinship
@@ -208,7 +219,8 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
         grm_2 = grm_2[:, strain_mask_2]
 
         flat_grm_2 = grm_2.flatten()
-        norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
+        #norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
+        norm_flat_grm2 = flat_grm_2
         norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
         
@@ -245,6 +257,7 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     # 2 statistic: PCA analysis
     # Try doing an eigen decomp, where the statistic of interest would be the sum of say ~5 top eigenvalues.
 
+    #
     # Include the plasmid origin
     # Include the gene functionality
     # Include the counts by genospecies
@@ -255,6 +268,6 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     os.chdir('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain')
     np.save('gene_groups_mantel.npy', original_name)
     LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name, 'snps': n_snps, 'members': n_members, 'origin': origin})
-    LD_stats.to_csv('introgressed_gene_stats.csv', header = True)
+    LD_stats.to_csv('introgressed_gene_stats_test.csv', header = True)
 
 kinship_versus_corrected_genes()

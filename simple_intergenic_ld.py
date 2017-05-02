@@ -44,7 +44,8 @@ def average_genotype_matrix(X):
     average_X = (X - np.mean(X, axis=1))
     return(average_X)
 
-def correlation_plot(df, wrt=True, fig_name = 'mantel_test.png', show = False):
+def correlation_plot(df, wrt=True, fig_name = 'mantel_test.png', show = False,
+                    figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'):
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(12, 9))
 
@@ -52,7 +53,7 @@ def correlation_plot(df, wrt=True, fig_name = 'mantel_test.png', show = False):
     with sns.axes_style("white"):
         ax = sns.heatmap(df, square=True, annot=wrt, annot_kws={"size": 9}, cmap="RdYlGn", vmin=0, vmax=1)
     f.tight_layout()
-    plt.savefig(fig_name)
+    plt.savefig(figure_dir + fig_name)
     if show == True:
         plt.show()
 
@@ -175,7 +176,8 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
                                 min_maf = 0.1,
                                 snps_file = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5', 
-                                fig_name = 'default.pdf'):
+                                fig_name = 'default.pdf',
+                                figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'):
     """Take the structured corrected files and calculate mantel test for the nod genes"""
     parse_nod_genes = parse_nod() 
 
@@ -254,7 +256,9 @@ def robusteness_maf_simple():
 def simple_intergenic_ld_nod_genes(max_strain_num=100,
                             maf=0.1,
                             amount = 10,
-                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
+                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
+                            figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'):
+
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
     nod_genes = parse_nod()

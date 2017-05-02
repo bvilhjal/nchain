@@ -58,7 +58,7 @@ def mean_adj(matrix, direction = 1):
 
 def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
                  out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
-                 figure_dir='/project/NChain/faststorage/rhizobium/ld/figures',
+                 figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/',
                  fig_id='all',
                  min_maf=0,
                  n_snps_delete=10,
@@ -209,14 +209,14 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     pl.matshow(cov)
     pl.title('Kinship - 198 strains - all good genes')
     pl.colorbar()
-    pl.savefig(fig_name + 'heat_map_allgenes.png')
+    pl.savefig(figure_dir + fig_name + 'heat_map_allgenes.pdf')
     pl.show()
   
     identity = np.cov(pseudo_snps)
     pl.matshow(identity)
     pl.title('After structure correction')
     pl.colorbar()
-    pl.savefig(fig_name + 'covariance_pseudo_snps.png')
+    pl.savefig(figure_dir + fig_name + 'covariance_pseudo_snps.pdf')
     pl.show()
 
     print("Creating files corrected for Population Structure...")
@@ -238,5 +238,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 #pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
 
-pseudo_snps(min_maf=0.05, fig_name='test_maf', debug_filter=1, write_files = True)
-mantel_test.mantel_corrected_nod_genes(fig_name = 'maf__snps_filtering_05.pdf')
+#pseudo_snps(min_maf=0.05, fig_name='maf_005', debug_filter=1, write_files = True)
+mantel_test.mantel_corrected_nod_genes(fig_name = 'nod_genes_maf_snps_filtering_005.pdf')
+
