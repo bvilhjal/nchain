@@ -13,6 +13,7 @@ import pandas as pd
 import scipy as sp
 from itertools import izip
 from scipy.stats.stats import pearsonr
+from simple_intergenic_ld import correlation_plot
 
 def gene_locations(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/gene_locations_sorted.csv'):
     '''Adding the location of the genes based on a blast of the pacbio genome SM158'''
@@ -20,7 +21,6 @@ def gene_locations(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/g
     loc_map = {}
     t = pd.read_table(file_name, sep = ',')
     t = t.rename(columns=lambda x: x.strip())
-    print t
     for gene, contig, plasmid, start, position in izip(t["qseqid"], t["contig"], t["sseqid"], t["sstart"], t["position"]):
         
         loc_map[str(gene)]={'gene':gene, 'contig':contig, 'plasmid':plasmid, 'bp_start': start, 'position': position}
@@ -57,20 +57,20 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
 
     # Initializing the LD table 
 
-    # Subseting by a given condition (plasmid type)
+    # Subsetting by a given condition (plasmid type)
     df_locations, dict_locations = (gene_locations())
-    #sub_df = df_locations.loc[(df_locations.qseqid == plasmid_type)]
 
-    LD_matrix = np.empty((len(df_locations['position']), len(df_locations['position'])))
-    LD_matrix[:] = np.NAN
-    LD_matrix = pd.DataFrame(LD_matrix, index = df_locations['qseqid'], columns = df_locations['qseqid'])
+    sub_df = df_locations.loc[(df_locations['sseqid'] == plasmid_type[0])]
+
+    LD_matrix = np.zeros((len(sub_df['position']), len(sub_df['position'])))
+    LD_matrix = pd.DataFrame(LD_matrix, index = sub_df['qseqid'], columns = sub_df['qseqid'])
     
-    print len(df_locations['position'])
-    for index1 in range(0, len(genes)):
-        for index2 in range(index1, len(genes)):
+    print 'Number of genes in the data base %d' % len(df_locations['position'])
+    for gene1 in genes:
+        for gene2 in genes:
             
-            gene1 = genes[index1]
-            gene2 = genes[index2]
+            #gene1 = genes[index1]
+            #gene2 = genes[index2]
             
             name1, snps1, strains_1 = (gene1)
             name2, snps2, strains_2 = (gene2)
@@ -86,8 +86,15 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
 
             if origin1 in plasmid_type and origin2 in plasmid_type:
             
+                # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
+                strains_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
+                fitered_strains_1 = strains_1[strains_mask_1]
+                strains_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
+                #fitered_strains_2 = strains_2[strain_mask_2]
+
                 # Construct GRM for a singular gene
-                grm_1 = np.divide(np.dot(snps1, snps1.T), snps_1.shape[1])
+                total_snps_1 = snps1[strains_mask_1, :]
+                grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
 
                 flat_grm_1 = grm_1.flatten()
                 norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
@@ -96,7 +103,8 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
             
                 # Gene 2
                 # Construct GRM for a singular gene
-                grm_2 = np.divide(np.dot(snps2, snps2.T), snps2.shape[1])
+                total_snps_2 = snps2[strains_mask_2, :]
+                grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
 
                 flat_grm_2 = grm_2.flatten()
                 norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
@@ -105,17 +113,22 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
         
                 corr = pearsonr(norm_flat_grm1, norm_flat_grm2)[0]
                 
-                print str(name1[:-4])
-                print str(name2[:-4]) 
-                print corr
-                LD_matrix.set_value(name1[:-4], name2[:-4], corr)
+                LD_matrix[str(name1[:-4])][str(name2[:-4])] = corr
 
                 #print corr
                 #print LD_matrix
 
     print ' Number of genes that have not a location assigned for the plasmid %s is: %d' % (plasmid_type, missing_location)
 
-    LD_matrix.to_csv('LD_table_test.csv', header = True)
+    # Removing rows with empty values
+    LD_matrix = LD_matrix[(LD_matrix.T != 0).any()]
+
+    # Removing columns with empty values
+    LD_matrix = LD_matrix.loc[:, (LD_matrix != 0).any(axis = 0)]
+
+    LD_matrix.to_csv(plasmid_type[0] + '.csv', header = True)
+
+    correlation_plot(LD_matrix, wrt=False, fig_name = plasmid_type[0] + '.pdf', show = True)
     return LD_matrix
 
-print all_versus_corrected_genes()
+print all_versus_corrected_genes(plasmid_type = ['unitig_4'])
