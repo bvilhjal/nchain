@@ -225,7 +225,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     # Extract the original genes from the large pseudo SNP matrix.
         for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
             strains_list_mask = strain_list_masks[i]
-            snps = pseudo_snps[strains_list_mask, start:end]
+            #snps = pseudo_snps[strains_list_mask, start:end]
+            snps = pseudo_snps[:,start:end]
             strains = strains_list_mask
 
             file_name = 'group'+matrix_file_paths[i] # the name of the gene
