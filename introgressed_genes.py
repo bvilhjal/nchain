@@ -120,7 +120,7 @@ def gene_locations( ):
     return locations
 
 
-def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
+def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/',
                         num_strains = 198):
     # Changing directory
     os.chdir(directory)
@@ -136,18 +136,12 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
     for gene in genes:
         name, snps, strain_mask = (gene)
 
-        # Here snps are N x M dimensions
-        K_snps_slice = K_snps[strain_mask]
-        K_snps_slice[:, strain_mask] += np.dot(snps, snps.T)
-        K_snps[strain_mask] = K_snps_slice
-        counts_mat_snps_slice = counts_mat_snps[strain_mask]
-        counts_mat_snps_slice[:, strain_mask] += snps.shape[1] # Markers present in each gene
-        counts_mat_snps[strain_mask] = counts_mat_snps_slice
+        K_snps += np.dot(snps, snps.T) / snps.shape[0]
 
-        if len(strain_mask) == 198:
-            final_strain_mask = strain_mask 
 
-    K_snps = K_snps / counts_mat_snps  # element-wise division
+    # Divide it by half of the number of genes:
+    K_snps = K_snps / (len(genes)/2)
+
     print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
 
     pl.matshow(K_snps)
@@ -160,7 +154,7 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
 
     return(tuple_index_kinship)
 
-#print kinship_pseudo_genes()
+print kinship_pseudo_genes()
 
 def simple_tracy_widow(matrix, PCS = 5):
     '''Decompose the covariance matrix of each gene and extract the sum over the first eigenvalues (PCs)'''
