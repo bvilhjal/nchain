@@ -173,7 +173,7 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
 #simple_mantel_nod_genes_nod_genes()
 
-def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
+def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/',
                                 min_maf = 0.1,
                                 snps_file = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5', 
                                 fig_name = 'default.pdf',
@@ -200,29 +200,23 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
             gene1, total_snps_1, strains_1 = (gg1)
             gene2, total_snps_2, strains_2 = (gg2)
 
-            # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
-            strain_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
-            fitered_strains_1 = strains_1[strain_mask_1]
-            strain_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
-            #fitered_strains_2 = strains_2[strain_mask_2]
+            grm_1 = np.dot(total_snps_1, total_snps_1.T) / total_snps_1.shape[0]
 
-            total_snps_1 = total_snps_1[strain_mask_1, :]
-            grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
-
-            total_snps_2 = total_snps_2[strain_mask_2, :]
-            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[0])
 
             # Calculating correlation and covariance based on the common subset of strains
             flat_grm_1 = grm_1.flatten()
-            norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
-            norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
+            #norm_flat_grm1 = flat_grm_1
+            #norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
+            #norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 
             flat_grm_2 = grm_2.flatten()
-            norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
-            norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
+            #norm_flat_grm2 = flat_grm_2
+            #norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
+            #norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
             # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
-            r = pearsonr(norm_flat_grm1, norm_flat_grm2)
+            r = pearsonr(flat_grm_1, flat_grm_2)
 
             cor_matrix[parse_nod_genes[int(gene1[5:9])]][parse_nod_genes[int(gene2[5:9])]] = r[0]
     correlation_plot(cor_matrix, show = False, fig_name = fig_name)

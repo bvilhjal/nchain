@@ -66,6 +66,7 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
     LD_matrix = pd.DataFrame(LD_matrix, index = sub_df['qseqid'], columns = sub_df['qseqid'])
     
     print 'Number of genes in the data base %d' % len(df_locations['position'])
+    missing_location = 0 
     for gene1 in genes:
         for gene2 in genes:
             
@@ -76,7 +77,6 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
             name2, snps2, strains_2 = (gene2)
 
             # Find the plasmid origin of the gene:
-            missing_location = 0 
             try:
                 origin1 = dict_locations[name1[:-4]]['plasmid']
                 origin2 = dict_locations[name2[:-4]]['plasmid']
@@ -118,7 +118,7 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
                 #print corr
                 #print LD_matrix
 
-    print ' Number of genes that have not a location assigned for the plasmid %s is: %d' % (plasmid_type, missing_location)
+    print 'Number of genes that have not a location assigned for the plasmid %s is: %d' % (plasmid_type, missing_location)
 
     # Removing rows with empty values
     LD_matrix = LD_matrix[(LD_matrix.T != 0).any()]
@@ -128,7 +128,10 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
 
     LD_matrix.to_csv(plasmid_type[0] + '.csv', header = True)
 
-    correlation_plot(LD_matrix, wrt=False, fig_name = plasmid_type[0] + '.pdf', show = True)
+    correlation_plot(LD_matrix, wrt=False, fig_name = plasmid_type[0] + '.pdf', show = False)
     return LD_matrix
 
-print all_versus_corrected_genes(plasmid_type = ['unitig_4'])
+#print all_versus_corrected_genes(plasmid_type = ['unitig_3'])
+print all_versus_corrected_genes(plasmid_type = ['unitig_2'])
+print all_versus_corrected_genes(plasmid_type = ['unitig_1'])
+print all_versus_corrected_genes(plasmid_type = ['unitig_0'])

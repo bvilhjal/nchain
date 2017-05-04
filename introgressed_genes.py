@@ -10,6 +10,7 @@ import os
 import glob 
 from scipy.stats.stats import pearsonr
 import pylab as pl
+from numpy import linalg
 from collections import OrderedDict
 
 def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'):
@@ -138,7 +139,6 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
 
         K_snps += np.dot(snps, snps.T) / snps.shape[0]
 
-
     # Divide it by half of the number of genes:
     K_snps = K_snps / (len(genes)/2)
 
@@ -148,25 +148,21 @@ def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Me
     pl.title('Kinship pseudo genes')
     pl.colorbar()
     pl.savefig('kinship_pseudo_genes.pdf')
-    pl.show()
+    #pl.show()
 
-    tuple_index_kinship = (K_snps, final_strain_mask)
-
-    return(tuple_index_kinship)
-
-print kinship_pseudo_genes()
+    return(K_snps)
 
 def simple_tracy_widow(matrix, PCS = 5):
     '''Decompose the covariance matrix of each gene and extract the sum over the first eigenvalues (PCs)'''
     evals, evecs = (linalg.eigh(matrix))
 
     # This give us an estimator of the variance explained by the gene
-    variance_explained = evals[PCS]
+    variance_explained = evals[0:PCS]
 
     return(sum(variance_explained))
 
 
-def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/'):
+def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'):
 
     nod_genes = OrderedDict([(4144, 'nodX'), (4143, 'nodN'), (4142, 'nodM'), (4141, 'nodL'), (4140, 'nodE'), (4139, 'nodF'), (4138, 'nodD'), (4137, 'nodA'),
     (4136, 'nodC'), (4135, 'nodI'), (4134, 'nodJ'), (4129, 'nifB'), (4128, 'nifA'), (4127, 'fixX'), (4126, 'fixC'), (4125, 'fixB'), (4124, 'fixA'), 
@@ -174,7 +170,7 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     os.chdir(directory)
 
 	# Upload overall kinship matrix
-    kinship, k_strains = (kinship_pseudo_genes())
+    kinship = (kinship_pseudo_genes())
 
 	#This is the gene SNPs matrix
     genes = []
@@ -193,38 +189,34 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     for gene in genes:
 
         name, snps, strains_1 = (gene)
-        strains_mask_1 = np.in1d(strains_1, k_strains, assume_unique = True)
-        filtered_strains_1 = strains_1[strains_mask_1]
+        #strains_mask_1 = np.in1d(strains_1, k_strains, assume_unique = True)
+        #filtered_strains_1 = strains_1[strains_mask_1]
 
-        strain_mask_2 = np.in1d(k_strains, filtered_strains_1, assume_unique=True)
-        filtered_strains_2 = k_strains[strain_mask_2]
+        #strain_mask_2 = np.in1d(k_strains, filtered_strains_1, assume_unique=True)
+        #filtered_strains_2 = k_strains[strain_mask_2]
 
 		# Construct GRM for a singular gene
-        total_snps_1 = snps[strains_mask_1, :]
-        grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[1])
-        #pl.matshow(grm_1)
-        #pl.show()
+        grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[0])
+
+        # Simple trace-widow: measure of variance
+        #print simple_tracy_widow(norm_flat_grm2)
+        print simple_tracy_widow(grm_1)
 
         flat_grm_1 = grm_1.flatten()
         #norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
-        norm_flat_grm1 = flat_grm_1
-        norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
+        #norm_flat_grm1 = flat_grm_1
+        #norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 		
-		# Overall kinship
-        grm_2 = kinship[strain_mask_2, :]
-        grm_2 = grm_2[:, strain_mask_2]
+		# Overall kinship (which is the identity matrix)
+        grm_2 = kinship 
 
         flat_grm_2 = grm_2.flatten()
         #norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
-        norm_flat_grm2 = flat_grm_2
-        norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
+        #norm_flat_grm2 = flat_grm_2
+        #norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
         # Mantel test: correlation of flat matrices
-        corr = pearsonr(norm_flat_grm1, norm_flat_grm2)[0]
-
-        # Simple trace-widow: measure of variance
-        print simple_tracy_widow(norm_flat_grm2)
-        print simple_tracy_widow(norm_flat_grm1)
+        corr = pearsonr(flat_grm_1, flat_grm_2)[0]
         
         if corr > 0:
             r_scores.append(corr)
@@ -268,6 +260,6 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     os.chdir('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain')
     np.save('gene_groups_mantel.npy', original_name)
     LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name, 'snps': n_snps, 'members': n_members, 'origin': origin})
-    LD_stats.to_csv('introgressed_gene_stats_test.csv', header = True)
+    LD_stats.to_csv('introgressed_gene_stats_test_2.csv', header = True)
 
 kinship_versus_corrected_genes()

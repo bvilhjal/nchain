@@ -1,7 +1,7 @@
 # Mantel test, introgressed genes
 library(ggplot2)
 setwd('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain')
-correl = read.csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/introgressed_gene_stats_test.csv')
+correl = read.csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/introgressed_gene_stats_test_2.csv')
 
 hist(correl$r_scores, breaks = 50, main = 'Kinship vs all', xlab = 'Correlation scores', xlim = c(min(correl$r_scores), max(correl$r_scores)), col = 'grey')
 mean(as.numeric(correl$r_scores))
