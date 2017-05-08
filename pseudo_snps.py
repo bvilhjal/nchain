@@ -17,25 +17,86 @@ import time
 import simple_intergenic_ld as mantel_test
 
 
-def calc_ld_table(snps, threshold=0.2, verbose=True, normalize=True):
+def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist = 2000):
     """Calculated LD between all SNPs using r^2, this function retains snps with values above a given threshold
         Inputed genetic matrix is already normalized by columns/snps"""
-    # Transposing the snp matrix just to look like Bjarni's function
+    
+    if verbose:
+        print 'Calculating LD table'
+
+    t0 = time.time()
+
+    # Transposing the snp matrix just to look like Bjarni's function (individuals are in the columns and snps are in the rows)
     snps = snps.T
     num_snps, num_ind = snps.shape
 
-    # Initializing the matrix
-    ld_table = np.zeros((num_snps, num_snps))
+    ld_table = {}
+    for i in range(num_snps):
+        # Initializing the dictionary entries
+        ld_table[i] = {}
 
-    ld_vec = sp.dot(snps, snps.T) / float(num_ind)
-    ld_vec = np.array(ld_vec).flatten()
+    a = min(max_ld_dist, num_snps)
+    num_pairs = (a * (num_snps - 1)) - a * (a + 1) * 0.5
 
-    # Looping through each comparison, upper triangle of the table
-    for i in range(len(ld_table) - 1):
-        for j in range(i + 1, len(ld_table)):
-            print i
-    # To be continued
+    if verbose:
+        print ' Correlation between %d pairs will be tested' % num_pairs
 
+    num_stored = 0
+    for i in range(0, num_snps - 1):
+        start_i = i + 1
+        end_i = min(start_i + max_ld_dist, num_snps)
+        
+        ld_vec = sp.dot(snps[i], sp.transpose(snps[start_i:end_i])) / float(num_ind)
+        ld_vec = np.array(ld_vec).flatten()
+
+        for k in range(start_i, end_i):
+            ld_vec_i = k - start_i
+            if ld_vec[ld_vec_i] ** 2 > min_r2:
+                ld_table[i][k] = ld_vec[ld_vec_i]
+                ld_table[k][i] = ld_vec[ld_vec_i]
+                num_stored += 1
+
+            if verbose:
+                if i % 1000 == 0:
+                    print '\b\b\b\b\b\b%0.2f%%' % 100.0 * (min(1, float(i + 1) / (num_snps - 1)))
+    print 'Stored %d (%0.4f%%) correlations that made the cut r^2 >%0.3f' % (num_stored, 100 * (num_stored / float(num_pairs)), min_r2)
+
+    t1 = time.time()
+    t = (t1 - t0)
+    if verbose:
+        print '\nIt took %d minutes and %0.2f seconds to calculate the LD table' % (t / 60, t % 60)
+    del snps
+    return ld_table
+
+def ld_pruning(ld_table, max_ld = 0.5, verbose = False):
+    """
+    Prunes SNPs in LD, in random order.
+    """
+    if verbose:
+        print 'Prune SNPs in LD, in random order':
+    t0 = time.time()
+    indices_to_keep = []
+    num_snps = len(ld_table)
+    indices = sp.random.permutation(num_snps)
+    remaining_indices = set(indices)
+    for i in indices:
+        if len(remaining_indices) == 0:
+            break
+        elif not (i in remaining_indices):
+            continue
+        else:
+            indices_to_keep.append(i)
+            for j in ld_table[i]:
+                if ld_table[i][j] > max_ld and j in remaining_indices:
+                    remaining_indices.remove(j)
+
+    filter_vector = sp.zeros(num_snps, dtype = 'bool')
+    filter_vector[indices_to_keep] = 1
+    t1 = time.time()
+    t = (t1 - t0)
+    if verbose:
+        print '\nIt took %d minutes and %0.2f seconds to LD-prune' % (t / 60, t % 60)
+    return filter_vector
 
 def normalize(matrix, direction = 0):
     """Normalizes a matrix default (columns) to mean 0 and var 1."""
@@ -57,7 +118,7 @@ def mean_adj(matrix, direction = 1):
 
 
 def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
-                 out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
+                 out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/',
                  figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/',
                  fig_id='all',
                  min_maf=0,
@@ -135,6 +196,8 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     snp_boundaries = np.cumsum(matrix_lengths).tolist()
 
     full_genotype_matrix = np.hstack(snp_matrices)
+    ld_table = calc_ld_table(full_genotype_matrix)
+    print ld_table
 
     print 'The full genotype matrix has shape %f' % full_genotype_matrix.shape[1]
 
@@ -207,14 +270,14 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     del full_genotype_matrix
     
     pl.matshow(cov)
-    pl.title('Kinship - 198 strains - all good genes')
+    #pl.title('Kinship - 198 strains - all good genes')
     pl.colorbar()
     pl.savefig(figure_dir + fig_name + 'heat_map_allgenes.pdf')
     pl.show()
   
     identity = np.cov(pseudo_snps)
     pl.matshow(identity)
-    pl.title('After structure correction')
+    #pl.title('After structure correction')
     pl.colorbar()
     pl.savefig(figure_dir + fig_name + 'covariance_pseudo_snps.pdf')
     pl.show()
@@ -239,6 +302,5 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 #pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
 
-#pseudo_snps(min_maf=0.05, fig_name='maf_005', debug_filter=1, write_files = True)
-mantel_test.mantel_corrected_nod_genes(fig_name = 'nod_genes_maf_snps_filtering_005.pdf')
-
+pseudo_snps(min_maf=0.10, fig_name='maf_10_test', debug_filter=1, write_files = True)
+#mantel_test.mantel_corrected_nod_genes(fig_name = 'nod_genes_maf_snps_filtering_010_test.pdf')
