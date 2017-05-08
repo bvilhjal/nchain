@@ -17,7 +17,7 @@ import time
 import simple_intergenic_ld as mantel_test
 
 
-def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist = 2000):
+def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist = 20):
     """Calculated LD between all SNPs using r^2, this function retains snps with values above a given threshold
         Inputed genetic matrix is already normalized by columns/snps"""
     
@@ -39,7 +39,7 @@ def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist 
     num_pairs = (a * (num_snps - 1)) - a * (a + 1) * 0.5
 
     if verbose:
-        print ' Correlation between %d pairs will be tested' % num_pairs
+        print 'Correlation between %d pairs will be tested' % num_pairs
 
     num_stored = 0
     for i in range(0, num_snps - 1):
@@ -56,9 +56,6 @@ def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist 
                 ld_table[k][i] = ld_vec[ld_vec_i]
                 num_stored += 1
 
-            if verbose:
-                if i % 1000 == 0:
-                    print '\b\b\b\b\b\b%0.2f%%' % 100.0 * (min(1, float(i + 1) / (num_snps - 1)))
     print 'Stored %d (%0.4f%%) correlations that made the cut r^2 >%0.3f' % (num_stored, 100 * (num_stored / float(num_pairs)), min_r2)
 
     t1 = time.time()
@@ -68,12 +65,12 @@ def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist 
     del snps
     return ld_table
 
-def ld_pruning(ld_table, max_ld = 0.5, verbose = False):
+def ld_pruning(ld_table, max_ld = 0.5, verbose = True):
     """
     Prunes SNPs in LD, in random order.
     """
     if verbose:
-        print 'Prune SNPs in LD, in random order':
+        print 'Prune SNPs in LD, in random order'
     t0 = time.time()
     indices_to_keep = []
     num_snps = len(ld_table)
@@ -196,12 +193,17 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     snp_boundaries = np.cumsum(matrix_lengths).tolist()
 
     full_genotype_matrix = np.hstack(snp_matrices)
-    ld_table = calc_ld_table(full_genotype_matrix)
-    print ld_table
+    
+    print 'LD pruning...'
+    ld_table_test = calc_ld_table(full_genotype_matrix)
+    LD_filter = ld_pruning(ld_table_test)
+
+    print 'From the total %d SNPs, %d passed LD pruning' % (len(LD_filter), sum(LD_filter))
+    full_genotype_matrix = full_genotype_matrix[:,LD_filter]
 
     print 'The full genotype matrix has shape %f' % full_genotype_matrix.shape[1]
 
-    print('Input the matrix if still there is a nan...')
+    print 'Input the matrix if still there is a nan...'
     full_genotype_matrix = normalize(full_genotype_matrix, direction = 0) 
 
     print("The variance by column is:...")
@@ -237,8 +239,6 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
         # 2. Calculate genome-wide covariance matrix (Kinship)
         print("Calculating genotype matrix covariance...")
         cov = np.dot(full_genotype_matrix_temp, full_genotype_matrix_temp.T) / full_genotype_matrix_temp.shape[1]
-        evals, evecs = (linalg.eigh(cov))
-        print sorted(evals)
         
         try:
             sqrt = linalg.cholesky(cov)
@@ -302,5 +302,5 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
 #pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
 #mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
 
-pseudo_snps(min_maf=0.10, fig_name='maf_10_test', debug_filter=1, write_files = True)
+pseudo_snps(min_maf=0.10, fig_name='maf_10_test', debug_filter=1, write_files = False)
 #mantel_test.mantel_corrected_nod_genes(fig_name = 'nod_genes_maf_snps_filtering_010_test.pdf')
