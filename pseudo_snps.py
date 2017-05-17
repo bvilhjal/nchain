@@ -17,8 +17,8 @@ import time
 import simple_intergenic_ld as mantel_test
 
 
-def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist = 20):
-    """Calculated LD between all SNPs using r^2, this function retains snps with values above a given threshold
+def calc_ld_table(snps, min_r2 = 0, verbose=True, normalize = True):
+    """Calculated LD between all SNPs using r^2 for each gene individually, this function retains snps with values above a given threshold
         Inputed genetic matrix is already normalized by columns/snps"""
     
     if verbose:
@@ -28,7 +28,15 @@ def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist 
 
     # Transposing the snp matrix just to look like Bjarni's function (individuals are in the columns and snps are in the rows)
     snps = snps.T
+
+    # Normalize SNPs (perhaps not necessary, but cheap)
+    if normalize:
+        snps = (snps - sp.mean(snps, 0)) / sp.std(snps, 0)
+
     num_snps, num_ind = snps.shape
+
+    # Maximum distance is the distance within a gene
+    max_ld_dist = num_snps
 
     ld_table = {}
     for i in range(num_snps):
@@ -56,7 +64,8 @@ def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist 
                 ld_table[k][i] = ld_vec[ld_vec_i]
                 num_stored += 1
 
-    print 'Stored %d (%0.4f%%) correlations that made the cut r^2 >%0.3f' % (num_stored, 100 * (num_stored / float(num_pairs)), min_r2)
+    if verbose:
+        print 'Stored %d (%0.4f%%) correlations that made the cut r^2 >%0.3f' % (num_stored, 100 * (num_stored / float(num_pairs)), min_r2)
 
     t1 = time.time()
     t = (t1 - t0)
@@ -65,7 +74,7 @@ def calc_ld_table(snps, min_r2 = 0.2, verbose=True, normalize=True, max_ld_dist 
     del snps
     return ld_table
 
-def ld_pruning(ld_table, max_ld = 0.5, verbose = True):
+def ld_pruning(ld_table, max_ld = 0.99, verbose = True):
     """
     Prunes SNPs in LD, in random order.
     """
@@ -124,7 +133,9 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                  fig_name='test.png',
                  debug_filter=0.15,
                  write_files = False,
-                 min_snps = 5):
+                 min_snps = 5,
+                 slicing = True,
+                 max_ld = 0.95):
 
     """
     Take the genes concatenate their snps, calculate GRM, mean adjust the individuals, decomposition, calculate pseudo snps.
@@ -178,6 +189,11 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                     # Changing the precision of the array:
                     snps_maf = np.float64(snps_maf)
 
+                    # LD pruning: Calculate association between samples without over-weighting the contribution of groups of correlated SNPs.
+                    ld_table_gene = calc_ld_table(snps_maf, verbose = False)
+                    ld_filter_gene = ld_pruning(ld_table_gene, verbose = False, max_ld = max_ld)
+                    snps_maf = snps_maf[:,ld_filter_gene]
+
                     # The SNP matrices are assumed to be sorted by strain. Create a NxM matrix (N = # strains, M = # SNPs) with the
                     # correct rows filled in by the data from the SNP file.
                     full_matrix = np.zeros((198, snps_maf.shape[1]))
@@ -188,18 +204,12 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
                     matrix_lengths.append(full_matrix.shape[1])  # The length of the gene
                     matrix_file_paths.append(gg)  # The name of the gene
 
-    print '%d SNPs out of 717457 after filtering for MAF > %f' % (trues, min_maf)
-
     snp_boundaries = np.cumsum(matrix_lengths).tolist()
 
     full_genotype_matrix = np.hstack(snp_matrices)
-    
-    print 'LD pruning...'
-    ld_table_test = calc_ld_table(full_genotype_matrix)
-    LD_filter = ld_pruning(ld_table_test)
 
-    print 'From the total %d SNPs, %d passed LD pruning' % (len(LD_filter), sum(LD_filter))
-    full_genotype_matrix = full_genotype_matrix[:,LD_filter]
+    print '%d SNPs out of 717457 after filtering for MAF > %f' % (trues, min_maf)
+    print 'From the total %d SNPs, %d passed LD pruning' % (trues, full_genotype_matrix.shape[1])
 
     print 'The full genotype matrix has shape %f' % full_genotype_matrix.shape[1]
 
@@ -288,19 +298,17 @@ def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/ne
     # Extract the original genes from the large pseudo SNP matrix.
         for i, (start, end) in enumerate(zip([0] + snp_boundaries, snp_boundaries)):
             strains_list_mask = strain_list_masks[i]
-            #snps = pseudo_snps[strains_list_mask, start:end]
-            snps = pseudo_snps[:,start:end]
+
+            if slicing:
+                snps = pseudo_snps[strains_list_mask, start:end]
+            else:
+                snps = pseudo_snps[:,start:end]
+            
             strains = strains_list_mask
 
             file_name = 'group'+matrix_file_paths[i] # the name of the gene
 
             np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
 
-#pseudo_snps(min_maf=0, fig_name='no_maf', debug_filter=1, write_files = True)
-#mantel_test.mantel_corrected_nod_genes(fig_name = 'no_maf.pdf')
-
-#pseudo_snps(min_maf=0.05, fig_name='0.05_maf', debug_filter=1, write_files = True)
-#mantel_test.mantel_corrected_nod_genes(fig_name = '0.05_maf.pdf')
-
-pseudo_snps(min_maf=0.10, fig_name='maf_10_test', debug_filter=1, write_files = False)
-#mantel_test.mantel_corrected_nod_genes(fig_name = 'nod_genes_maf_snps_filtering_010_test.pdf')
+pseudo_snps(min_maf=0.05, fig_name='maf_05_test', debug_filter=1, write_files = True, slicing = True, max_ld = 1)
+mantel_test.mantel_corrected_nod_genes(fig_name = 'ld_pruning_1_maf005_with_slicing.pdf', slicing = True)
