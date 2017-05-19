@@ -192,7 +192,8 @@ def mantel_corrected_nod_genes(in_glob = in_glob,
                                 min_maf = 0.1,
                                 snps_file = snps_file, 
                                 fig_name = 'default.pdf',
-                                figure_dir= figure_dir):
+                                figure_dir= figure_dir,
+                                slicing = True):
     """Take the structured corrected files and calculate mantel test for the nod genes"""
     parse_nod_genes = parse_nod() 
 
