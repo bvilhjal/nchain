@@ -5,6 +5,8 @@ First idea: Correlate gene-specific GRM with each other, accounting for overall 
 6. Identify interesting genes.
 7. Write a Nature paper. 
 """
+
+# Cloned the directory to a mac computer
 import glob
 import numpy as np
 import scipy as sp
