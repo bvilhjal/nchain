@@ -17,6 +17,18 @@ import pandas as pd
 import pylab as pl
 import time
 import simple_intergenic_ld as mantel_test
+from sys import argv
+
+# Setting the directory of the data depending on what computer I am  
+
+if argv[1] != 'mac':
+    snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'
+    out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
+    figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'
+else:
+    snps_file='/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5'
+    out_dir='/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
+    figure_dir='/Users/PM/Desktop/PHD_incomplete/nchain/Figures/'    
 
 
 def calc_ld_table(snps, min_r2 = 0, verbose=True, normalize = True):
@@ -125,9 +137,9 @@ def mean_adj(matrix, direction = 1):
     return matrix
 
 
-def pseudo_snps(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
-                 out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/',
-                 figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/',
+def pseudo_snps(snps_file= snps_file,
+                 out_dir= out_dir,
+                 figure_dir= figure_dir,
                  fig_id='all',
                  min_maf=0,
                  n_snps_delete=10,

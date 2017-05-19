@@ -15,6 +15,21 @@ from collections import OrderedDict
 from numpy import linalg
 import pylab as pl
 import glob 
+from sys import argv
+
+# Setting the directory of the data depending on what computer I am  
+
+if argv[1] != 'mac':
+    snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'
+    out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
+    figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'
+    in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
+
+else:
+    snps_file='/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5'
+    out_dir='/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
+    figure_dir='/Users/PM/Desktop/PHD_incomplete/nchain/Figures/'  
+    in_glob = '/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
 
 def parse_nod():
     nod_genes = OrderedDict()
@@ -45,7 +60,7 @@ def average_genotype_matrix(X):
     return(average_X)
 
 def correlation_plot(df, wrt=True, fig_name = 'mantel_test.png', show = False,
-                    figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'):
+                    figure_dir= figure_dir):
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(12, 9))
 
@@ -59,7 +74,7 @@ def correlation_plot(df, wrt=True, fig_name = 'mantel_test.png', show = False,
 
 def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
                             maf=0.1,
-                           snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'):
+                           snps_file= snps_file):
     """Nod genes versus nod genes"""
     nod_genes = parse_nod()
     print nod_genes.keys()
@@ -173,11 +188,11 @@ def simple_mantel_nod_genes_nod_genes(max_strain_num=198,
 
 #simple_mantel_nod_genes_nod_genes()
 
-def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/',
+def mantel_corrected_nod_genes(in_glob = in_glob,
                                 min_maf = 0.1,
-                                snps_file = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5', 
+                                snps_file = snps_file, 
                                 fig_name = 'default.pdf',
-                                figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'):
+                                figure_dir= figure_dir):
     """Take the structured corrected files and calculate mantel test for the nod genes"""
     parse_nod_genes = parse_nod() 
 
@@ -200,20 +215,32 @@ def mantel_corrected_nod_genes(in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PH
             gene1, total_snps_1, strains_1 = (gg1)
             gene2, total_snps_2, strains_2 = (gg2)
 
-            grm_1 = np.dot(total_snps_1, total_snps_1.T) / total_snps_1.shape[0]
+            if slicing:
+            
+                # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
+                strain_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
+                fitered_strains_1 = strains_1[strain_mask_1]
+                strain_mask_2 = np.in1d(strains_2, fitered_strains_1, assume_unique=True)
 
-            grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[0])
+                # Shuffling randomly
+                #strain_mask_1 = random.shuffle(strain_mask_1)
+                #strain_mask_2 = random.shuffle(strain_mask_2)
+
+                total_snps_1 = total_snps_1[strain_mask_1, :]
+
+                grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+
+                total_snps_2 = total_snps_2[strain_mask_2, :]
+                grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
+
+            else:
+                grm_1 = np.divide(np.dot(total_snps_1, total_snps_1.T), total_snps_1.shape[1])
+                grm_2 = np.divide(np.dot(total_snps_2, total_snps_2.T), total_snps_2.shape[1])
 
             # Calculating correlation and covariance based on the common subset of strains
             flat_grm_1 = grm_1.flatten()
-            #norm_flat_grm1 = flat_grm_1
-            #norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
-            #norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
-
             flat_grm_2 = grm_2.flatten()
-            #norm_flat_grm2 = flat_grm_2
-            #norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
-            #norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
+
 
             # Built in function, it returns correlation coefficient and the p-value for testing non-correlation
             r = pearsonr(flat_grm_1, flat_grm_2)
@@ -250,8 +277,8 @@ def robusteness_maf_simple():
 def simple_intergenic_ld_nod_genes(max_strain_num=100,
                             maf=0.1,
                             amount = 10,
-                            snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
-                            figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'):
+                            snps_file= snps_file,
+                            figure_dir= figure_dir):
 
     """Gives a specific list of genes (nod genes) and calculate LD of these genes with all"""
 
