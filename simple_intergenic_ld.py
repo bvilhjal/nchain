@@ -19,17 +19,23 @@ from sys import argv
 
 # Setting the directory of the data depending on what computer I am  
 
-if argv[1] != 'mac':
+if argv[1] == 'windows':
     snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'
     out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
     figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'
-    in_glob = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
+    in_glob = out_dir
 
-else:
+if argv[1] == 'mac':
     snps_file='/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5'
     out_dir='/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
     figure_dir='/Users/PM/Desktop/PHD_incomplete/nchain/Figures/'  
-    in_glob = '/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
+    in_glob = out_dir
+
+if argv[1] == 'cluster':
+    snps_file='/faststorage/project/NChain/rhizobium/ld/new_snps.hdf5',
+    out_dir = '/faststorage/project/NChain/rhizobium/intergenic_LD/corrected_snps_test',
+    figure_dir='/faststorage/project/NChain/rhizobium/intergenic_LD/figures',
+    in_glob = out_dir
 
 def parse_nod():
     nod_genes = OrderedDict()

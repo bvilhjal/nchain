@@ -15,6 +15,18 @@ from itertools import izip
 from scipy.stats.stats import pearsonr
 from simple_intergenic_ld import correlation_plot
 
+
+# Setting the directory of the data depending on what computer I am  
+
+if argv[1] == 'windows':
+    file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/gene_locations_sorted.csv'
+    
+if argv[1] == 'mac':
+    file_name ='/Users/PM/Desktop/PHD_incomplete/nchain/gene_locations_sorted.csv' 
+
+if argv[1] == 'cluster':
+    file_name = '/faststorage/project/NChain/rhizobium/intergenic_LD/'
+
 def gene_locations(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/gene_locations_sorted.csv'):
     '''Adding the location of the genes based on a blast of the pacbio genome SM158'''
     
@@ -32,8 +44,8 @@ def gene_locations(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/g
 df_map, dict_map = (gene_locations())
 print dict_map['group10']
 
-def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps/',
-                                plasmid_type = ['unitig_5']):
+def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/',
+                                plasmid_type = ['unitig_5'], formats = '.png'):
 
     nod_genes = OrderedDict([(4144, 'nodX'), (4143, 'nodN'), (4142, 'nodM'), (4141, 'nodL'), (4140, 'nodE'), (4139, 'nodF'), (4138, 'nodD'), 
     (4137, 'nodA'), (4136, 'nodC'), (4135, 'nodI'), (4134, 'nodJ'), (4129, 'nifB'), (4128, 'nifA'), (4127, 'fixX'), (4126, 'fixC'), (4125, 'fixB'), 
@@ -128,10 +140,11 @@ def all_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/
 
     LD_matrix.to_csv(plasmid_type[0] + '.csv', header = True)
 
-    correlation_plot(LD_matrix, wrt=False, fig_name = plasmid_type[0] + '.pdf', show = False)
+    correlation_plot(LD_matrix, wrt=False, fig_name = plasmid_type[0] + formats, show = False)
     return LD_matrix
 
-#print all_versus_corrected_genes(plasmid_type = ['unitig_3'])
-print all_versus_corrected_genes(plasmid_type = ['unitig_2'])
-print all_versus_corrected_genes(plasmid_type = ['unitig_1'])
 print all_versus_corrected_genes(plasmid_type = ['unitig_0'])
+#print all_versus_corrected_genes(plasmid_type = ['unitig_3'])
+#print all_versus_corrected_genes(plasmid_type = ['unitig_2'])
+#print all_versus_corrected_genes(plasmid_type = ['unitig_1'])
+#print all_versus_corrected_genes(plasmid_type = ['unitig_0'])

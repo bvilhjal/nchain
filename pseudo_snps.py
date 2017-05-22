@@ -21,14 +21,19 @@ from sys import argv
 
 # Setting the directory of the data depending on what computer I am  
 
-if argv[1] != 'mac':
+if argv[1] == 'windows':
     snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'
     out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
     figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'
-else:
+if argv[1] == 'mac':
     snps_file='/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5'
     out_dir='/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
-    figure_dir='/Users/PM/Desktop/PHD_incomplete/nchain/Figures/'    
+    figure_dir='/Users/PM/Desktop/PHD_incomplete/nchain/Figures/' 
+
+if argv[1] == 'cluster':
+    snps_file='/faststorage/project/NChain/rhizobium/ld/new_snps.hdf5'
+    out_dir = '/faststorage/project/NChain/rhizobium/intergenic_LD/corrected_snps_test'
+    figure_dir='/faststorage/project/NChain/rhizobium/intergenic_LD/figures'   
 
 
 def calc_ld_table(snps, min_r2 = 0, verbose=True, normalize = True):
@@ -162,6 +167,7 @@ def pseudo_snps(snps_file= snps_file,
 
     h5f = h5py.File(snps_file)
     gene_groups = h5f.keys()
+    print gene_groups
     all_strains = set()
     for gg in gene_groups:
         data_g = h5f[gg]
@@ -324,5 +330,5 @@ def pseudo_snps(snps_file= snps_file,
 
             np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
 
-#pseudo_snps(min_maf=0.05, fig_name='maf_05_test', debug_filter=1, write_files = True, slicing = True, max_ld = 1)
+pseudo_snps(min_maf=0.05, fig_name='maf_05_test', debug_filter=1, write_files = False, slicing = True, max_ld = 1)
 mantel_test.mantel_corrected_nod_genes(fig_name = 'ld_pruning_1_maf005_with_slicing.pdf', slicing = True)
