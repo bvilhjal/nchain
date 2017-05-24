@@ -25,6 +25,7 @@ if argv[1] == 'windows':
     snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'
     out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
     figure_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Figures/'
+    
 if argv[1] == 'mac':
     snps_file='/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5'
     out_dir='/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
