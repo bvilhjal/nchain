@@ -7,6 +7,7 @@ First idea: Correlate gene-specific GRM with each other, accounting for overall 
 """
 
 # Cloned the directory to a mac computer
+
 import glob
 import numpy as np
 import scipy as sp
@@ -14,7 +15,9 @@ from scipy import linalg
 import h5py
 import random
 import pandas as pd
-import pylab as pl
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pylab as pl
 import time
 import simple_intergenic_ld as mantel_test
 from sys import argv
@@ -331,5 +334,5 @@ def pseudo_snps(snps_file= snps_file,
 
             np.savez_compressed("{}/{}".format(out_dir, file_name), matrix=snps, strains=strains) # structure of the file
 
-pseudo_snps(min_maf=0.05, fig_name='maf_05_test', debug_filter=1, write_files = False, slicing = True, max_ld = 1)
-mantel_test.mantel_corrected_nod_genes(fig_name = 'ld_pruning_1_maf005_with_slicing.pdf', slicing = True)
+#pseudo_snps(min_maf=0.05, fig_name='maf_05_test', debug_filter=1, write_files = True, slicing = True, max_ld = 0.99)
+mantel_test.mantel_corrected_nod_genes(fig_name = 'ld_bla.pdf', slicing = True)
