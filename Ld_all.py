@@ -14,6 +14,7 @@ import scipy as sp
 from itertools import izip
 from scipy.stats.stats import pearsonr
 from simple_intergenic_ld import correlation_plot
+from sys import argv
 
 
 # Setting the directory of the data depending on what computer I am  
@@ -27,7 +28,7 @@ if argv[1] == 'mac':
 if argv[1] == 'cluster':
     file_name = '/faststorage/project/NChain/rhizobium/intergenic_LD/'
 
-def gene_locations(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/gene_locations_sorted.csv'):
+def gene_locations(file_name = file_name):
     '''Adding the location of the genes based on a blast of the pacbio genome SM158'''
     
     loc_map = {}
