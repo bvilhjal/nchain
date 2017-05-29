@@ -7,6 +7,8 @@ import scipy as sp
 import h5py
 import bottleneck as bn
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.stats.stats import pearsonr
 import seaborn as sns
@@ -32,9 +34,9 @@ if argv[1] == 'mac':
     in_glob = out_dir
 
 if argv[1] == 'cluster':
-    snps_file='/faststorage/project/NChain/rhizobium/ld/new_snps.hdf5',
-    out_dir = '/faststorage/project/NChain/rhizobium/intergenic_LD/corrected_snps_test',
-    figure_dir='/faststorage/project/NChain/rhizobium/intergenic_LD/figures',
+    snps_file='/faststorage/project/NChain/rhizobium/ld/new_snps.hdf5'
+    out_dir = '/faststorage/project/NChain/rhizobium/intergenic_LD/corrected_snps_test/'
+    figure_dir='/faststorage/project/NChain/rhizobium/intergenic_LD/figures'
     in_glob = out_dir
 
 def parse_nod():
