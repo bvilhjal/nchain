@@ -59,6 +59,7 @@ genome = argv[2]
 # Creating the query data file with the 5000 genes
 
 def parse_fasta(filename, genome):
+    
     file = open(filename, 'r').read() #opening and reading the fasta file, putting it in a object called file
     file_separe = file.split('>') #spliting each entry by the > 
     file_separe.remove('')
@@ -78,7 +79,7 @@ def parse_fasta(filename, genome):
 def create_query(snp_file, align_file, genome = genome):
 
     '''Download the alignments of each gene group and make a big query fasta file'''
-
+    print 'Downloading the alignments of each gene group and making a query fasta file'
     gene_parse = list()
     fasta_name = 'query_'+ genome 
 
@@ -100,12 +101,13 @@ def create_query(snp_file, align_file, genome = genome):
 
 def blasting(genome = genome, evalue = 0.001, database_dir = database_file):
     
-    #create_query(snp_file = snps_file, align_file = alignments_dir, genome = genome)
+    print 'Blasting the 5000 genes against pacbio genome' 
+    #  create_query(snp_file = snps_file, align_file = alignments_dir, genome = genome)
     # Blasting the gene sequence against its belonging scaffold
 
     query_name = 'query_' + genome + '.fasta'
     db_name = database_dir + genome + '.fasta'
-    blastx_cline = NcbiblastnCommandline(query=str(query_name), db=str(db_name), evalue=0.1, outfmt = 6, max_target_seqs = 1)
+    blastx_cline = NcbiblastnCommandline(query=str(query_name), db=str(db_name), evalue=0.1, outfmt = 6, num_descriptions = 1)
     out, err = blastx_cline()
     list_out = re.split('\n|\t', out)
     print out
@@ -120,7 +122,8 @@ def blasting(genome = genome, evalue = 0.001, database_dir = database_file):
     # Deleting duplicates by a given column (evalue)
     e_maxes = blast_df.groupby(['qseqid']).evalue.transform(max)
     blast_df = blast_df[blast_df.evalue == e_maxes]
-
+    
+    print blast_df 
     # Saving the blast results in csv file:
     name = 'blast_results_test' + genome + '.csv'
     blast_df.to_csv(name, sep = '\t')
@@ -133,30 +136,28 @@ def blasting(genome = genome, evalue = 0.001, database_dir = database_file):
     blast_df_sorted['gene'], blast_df_sorted['strain'], blast_df_sorted['contig'] = zip(*blast_df_sorted['qseqid'].map(lambda x: x.split('|')))
     
     print blast_df_sorted
-    file_name = 'sorted_genes_testing' + genome +'.csv'
+    file_name = 'sorted_genes' + genome +'.csv'
     blast_df_sorted.to_csv(file_name, sep=',')
     return file_name
 
+#print blasting()
 def gene_locations(file_name):
-    '''Adding the location of the genes based on a blast of the pacbio genome SM158'''
+    '''Adding the location of the genes based on a blast of the pacbio genome'''
 
     loc_map = {}
     t = pd.read_table(file_name, sep = ',')
-   # print t
     t = t.rename(columns=lambda x: x.strip())
-    #print t
     for gene, contig, plasmid, start in izip(t["gene"], t["contig"], t["sseqid"], t["start"]):
-        loc_map[str(gene)]={'gene':gene, 'contig':contig, 'plasmid':plasmid, 'bp_start': start}
+        loc_map[str(gene)]={'gene':gene, 'contig':contig, 'plasmid':plasmid, 'bp_start': start} 
     
     # Returning a tuple of the data frame and a dictionary where keys are the genes
     return (t, loc_map)
 
 def all_versus_corrected_genes(directory = out_dir,
-                                plasmid_type = [argv[3]], formats = '.png', genome = genome):
+                                plasmid_type = ['unitig_4|quiver', 'unitig_5|quiver'], formats = '.png', genome = genome):
 
-    nod_genes = OrderedDict([(4144, 'nodX'), (4143, 'nodN'), (4142, 'nodM'), (4141, 'nodL'), (4140, 'nodE'), (4139, 'nodF'), (4138, 'nodD'), 
-    (4137, 'nodA'), (4136, 'nodC'), (4135, 'nodI'), (4134, 'nodJ'), (4129, 'nifB'), (4128, 'nifA'), (4127, 'fixX'), (4126, 'fixC'), (4125, 'fixB'), 
-    (4124, 'fixA'), (4123, 'nifH'), (4122, 'nifD'), (4121, 'nifK'), (4120, 'nifE'), (2448, 'rpoB'), (2140, 'recA')])
+    print ' Calculating correlation between genes'
+
     os.chdir(directory)
     
     file_saved = blasting()
@@ -171,18 +172,12 @@ def all_versus_corrected_genes(directory = out_dir,
         with np.load(name) as data:
             genes.append((f, data["matrix"], data["strains"]))
 
-    r_scores = []
-    gene_name = []
-    original_name = []
-    n_snps = []
-    n_members = []
-    origin = [] 
-
     print 'Number of genes being analized is: %d' % len(genes)
 
     # Initializing the LD table
     # Subsetting by a given condition (plasmid type) 
-    sub_df = df_locations.loc[(df_locations['sseqid'] == plasmid_type[0])]
+
+    sub_df = df_locations.loc[(df_locations['sseqid'].isin(plasmid_type))]
 
     print sub_df
 
@@ -208,8 +203,7 @@ def all_versus_corrected_genes(directory = out_dir,
     
             if origin1 in plasmid_type and origin2 in plasmid_type:
                 
-                print origin1 
-                print origin2
+                print origin1
                 # This works only if we assume that strains_2 and strains_1 are ordered beforehand.  Are they? They are.
                 strains_mask_1 = np.in1d(strains_1, strains_2, assume_unique=True)
                 fitered_strains_1 = strains_1[strains_mask_1]
@@ -241,7 +235,7 @@ def all_versus_corrected_genes(directory = out_dir,
                 c = index_names.index(str(name2))
                 
                 LD_matrix.ix[l,c] = corr
-    print 'Number of genes that have not a location assigned for the plasmid %s is: %d' % (plasmid_type, missing_location)
+    print 'Number of genes that have not a location assigned for the plasmid %s is: %d' % (plasmid_type[0], missing_location)
     
     # Removing rows with empty values
     LD_matrix = LD_matrix[(LD_matrix.T != 0).any()]
@@ -249,9 +243,93 @@ def all_versus_corrected_genes(directory = out_dir,
     # Removing columns with empty values
     LD_matrix = LD_matrix.loc[:, (LD_matrix != 0).any(axis = 0)]
 
-    LD_matrix.to_csv(plasmid_type[0] + '.csv', header = True)
+    name = ",".join(plasmid_type)
 
-    correlation_plot(LD_matrix, wrt=False, fig_name = plasmid_type[0] + formats, show = False)
+    LD_matrix.to_csv(name + 'LD_matrix.csv', header = True)
+    correlation_plot(LD_matrix, wrt=False, fig_name = name + genome + formats, show = False)
     return LD_matrix
 
-print all_versus_corrected_genes(plasmid_type = [arvg[3]])
+#print all_versus_corrected_genes(plasmid_type = ['unitig_4|quiver','unitig_5|quiver'])
+#print all_versus_corrected_genes(plasmid_type = ['unitig_0|quiver'])
+
+def find_functionality(LD_matrix = 'LD_matrix_4_5_SM158.csv', compare = 'sorted_genesSM3_S10.csv', threshold = 0.8, gene_function = 'gene_function.csv', plasmid_type = ['unitig_4|quiver', 'unitig_5|quiver'], genome = genome): #nod_gene, # functionality
+
+    # Choose simbiotic gene(s) and find the genes that are highletly correlated with them
+
+    nod_genes = OrderedDict([(4144, 'nodX'), (4143, 'nodN'), (4142, 'nodM'), (4141, 'nodL'), (4140, 'nodE'), (4139, 'nodF'), (4138, 'nodD'), 
+    (4137, 'nodA'), (4136, 'nodC'), (4135, 'nodI'), (4134, 'nodJ'), (4129, 'nifB'), (4128, 'nifA'), (4127, 'fixX'), (4126, 'fixC'), (4125, 'fixB'), 
+    (4124, 'fixA'), (4123, 'nifH'), (4122, 'nifD'), (4121, 'nifK'), (4120, 'nifE'), (2448, 'rpoB'), (2140, 'recA')])
+
+    # Joining the gene location with functionality of each gene in the two different pacbio data
+    df_locations, dict_locations = (gene_locations('sorted_genesSM158_S16.csv'))
+    function = pd.read_table(gene_function, sep = ';')
+
+    for gene in dict_locations.keys():
+        dict_locations[gene]['Function'] = function.loc[(function.Gene_Group == int(gene[5::]))]['Annotation'].values
+
+    # Example
+    print dict_locations['group4138']['Function']
+
+
+    # Opening the LD matrix
+    ld = pd.read_table(LD_matrix, sep = ',')   
+    
+    # Finding all the values that are above to a certain threshold in a given column
+    indexes = ld[ld[['group4143', 'group4144']] > threshold].index.tolist()
+    #print indexes
+    genes = list(ld['gene'][indexes])
+    
+    #print genes
+    candidates = []
+    for i in genes:
+        candidates.append(dict_locations[i])
+
+    candidates_df = pd.DataFrame(candidates)
+
+    name = ",".join(plasmid_type)
+    candidates_df.to_csv(name + genome + 'candidates.csv', header = True, sep = ',')
+
+    # Where are those genes located in the other strains?
+    df_locations, dict_locations2 = (gene_locations('sorted_genesSM147A_S13.csv'))
+
+    for gene in dict_locations2.keys():
+        dict_locations2[gene]['Function'] = function.loc[(function.Gene_Group == int(gene[5::]))]['Annotation'].values
+
+    candidates_2 = []    
+    for i in genes:
+        try:
+            candidates_2.append(dict_locations2[i])
+        except KeyError:
+            print i
+            pass
+
+    candidates_df = pd.DataFrame(candidates_2)
+
+    candidates_df.to_csv(name + 'SM147A_S13' + 'candidates2.csv', header = True, sep = ',')
+
+
+print find_functionality(LD_matrix = 'LD_matrix_4_5_SM158.csv')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
