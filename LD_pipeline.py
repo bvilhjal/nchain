@@ -307,6 +307,13 @@ def find_functionality(LD_matrix = 'LD_matrix_4_5_SM158.csv', compare = 'sorted_
 
     candidates_df.to_csv(name + 'SM147A_S13' + 'candidates2.csv', header = True, sep = ',')
 
+    # Group of genes that are a ld block in the sm158_s16
+    #genes_3 = ['group746', 'group747', 'group748', 'group749', 'group8695', 'group8696', 'group751']
+    genes_3 = ['group6329', 'group4858', 'group4857', 'group4856', 'group4855', 'group6330', 'group4851', 'group5620', 'group5621', 'group5622', 'group5851', 'group5657', 'group5658', 'group5659', 'group5660', 'group5661', 'group5662', 'group4743', 'group4742']
+
+    for gene in genes_3:
+        print gene
+        print dict_locations2[gene]['Function'] #
 
 print find_functionality(LD_matrix = 'LD_matrix_4_5_SM158.csv')
 
