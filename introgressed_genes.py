@@ -12,6 +12,15 @@ from scipy.stats.stats import pearsonr
 import pylab as pl
 from numpy import linalg
 from collections import OrderedDict
+from sys import argv
+
+if argv[1] == 'windows':
+    snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'
+    out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
+
+if argv[1] == 'mac':
+    snps_file='/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5'
+    out_dir='/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
 
 def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'):
     from itertools import izip
@@ -23,7 +32,7 @@ def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicod
         pop_map[str(strain_id)]={'sara_id': sara_id, 'genospecies':origin, 'country':country}
     return pop_map
 
-def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5',
+def kinship_all_genes(snps_file= snps_file,
                  min_maf=0.05,
                  max_strain_num=198):
     """
@@ -43,7 +52,7 @@ def kinship_all_genes(snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnic
     ordered_strains = sorted(list(all_strains))
 
     strain_index = pd.Index(ordered_strains)
-    K_snps = sp.zeros((num_strains, num_strains))
+    K_snps[strain_index, strain_index] = sp.zeros((num_strains, num_strains))
     counts_mat_snps = sp.zeros((num_strains, num_strains))
 
     for i, gg in enumerate(gene_groups):
@@ -121,7 +130,7 @@ def gene_locations( ):
     return locations
 
 
-def kinship_pseudo_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/',
+def kinship_pseudo_genes(directory = out_dir,
                         num_strains = 198):
     # Changing directory
     os.chdir(directory)
@@ -162,7 +171,7 @@ def simple_tracy_widow(matrix, PCS = 5):
     return(sum(variance_explained))
 
 
-def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'):
+def kinship_versus_corrected_genes(directory = out_dir):
 
     nod_genes = OrderedDict([(4144, 'nodX'), (4143, 'nodN'), (4142, 'nodM'), (4141, 'nodL'), (4140, 'nodE'), (4139, 'nodF'), (4138, 'nodD'), (4137, 'nodA'),
     (4136, 'nodC'), (4135, 'nodI'), (4134, 'nodJ'), (4129, 'nifB'), (4128, 'nifA'), (4127, 'fixX'), (4126, 'fixC'), (4125, 'fixB'), (4124, 'fixA'), 
@@ -189,11 +198,11 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
     for gene in genes:
 
         name, snps, strains_1 = (gene)
-        #strains_mask_1 = np.in1d(strains_1, k_strains, assume_unique = True)
-        #filtered_strains_1 = strains_1[strains_mask_1]
+        strains_mask_1 = np.in1d(strains_1, k_strains, assume_unique = True)
+        filtered_strains_1 = strains_1[strains_mask_1]
 
-        #strain_mask_2 = np.in1d(k_strains, filtered_strains_1, assume_unique=True)
-        #filtered_strains_2 = k_strains[strain_mask_2]
+        strain_mask_2 = np.in1d(k_strains, filtered_strains_1, assume_unique=True)
+        filtered_strains_2 = k_strains[strain_mask_2]
 
 		# Construct GRM for a singular gene
         grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[0])
@@ -203,17 +212,17 @@ def kinship_versus_corrected_genes(directory = 'C:/Users/MariaIzabel/Desktop/MAS
         print simple_tracy_widow(grm_1)
 
         flat_grm_1 = grm_1.flatten()
-        #norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
-        #norm_flat_grm1 = flat_grm_1
-        #norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
+        norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
+        norm_flat_grm1 = flat_grm_1
+        norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 		
 		# Overall kinship (which is the identity matrix)
         grm_2 = kinship 
 
         flat_grm_2 = grm_2.flatten()
-        #norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
-        #norm_flat_grm2 = flat_grm_2
-        #norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
+        norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
+        norm_flat_grm2 = flat_grm_2
+        norm_flat_grm2 = norm_flat_grm2 / sp.sqrt(sp.dot(norm_flat_grm2, norm_flat_grm2))
 
         # Mantel test: correlation of flat matrices
         corr = pearsonr(flat_grm_1, flat_grm_2)[0]

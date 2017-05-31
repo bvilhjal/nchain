@@ -274,10 +274,15 @@ def find_functionality(LD_matrix = 'LD_matrix_4_5_SM158.csv', compare = 'sorted_
     # Opening the LD matrix
     ld = pd.read_table(LD_matrix, sep = ',')   
     
-    # Finding all the values that are above to a certain threshold in a given column
-    indexes = ld[ld[['group4143', 'group4144']] > threshold].index.tolist()
-    #print indexes
-    genes = list(ld['gene'][indexes])
+    print ld[['group4143', 'group4144']]
+    boolean =  ld[['group4143', 'group4144']] > threshold
+    print boolean
+    subset = ld[boolean.values]
+
+    #genes = list(ld['gene'][boolean])
+    genes = list(subset['gene'])
+
+    print genes
     
     #print genes
     candidates = []
@@ -287,7 +292,7 @@ def find_functionality(LD_matrix = 'LD_matrix_4_5_SM158.csv', compare = 'sorted_
     candidates_df = pd.DataFrame(candidates)
 
     name = ",".join(plasmid_type)
-    candidates_df.to_csv(name + genome + 'candidates.csv', header = True, sep = ',')
+    candidates_df.to_csv(name + genome + 'candidates_nod_genes.csv', header = True, sep = ',')
 
     # Where are those genes located in the other strains?
     df_locations, dict_locations2 = (gene_locations('sorted_genesSM147A_S13.csv'))
