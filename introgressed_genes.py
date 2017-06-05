@@ -17,12 +17,14 @@ from sys import argv
 if argv[1] == 'windows':
     snps_file='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/new_snps.HDF5'
     out_dir='C:/Users/MariaIzabel/Desktop/MASTER/PHD/Methods/Intergenic_LD/corrected_snps_test/'
+    meta_data = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'
 
 if argv[1] == 'mac':
     snps_file='/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5'
     out_dir='/Users/PM/Desktop/PHD_incomplete/Methods/Intergenic_LD/corrected_snps_test/'
+    meta_data = '/Users/PM/Desktop/PHD_incomplete/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'
 
-def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicode/scripts/Rhizobium_soiltypes_new.txt'):
+def parse_pop_map(file_name = meta_data):
     from itertools import izip
     
     pop_map = {}
@@ -33,7 +35,7 @@ def parse_pop_map(file_name = 'C:/Users/MariaIzabel/Desktop/MASTER/PHD/Bjarnicod
     return pop_map
 
 def kinship_all_genes(snps_file= snps_file,
-                 min_maf=0.05,
+                 min_maf=0.10,
                  max_strain_num=198):
     """
     Calculates the kinship. Our expectation is that will be close to identity matrix
@@ -52,7 +54,7 @@ def kinship_all_genes(snps_file= snps_file,
     ordered_strains = sorted(list(all_strains))
 
     strain_index = pd.Index(ordered_strains)
-    K_snps[strain_index, strain_index] = sp.zeros((num_strains, num_strains))
+    K_snps = sp.zeros((num_strains, num_strains))
     counts_mat_snps = sp.zeros((num_strains, num_strains))
 
     for i, gg in enumerate(gene_groups):
@@ -82,7 +84,7 @@ def kinship_all_genes(snps_file= snps_file,
     K_snps = K_snps / counts_mat_snps  # element-wise division
     print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
 
-    tuple_index_kinship = (K_snps, strain_mask)
+    tuple_index_kinship = (K_snps, ordered_strains)
 
     headers = list()
     maps = parse_pop_map()
@@ -90,12 +92,85 @@ def kinship_all_genes(snps_file= snps_file,
         headers.append( 'SM' +maps[i]['sara_id'])
 
     np.savetxt('strains_order.csv', headers,  delimiter=",", fmt='%s')
-    np.savetxt('kinship.csv', K_snps, fmt='%.18e', delimiter=',', header = str(headers))
+    np.savetxt('kinship_maf_01.csv', K_snps, fmt='%.18e', delimiter=',', header = ','.join(headers), comments="")
     # Saving as a compressed numpy file:
     #np.savez_compressed("{}/{}".format(kinship_matrix), matrix=snps, strains=strains, maf = maf) 
 
     return(tuple_index_kinship)
-#kinship_all_genes()
+
+def plot_dirty_PCA( figure_fn = 'pca.png', k_figure_fn = 'kinship_heatmap.png', title=None,
+                   figure_dir = '/project/NChain/faststorage/rhizobium/ld/figures',strains=None):
+    from scipy import linalg
+    
+    kinship_mat, strains = (kinship_all_genes())
+
+    evals, evecs = linalg.eig(kinship_mat)  #PCA via eigen decomp
+    evals[evals<0]=0
+    sort_indices = sp.argsort(evals,)
+    ordered_evals = evals[sort_indices]
+    print ordered_evals[-10:]/sp.sum(ordered_evals)
+    pc1,pc2 = evecs[:,sort_indices[-1]],evecs[:,sort_indices[-2]]
+    pl.clf()
+    
+
+    if strains is not None:    
+        ct_marker_map = {'DK':'*','UK':'^', 'F':'o'}
+        gs_color_map = {'gsA':'#386CB0','gsB':'#FB8072', 'gsC':'#1B9E77', 'gsE': '#F0027F', 'gsD': '#984EA3'}
+        pop_map = parse_pop_map()
+
+        print pop_map
+        for i, strain in enumerate(strains):
+            print i
+            d = pop_map.get(strain,'NA')
+            if d=='NA':
+                gs = 'NA'
+                country = 'NA'
+            else:
+                gs = d['genospecies']
+                country = d['country']
+            pl.scatter(pc1[i],pc2[i], marker=ct_marker_map[country], c=gs_color_map[gs], alpha=0.3, s=100, edgecolor='none')
+        for gs in gs_color_map:
+            pl.scatter([], [], color=gs_color_map[gs], marker = 's', label=gs, s=100, edgecolor='none')
+        for country in ct_marker_map:
+            if country !='NA':
+                pl.scatter([], [], color='k', marker = ct_marker_map[country], label=country, s=100, facecolors='none')
+
+        
+        pl.legend(scatterpoints=1)
+    
+    # Ploting Principal components    
+    else:
+        pl.plot(pc1,pc2,'k.')
+    if title is not None:
+        pl.title(title)
+    pl.xlabel('PC1')
+    pl.xlabel('PC2')
+    pl.tight_layout()
+    pl.savefig('test',format='pdf')
+    pl.clf()
+    pl.imshow(kinship_mat, cmap='hot', interpolation='nearest')
+
+    # Ploting the variance explained by each PC 
+    tot = sum(evals)
+    var_exp = [(i / tot)*100 for i in sorted(evals, reverse=True)]
+    np.savetxt('test.out', var_exp, delimiter=',') 
+    cum_var_exp = np.cumsum(var_exp)
+    print cum_var_exp
+
+    # Ploting the cumulative variance explained
+    with pl.style.context('seaborn-whitegrid'):
+        pl.figure(figsize=(6, 6))
+        pl.bar(range(198), var_exp, alpha= 1, align='center', label='individual explained variance')
+        pl.step(range(198), cum_var_exp, where='mid', label='cumulative explained variance')
+        pl.ylabel('Explained variance ratio')
+        pl.xlabel('Principal components')
+        pl.legend(loc='best')
+        #plt.tight_layout()
+        pl.savefig('variance_explained_PC1234')
+        pl.show()
+
+    #pylab.savefig(figure_dir+'/'+k_figure_fn)
+plot_dirty_PCA()
 
 
 def gene_locations( ):
@@ -145,21 +220,27 @@ def kinship_pseudo_genes(directory = out_dir,
 
     for gene in genes:
         name, snps, strain_mask = (gene)
+        K_snps_slice = K_snps[strain_mask]
+        K_snps_slice[:, strain_mask] += sp.dot(snps, snps.T)
+        K_snps[strain_mask] = K_snps_slice
+        counts_mat_snps_slice = counts_mat_snps[strain_mask]
+        counts_mat_snps_slice[:, strain_mask] += len(snps)
+        counts_mat_snps[strain_mask] = counts_mat_snps_slice
 
-        K_snps += np.dot(snps, snps.T) / snps.shape[0]
+        if len(strain_mask) == 198:
+            final_strain_mask = strain_mask 
 
-    # Divide it by half of the number of genes:
-    K_snps = K_snps / (len(genes)/2)
-
+    K_snps = K_snps / counts_mat_snps  # element-wise division
     print 'The mean of the GRM diagonal is %f' % np.mean(np.diag(K_snps))
 
-    pl.matshow(K_snps)
-    pl.title('Kinship pseudo genes')
-    pl.colorbar()
-    pl.savefig('kinship_pseudo_genes.pdf')
+    ##pl.matshow(K_snps)
+    #pl.title('Kinship pseudo genes')
+    #pl.colorbar()
+    #pl.savefig('kinshi_pseudo_genes.png')
     #pl.show()
 
-    return(K_snps)
+    return(final_strain_mask, K_snps)
+
 
 def simple_tracy_widow(matrix, PCS = 5):
     '''Decompose the covariance matrix of each gene and extract the sum over the first eigenvalues (PCs)'''
@@ -179,7 +260,7 @@ def kinship_versus_corrected_genes(directory = out_dir):
     os.chdir(directory)
 
 	# Upload overall kinship matrix
-    kinship = (kinship_pseudo_genes())
+    k_strains, kinship = (kinship_pseudo_genes())
 
 	#This is the gene SNPs matrix
     genes = []
@@ -193,7 +274,7 @@ def kinship_versus_corrected_genes(directory = out_dir):
     n_snps = []
     n_members = []
     origin = [] 
-    locations = gene_locations()
+    #locations = gene_locations()
     print len(genes)
     for gene in genes:
 
@@ -206,6 +287,8 @@ def kinship_versus_corrected_genes(directory = out_dir):
 
 		# Construct GRM for a singular gene
         grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[0])
+        grm_1.np.setdiag(0)
+        grm_1.np.eliminate_zeros()
 
         # Simple trace-widow: measure of variance
         #print simple_tracy_widow(norm_flat_grm2)
@@ -217,7 +300,10 @@ def kinship_versus_corrected_genes(directory = out_dir):
         norm_flat_grm1 = norm_flat_grm1 / sp.sqrt(sp.dot(norm_flat_grm1, norm_flat_grm1))
 		
 		# Overall kinship (which is the identity matrix)
-        grm_2 = kinship 
+        grm_2 = kinship[strain_mask_2, :]
+        grm_2 = grm_2[:, strain_mask_2]
+        grm_2.np.setdiag(0)
+        grm_2.np.eliminate_zeros()
 
         flat_grm_2 = grm_2.flatten()
         norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
@@ -246,11 +332,11 @@ def kinship_versus_corrected_genes(directory = out_dir):
             n_members.append(snps.shape[0])
 
             # Finding the gene location
-            if gene[0][:-4] in locations.keys():
+            #if gene[0][:-4] in locations.keys():
                 #print locations[gene[0][:-4]]
-                origin.append(locations[gene[0][:-4]])
-            else:
-                origin.append(0)
+                #origin.append(locations[gene[0][:-4]])
+            #else:
+                #origin.append(0)
 
     # 1 statistic:
     # suming up the square of the values off the diagonal (to be close to the identity matrix) 
@@ -271,4 +357,4 @@ def kinship_versus_corrected_genes(directory = out_dir):
     LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name, 'snps': n_snps, 'members': n_members, 'origin': origin})
     LD_stats.to_csv('introgressed_gene_stats_test_2.csv', header = True)
 
-kinship_versus_corrected_genes()
+#kinship_versus_corrected_genes()
