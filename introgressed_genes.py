@@ -8,6 +8,7 @@ import scipy as sp
 import pandas as pd
 import os
 import glob 
+import math
 from scipy.stats.stats import pearsonr
 import pylab as pl
 from numpy import linalg
@@ -170,40 +171,7 @@ def plot_dirty_PCA( figure_fn = 'pca.png', k_figure_fn = 'kinship_heatmap.png', 
         pl.show()
 
     #pylab.savefig(figure_dir+'/'+k_figure_fn)
-plot_dirty_PCA()
-
-
-def gene_locations( ):
-
-    # Make a dictionary that contains a gene and it respective location, based on the gene scaffold analysis
-    # 1. Open the csv files containing the genes and their scaffolds origins 
-    # 2. Make a dictionary where each gene will have a specific origin
-    # 3. Combine this origin with the mantel results: nod genes versus all ( Mantel_test_nod_all_core)
-    df1 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_0_1000.csv', sep=',', header = 0, index_col = 0)
-    df2 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_1001_2000.csv', sep=',', header = 0, index_col = 0)
-    df3 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_2001_3000.csv', sep=',', header = 0, index_col = 0)
-    df4 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_3001_4000.csv', sep=',', header = 0, index_col = 0)
-    df5 = pd.read_csv('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain/Gene_locations_4001_4307.csv', sep=',', header = 0, index_col = 0)
-
-    frames = [df1, df2, df3, df4, df5]
-
-    df = pd.concat(frames, axis = 1)
-
-    # Making the location dictionary: keys are genes and values are plasmid origin: 
-    locations = {}
-
-    for column in df:
-        # Taking the mode of each gene location:
-        all_locations = df[column].tolist()
-        origin = max(set(all_locations), key=all_locations.count)
-        #print origin
-
-        if column not in locations:
-            locations[column] = origin
-        else:
-            locations[column].append(origin)
-    return locations
-
+#plot_dirty_PCA()
 
 def kinship_pseudo_genes(directory = out_dir,
                         num_strains = 198):
@@ -246,10 +214,53 @@ def simple_tracy_widow(matrix, PCS = 5):
     '''Decompose the covariance matrix of each gene and extract the sum over the first eigenvalues (PCs)'''
     evals, evecs = (linalg.eigh(matrix))
 
+    sorted_evals = sorted(evals)
     # This give us an estimator of the variance explained by the gene
-    variance_explained = evals[0:PCS]
+    variance_explained = sorted_evals[0:PCS]
 
     return(sum(variance_explained))
+
+def nucleotide_diversity_JC(array1, array2):
+    ''' Equation 3.8 'Molecular Evolution and phylogenetics (Nei and Kumar): correcting for multiple hits'''    
+    N = len(array1)
+    numDiffs = 0
+    for i in xrange(N):
+        if array1[i]!=array2[i]:
+            numDiffs += 1
+    #if (numDiffs == 0):
+    #    distance = 0.0
+    #else:
+    #    distance = -0.75*math.log(1 - (4.0 / 3.0) * (float(numDiffs) / N)) 
+    return float(numDiffs) / N
+
+
+def nucleotide_diversity(snps_hdf5_file = '/Users/PM/Desktop/PHD_incomplete/Bjarnicode/new_snps.HDF5', 
+                                 seq_file = '/Users/PM/Desktop/PHD_incomplete/Bjarnicode/snps.hdf5',
+                                 geno_species=['gsA', 'gsA'], bin_size=0.2,
+                                 gt_hdf5_file= '/Users/PM/Desktop/PHD_incomplete/Bjarnicode/snps.hdf5',
+                                 distance_method= 'normal', gene = '3097'):
+
+
+    h5f = h5py.File(gt_hdf5_file)
+    print h5f.keys()
+    ag = h5f['alignments']
+
+    phi_rho = list()
+    g1 = ag[gene]
+    for ind1 in zip(g1['nsequences'], g1['strains']): # sequences are in the first entry
+        for ind2 in zip(g1['nsequences'], g1['strains']):
+            
+            # do not calculate the diagonal
+            if ind1[1][:4] != ind2[1][:4]:
+                phi_rho.append(nucleotide_diversity_JC(ind1[0], ind2[0]))
+
+    # Stats         
+    # Calculating the average pairwise differences
+    individual_mean = sum(phi_rho)/len(phi_rho)
+    print individual_mean
+    return individual_mean
+
+#print nucleotide_diversity(gene = '2939')
 
 
 def kinship_versus_corrected_genes(directory = out_dir):
@@ -272,8 +283,8 @@ def kinship_versus_corrected_genes(directory = out_dir):
     gene_name = []
     original_name = []
     n_snps = []
-    n_members = []
-    origin = [] 
+    tracy_variance = []
+    n_diversity = []
     #locations = gene_locations()
     print len(genes)
     for gene in genes:
@@ -287,12 +298,6 @@ def kinship_versus_corrected_genes(directory = out_dir):
 
 		# Construct GRM for a singular gene
         grm_1 = np.divide(np.dot(snps, snps.T), snps.shape[0])
-        grm_1.np.setdiag(0)
-        grm_1.np.eliminate_zeros()
-
-        # Simple trace-widow: measure of variance
-        #print simple_tracy_widow(norm_flat_grm2)
-        print simple_tracy_widow(grm_1)
 
         flat_grm_1 = grm_1.flatten()
         norm_flat_grm1 = flat_grm_1 - flat_grm_1.mean()
@@ -302,8 +307,6 @@ def kinship_versus_corrected_genes(directory = out_dir):
 		# Overall kinship (which is the identity matrix)
         grm_2 = kinship[strain_mask_2, :]
         grm_2 = grm_2[:, strain_mask_2]
-        grm_2.np.setdiag(0)
-        grm_2.np.eliminate_zeros()
 
         flat_grm_2 = grm_2.flatten()
         norm_flat_grm2 = flat_grm_2 - flat_grm_2.mean()
@@ -314,10 +317,16 @@ def kinship_versus_corrected_genes(directory = out_dir):
         corr = pearsonr(flat_grm_1, flat_grm_2)[0]
         
         if corr > 0:
+                    # Simple trace-widow: measure of variance
+        #print simple_tracy_widow(norm_flat_grm2)
+            tracy_variance.append(simple_tracy_widow(grm_1))
+            
             r_scores.append(corr)
             name = gene[0][:-4]
             original_name.append(name)
             name = name[5:]
+            print name
+            n_diversity.append(nucleotide_diversity( gene = str(name)))
 
             if int(name) in nod_genes.keys():
                 print nod_genes[int(name)]
@@ -329,7 +338,6 @@ def kinship_versus_corrected_genes(directory = out_dir):
             n_snps.append(snps.shape[1])
 
             # Number of members 
-            n_members.append(snps.shape[0])
 
             # Finding the gene location
             #if gene[0][:-4] in locations.keys():
@@ -352,9 +360,9 @@ def kinship_versus_corrected_genes(directory = out_dir):
     # Count the number of snps in each gene and make a distribution
     # Colour by number of snps and by locations
 
-    os.chdir('C:/Users/MariaIzabel/Desktop/MASTER/PHD/nchain')
+    os.chdir('/Users/PM/Desktop/PHD_incomplete/nchain')
     np.save('gene_groups_mantel.npy', original_name)
-    LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name, 'snps': n_snps, 'members': n_members, 'origin': origin})
+    LD_stats = pd.DataFrame({'r_scores': r_scores,'gene':gene_name, 'snps': n_snps, 'tracy_variance': tracy_variance, 'pi' : n_diversity})
     LD_stats.to_csv('introgressed_gene_stats_test_2.csv', header = True)
 
-#kinship_versus_corrected_genes()
+kinship_versus_corrected_genes()
